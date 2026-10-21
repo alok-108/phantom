@@ -29,7 +29,7 @@ classifiers = [
 
 [project.optional-dependencies]
 llm = [
-    "google-genai>=1.0.0",
+    "google-genai>=2.31.0",
 ]
 dev = [
     "pytest>=7.0",
