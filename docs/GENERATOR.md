@@ -48,8 +48,12 @@ Then compare:
 
 ```bash
 phantom diff program.py candidate.py
+phantom diff --host-only program.py candidate.py
 phantom verify program.py candidate.py     # executes BOTH files — only for code you trust
 ```
+
+`phantom diff --host-only` excludes the Phantom instruction layer using the existing host-layer diff helper. It only reads the files; it does not execute or modify either program. An empty diff indicates unchanged host text, not verified runtime equivalence. Without the flag, `phantom diff` continues to compare the complete source files.
+
 
 Running the candidate is a separate, explicit step by you (`phantom run candidate.py`).
 

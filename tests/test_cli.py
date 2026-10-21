@@ -311,3 +311,38 @@ def test_cli_generate_allow_remote_builds_provider(capsys, monkeypatch):
     _, err = capsys.readouterr()
     assert "stub provider failure" in err
     assert len(calls) == 1
+
+
+@pytest.mark.parametrize("changed_host", [False, True])
+def test_cli_diff_host_only(capsys, tmp_path, changed_host):
+    original = tmp_path / "original.py"
+    candidate = tmp_path / "candidate.py"
+    first = '#: phantom:0.1.0 meta.author("original")\nprint("one")\n'
+    second = '#: phantom:0.1.0 meta.author("candidate")\nprint("two")\n'
+    if not changed_host:
+        second = second.replace('print("two")', 'print("one")')
+    original.write_text(first, encoding="utf-8")
+    candidate.write_text(second, encoding="utf-8")
+    assert main(["diff", "--host-only", str(original), str(candidate)]) == 0
+    out, err = capsys.readouterr()
+    assert err == ""
+    assert "meta.author" not in out
+    if changed_host:
+        assert '-print("one")' in out
+        assert '+print("two")' in out
+    else:
+        assert out == ""
+    assert original.read_text(encoding="utf-8") == first
+    assert candidate.read_text(encoding="utf-8") == second
+
+
+def test_cli_default_diff_keeps_instruction_changes(capsys, tmp_path):
+    original = tmp_path / "original.py"
+    candidate = tmp_path / "candidate.py"
+    original.write_text('#: phantom:0.1.0 meta.author("original")\nprint(1)\n')
+    candidate.write_text('#: phantom:0.1.0 meta.author("candidate")\nprint(1)\n')
+    assert main(["diff", str(original), str(candidate)]) == 0
+    out, err = capsys.readouterr()
+    assert err == ""
+    assert '-#: phantom:0.1.0 meta.author("original")' in out
+    assert '+#: phantom:0.1.0 meta.author("candidate")' in out
