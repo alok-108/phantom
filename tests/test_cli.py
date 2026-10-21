@@ -146,9 +146,55 @@ def test_cli_run_invalid_timeout(capsys):
     assert "--timeout" in err_before.lower()
 
     ret_bad_val = main(["run", str(target), "--timeout", "invalid"])
-    assert ret_bad_val == 1
+    assert ret_bad_val == 2
     _, err_bad_val = capsys.readouterr()
     assert "--timeout" in err_bad_val.lower()
+
+
+def test_cli_run_non_finite_timeout(capsys):
+    target = FIXTURES_DIR / "valid_plain.py"
+    for val in ("nan", "inf"):
+        ret = main(["run", str(target), "--timeout", val])
+        assert ret == 1
+        _, err = capsys.readouterr()
+        assert "--timeout must be positive" in err
+        assert "Traceback" not in err
+
+    for val in ("nan", "inf", "-inf"):
+        ret_eq = main(["run", str(target), f"--timeout={val}"])
+        assert ret_eq == 1
+        _, err_eq = capsys.readouterr()
+        assert "--timeout must be positive" in err_eq
+        assert "Traceback" not in err_eq
+
+
+def test_cli_run_timeout_equals_syntax(capsys, tmp_path):
+    script = tmp_path / "sleep_host.py"
+    script.write_text("import time; time.sleep(5)\n")
+    ret = main(["run", str(script), "--timeout=0.5"])
+    assert ret == 124
+    _, err = capsys.readouterr()
+    assert "timed out" in err.lower()
+
+
+def test_cli_run_host_args_with_resembling_timeout(capsys, tmp_path):
+    script = tmp_path / "echo_args.py"
+    script.write_text("import sys; print(sys.argv[1:])\n")
+    ret = main(["run", str(script), "--", "--timeout", "5"])
+    assert ret == 0
+    out, err = capsys.readouterr()
+    assert "['--timeout', '5']" in out
+    assert "Traceback" not in err
+
+
+def test_cli_run_host_args_without_dash_dash(capsys, tmp_path):
+    script = tmp_path / "echo_args.py"
+    script.write_text("import sys; print(sys.argv[1:])\n")
+    ret = main(["run", str(script), "a", "b"])
+    assert ret == 0
+    out, err = capsys.readouterr()
+    assert "['a', 'b']" in out
+    assert "Traceback" not in err
 
 
 def test_cli_run_timeout_with_host_args(capsys, tmp_path):

@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import json
+import math
 import os
 import sys
 from typing import Any
@@ -196,59 +197,14 @@ def cmd_run(args: argparse.Namespace) -> int:
         return 1
 
     timeout = getattr(args, "timeout", 30.0)
-
-    # Extract extra arguments for host program
-    host_args: list[str] = []
-    if args.host_args:
-        raw_args = list(args.host_args)
-        if "--" in raw_args:
-            idx = raw_args.index("--")
-            before_dash = raw_args[:idx]
-            after_dash = raw_args[idx + 1:]
-        else:
-            before_dash = raw_args
-            after_dash = []
-
-        remaining_before: list[str] = []
-        i = 0
-        while i < len(before_dash):
-            item = before_dash[i]
-            if item == "--timeout":
-                if i + 1 >= len(before_dash):
-                    print("Error: --timeout requires an argument", file=sys.stderr)
-                    return 1
-                try:
-                    timeout = float(before_dash[i + 1])
-                except ValueError:
-                    print(
-                        f"Error: --timeout must be a valid number, got '{before_dash[i + 1]}'",
-                        file=sys.stderr,
-                    )
-                    return 1
-                i += 2
-            elif item.startswith("--timeout="):
-                val_str = item.split("=", 1)[1]
-                try:
-                    timeout = float(val_str)
-                except ValueError:
-                    print(
-                        f"Error: --timeout must be a valid number, got '{val_str}'",
-                        file=sys.stderr,
-                    )
-                    return 1
-                i += 1
-            else:
-                remaining_before.append(item)
-                i += 1
-
-        if after_dash or "--" in raw_args:
-            host_args = remaining_before + after_dash
-        else:
-            host_args = remaining_before
-
-    if timeout <= 0:
+    if not math.isfinite(timeout) or timeout <= 0:
         print("Error: --timeout must be positive", file=sys.stderr)
         return 1
+
+    # Extract extra arguments for host program
+    host_args = list(args.host_args or [])
+    if host_args and host_args[0] == "--":
+        host_args = host_args[1:]
 
     print(f"=== Phantom Runtime v{__version__} ===")
 
@@ -606,7 +562,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     run_p.add_argument(
         "host_args",
-        nargs=argparse.REMAINDER,
+        nargs="*",
         help="Arguments passed to the host program (use '--' before args if needed)",
     )
 
@@ -672,10 +628,21 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
 
+    if "--" in argv:
+        dash_idx = argv.index("--")
+        parse_argv = argv[:dash_idx]
+        dash_args = argv[dash_idx + 1 :]
+    else:
+        parse_argv = argv
+        dash_args = None
+
     try:
-        args = parser.parse_args(argv)
+        args = parser.parse_args(parse_argv)
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 0
+
+    if dash_args is not None and getattr(args, "command", None) == "run":
+        args.host_args = (getattr(args, "host_args", None) or []) + dash_args
 
     if args.command == "check":
         return cmd_check(args)
