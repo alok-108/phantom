@@ -14,6 +14,7 @@ Thanks to @jez-elijah (tests for `generate --stdin`, prompts and consent, #39) a
 ### Added
 - README demo and "Why / Try it" sections, a generated terminal demo and social preview image (`scripts/build_assets.py`), and a welcome workflow that greets first-time contributors.
 - `phantom diff --host-only` compares the Python host layer without Phantom instructions, without executing or modifying either file.
+- CLI: `--timeout` option for `phantom run` to configure host program execution timeout (defaults to 30.0s).
 - Discoverability: README badges and a "contributors welcome" banner, a dev container for Codespaces, private vulnerability reporting, pinned starter issues, and a welcome discussion.
 - Maintainer and community files: `MAINTAINERS.md`, `.github/CODEOWNERS`, `.github/dependabot.yml`, `docs/RELEASING.md`, and architecture decision records in `docs/adr/`.
 - Contributor tooling: `docs/CONTRIBUTOR_GUIDE.md` (how to add instructions, encodings, providers, experiments), a rewritten `CONTRIBUTING.md`, issue templates (bug, feature, language proposal, research proposal), a pull request template, and a proposal template (`docs/proposals/0000-template.md`).

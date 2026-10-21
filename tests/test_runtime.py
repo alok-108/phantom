@@ -206,3 +206,12 @@ def test_runtime_execute_host_lifecycle():
 
     runtime.shutdown()
     assert len(shutdown_fired) == 1
+
+
+def test_runtime_execute_host_timeout(tmp_path):
+    script = tmp_path / "sleep_script.py"
+    script.write_text("import time; time.sleep(5)\n")
+    runtime = PhantomRuntime()
+    res = runtime.execute_host(str(script), timeout=0.2)
+    assert res.exit_code == 124
+    assert "timed out" in res.stderr.lower()

@@ -182,7 +182,10 @@ class PhantomRuntime:
         return errors
 
     def execute_host(
-        self, host_file: str, args: list[str] | None = None
+        self,
+        host_file: str,
+        args: list[str] | None = None,
+        timeout: float = 30.0,
     ) -> HostResult:
         """Run the host Python program in a subprocess.
 
@@ -201,7 +204,7 @@ class PhantomRuntime:
         # Fire pre-execute lifecycle event
         self.fire_event("phantom.pre_execute", host_file=host_file, args=args or [])
 
-        result = execute_host_program(host_file, args=args)
+        result = execute_host_program(host_file, args=args, timeout=timeout)
 
         # Fire post-execute lifecycle event
         self.fire_event("phantom.post_execute", host_file=host_file, result=result)

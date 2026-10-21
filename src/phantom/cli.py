@@ -195,13 +195,60 @@ def cmd_run(args: argparse.Namespace) -> int:
         print(f"Error: File not found: '{filepath}'", file=sys.stderr)
         return 1
 
+    timeout = getattr(args, "timeout", 30.0)
+
     # Extract extra arguments for host program
     host_args: list[str] = []
     if args.host_args:
         raw_args = list(args.host_args)
-        if raw_args and raw_args[0] == "--":
-            raw_args = raw_args[1:]
-        host_args = raw_args
+        if "--" in raw_args:
+            idx = raw_args.index("--")
+            before_dash = raw_args[:idx]
+            after_dash = raw_args[idx + 1:]
+        else:
+            before_dash = raw_args
+            after_dash = []
+
+        remaining_before: list[str] = []
+        i = 0
+        while i < len(before_dash):
+            item = before_dash[i]
+            if item == "--timeout":
+                if i + 1 >= len(before_dash):
+                    print("Error: --timeout requires an argument", file=sys.stderr)
+                    return 1
+                try:
+                    timeout = float(before_dash[i + 1])
+                except ValueError:
+                    print(
+                        f"Error: --timeout must be a valid number, got '{before_dash[i + 1]}'",
+                        file=sys.stderr,
+                    )
+                    return 1
+                i += 2
+            elif item.startswith("--timeout="):
+                val_str = item.split("=", 1)[1]
+                try:
+                    timeout = float(val_str)
+                except ValueError:
+                    print(
+                        f"Error: --timeout must be a valid number, got '{val_str}'",
+                        file=sys.stderr,
+                    )
+                    return 1
+                i += 1
+            else:
+                remaining_before.append(item)
+                i += 1
+
+        if after_dash or "--" in raw_args:
+            host_args = remaining_before + after_dash
+        else:
+            host_args = remaining_before
+
+    if timeout <= 0:
+        print("Error: --timeout must be positive", file=sys.stderr)
+        return 1
 
     print(f"=== Phantom Runtime v{__version__} ===")
 
@@ -242,7 +289,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             print(f"[RuntimeWarning] {r_err}", file=sys.stderr)
 
     # Execute host program
-    host_res = runtime.execute_host(filepath, args=host_args)
+    host_res = runtime.execute_host(filepath, args=host_args, timeout=timeout)
 
     # Shutdown runtime
     runtime.shutdown()
@@ -551,6 +598,12 @@ def create_parser() -> argparse.ArgumentParser:
         "run", help="Validate and run host program with Phantom runtime"
     )
     run_p.add_argument("file", help="Source file to run")
+    run_p.add_argument(
+        "--timeout",
+        type=float,
+        default=30.0,
+        help="Host program timeout in seconds (default: 30.0)",
+    )
     run_p.add_argument(
         "host_args",
         nargs=argparse.REMAINDER,

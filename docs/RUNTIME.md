@@ -1,6 +1,6 @@
 # Runtime
 
-`phantom run FILE [-- HOST_ARGS]` is the only way Phantom instructions take effect. Standard `python FILE` ignores them.
+`phantom run FILE [--timeout SECONDS] [-- HOST_ARGS]` is the only way Phantom instructions take effect. Standard `python FILE` ignores them.
 
 ## Lifecycle
 
@@ -11,12 +11,12 @@
 | 3 | Create the runtime with the default capability grant. |
 | 4 | **Initialise**: apply every instruction in source order (declare events, register handlers, create/increment counters, record notes and metadata). Runtime errors here are printed as `[RuntimeWarning]` on stderr and do not stop the run. |
 | 5 | Fire `phantom.pre_execute(host_file, args)`. |
-| 6 | Run the host as a subprocess: `sys.executable FILE ARGS…`, UTF-8, 30-second timeout. |
+| 6 | Run the host as a subprocess: `sys.executable FILE ARGS…`, UTF-8, timeout (default 30 seconds, configurable with `--timeout`). |
 | 7 | Fire `phantom.post_execute(host_file, result)`. |
 | 8 | Fire `phantom.shutdown()`. |
 | 9 | Print the host's captured stdout and stderr, then Phantom diagnostics. **Exit with the host's exit code** (124 if it timed out). |
 
-Exit codes: `0` success, `1` file missing/unreadable, `2` validation failed, otherwise the host's code.
+Exit codes: `0` success, `1` file missing/unreadable or invalid `--timeout`, `2` validation failed, otherwise the host's code.
 
 ### Instructions are applied at initialisation
 

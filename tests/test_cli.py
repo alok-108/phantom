@@ -110,6 +110,56 @@ def test_cli_run_invalid(capsys):
     assert "Validation failed" in err
 
 
+def test_cli_run_timeout(capsys, tmp_path):
+    script = tmp_path / "sleep_host.py"
+    script.write_text("import time; time.sleep(5)\n")
+    ret = main(["run", str(script), "--timeout", "0.5"])
+    assert ret == 124
+    _, err = capsys.readouterr()
+    assert "timed out" in err.lower()
+
+
+def test_cli_run_timeout_before_file(capsys, tmp_path):
+    script = tmp_path / "sleep_host.py"
+    script.write_text("import time; time.sleep(5)\n")
+    ret = main(["run", "--timeout", "0.5", str(script)])
+    assert ret == 124
+    _, err = capsys.readouterr()
+    assert "timed out" in err.lower()
+
+
+def test_cli_run_invalid_timeout(capsys):
+    target = FIXTURES_DIR / "valid_plain.py"
+    ret = main(["run", str(target), "--timeout", "0"])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "--timeout" in err.lower()
+
+    ret_neg = main(["run", str(target), "--timeout", "-1"])
+    assert ret_neg == 1
+    _, err_neg = capsys.readouterr()
+    assert "--timeout" in err_neg.lower()
+
+    ret_before = main(["run", "--timeout", "0", str(target)])
+    assert ret_before == 1
+    _, err_before = capsys.readouterr()
+    assert "--timeout" in err_before.lower()
+
+    ret_bad_val = main(["run", str(target), "--timeout", "invalid"])
+    assert ret_bad_val == 1
+    _, err_bad_val = capsys.readouterr()
+    assert "--timeout" in err_bad_val.lower()
+
+
+def test_cli_run_timeout_with_host_args(capsys, tmp_path):
+    script = tmp_path / "args_host.py"
+    script.write_text("import sys; print(','.join(sys.argv[1:]))\n")
+    ret = main(["run", str(script), "--timeout", "10", "--", "alpha", "beta"])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    assert "alpha,beta" in out
+
+
 def test_cli_generate_requires_intent_noninteractive(capsys):
     target = FIXTURES_DIR / "valid_plain.py"
     ret = main(["generate", str(target)])
