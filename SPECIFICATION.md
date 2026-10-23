@@ -63,7 +63,7 @@ Rules:
 | `counter.create` | `name: string`, `limit: integer` | `cap.counters` | Executable |
 | `counter.increment` | `name: string` | `cap.counters` | Executable |
 | `meta.author` | `name: string` | `cap.metadata` | Metadata only |
-| `meta.license` | `spdx: string | `cap.metadata` | Metadata only |
+| `meta.license` | `spdx: string `| `cap.metadata` | Metadata only |
 | `meta.version` | `version: string` | `cap.metadata` | Metadata only |
 
 "Executable" means the runtime performs an action; it never means Python code is evaluated. Unknown identifiers are a parse error and are never dispatched.
@@ -89,7 +89,7 @@ Record the author's name. A second instruction of the same kind is a *warning*.
 ### 5.7 `meta.version(version)`
 Record the version string. A second instruction of the same kind is a *warning*.
 
-### 5.8 `meta.license(identifier)`
+### 5.8 `meta.license(spdx)`
 Record the SPDX license identifier (e.g., `"MIT"`). A second instruction of the same kind is a *warning*.
 
 ### 5.9 Built-in events
