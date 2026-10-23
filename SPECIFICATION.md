@@ -48,7 +48,7 @@ ws0 = { space | tab }     ws1 = space | tab, { space | tab }
 
 Rules:
 
-- The instruction **MUST** occupy the whole line. A trailing comment, code before `#:`, or a `#:` inside a string literal makes the line ordinary source.
+- The instruction **MUST** occupy the whole line. A trailing comment, code before `#:`, or a `#:` inside a string literal makes the line ordinary source (a trailing comment after an otherwise complete instruction is reported as a warning). A line that begins with `#: phantom:` but does not match the grammar (missing parenthesis, no argument list, ...) is a parse error, so typos are never silently ignored.
 - The space after `#:` is optional.
 - Arguments are literals only. Expressions (`1+1`, `"a"+"b"`), names, calls and nesting are a parse error.
 - Integer literals and version components use ASCII decimal digits (`0`–`9`) only. Unicode digits, including Arabic-Indic and fullwidth digits, are not numeric syntax; they remain allowed inside string literals. An otherwise complete comment instruction with a malformed version produces a parse error rather than being ignored.

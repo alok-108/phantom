@@ -124,7 +124,12 @@ def validate(program: PhantomProgram) -> list[ValidationError]:
 
 # Bidirectional controls enable "Trojan Source" style display tricks.
 _BIDI_CONTROLS = frozenset(
-    "‪‫‬‭‮⁦⁧⁨⁩‎‏"
+    chr(codepoint)
+    for codepoint in (
+        0x200E, 0x200F,  # LRM, RLM
+        0x202A, 0x202B, 0x202C, 0x202D, 0x202E,  # LRE, RLE, PDF, LRO, RLO
+        0x2066, 0x2067, 0x2068, 0x2069,  # LRI, RLI, FSI, PDI
+    )
 )
 
 

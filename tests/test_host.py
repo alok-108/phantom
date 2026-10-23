@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 from phantom.host import HostResult, execute_host_program
@@ -43,3 +44,45 @@ def test_execute_host_program_timeout(tmp_path):
     res = execute_host_program(str(script), timeout=0.2)
     assert res.exit_code == 124
     assert "timed out" in res.stderr.lower()
+
+
+_GRANDCHILD = (
+    "import subprocess, sys, time\n"
+    "subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'])\n"
+    "print('started', flush=True)\n"
+)
+
+
+def test_timeout_kills_children_that_hold_the_pipes(tmp_path):
+    script = tmp_path / "parent_sleeps.py"
+    script.write_text(_GRANDCHILD + "time.sleep(60)\n")
+
+    started = time.perf_counter()
+    res = execute_host_program(str(script), timeout=1.5)
+    elapsed = time.perf_counter() - started
+
+    assert res.exit_code == 124
+    assert "timed out" in res.stderr.lower()
+    assert "started" in res.stdout
+    assert elapsed < 15, f"timeout was not enforced: returned after {elapsed:.1f}s"
+
+
+def test_timeout_kills_orphans_after_the_parent_exited(tmp_path):
+    script = tmp_path / "parent_exits.py"
+    script.write_text(_GRANDCHILD)
+
+    started = time.perf_counter()
+    res = execute_host_program(str(script), timeout=1.5)
+    elapsed = time.perf_counter() - started
+
+    assert "started" in res.stdout
+    assert elapsed < 15, f"timeout was not enforced: returned after {elapsed:.1f}s"
+
+
+def test_partial_output_is_kept_on_timeout(tmp_path):
+    script = tmp_path / "partial.py"
+    script.write_text("import time\nprint('before', flush=True)\ntime.sleep(30)\n")
+
+    res = execute_host_program(str(script), timeout=1.0)
+    assert res.exit_code == 124
+    assert "before" in res.stdout

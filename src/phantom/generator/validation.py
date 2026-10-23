@@ -26,8 +26,15 @@ class CandidateReport:
         return self.host_syntax_valid and self.phantom_valid and self.host_preserved
 
 
-def validate_candidate(original: str, candidate: str) -> CandidateReport:
-    """Check that a candidate parses, validates, and leaves host code untouched."""
+def validate_candidate(
+    original: str, candidate: str, expected_added: int | None = None
+) -> CandidateReport:
+    """Check that a candidate parses, validates, and leaves host code untouched.
+
+    When `expected_added` is given, the candidate must also contain exactly that many
+    more Phantom instructions than the original (an instruction that was written but
+    cannot be read back is a failure, not a success).
+    """
     report = CandidateReport()
 
     try:
@@ -41,6 +48,17 @@ def validate_candidate(original: str, candidate: str) -> CandidateReport:
     for f in findings:
         (report.errors if f.severity == Severity.ERROR else report.warnings).append(str(f))
     report.phantom_valid = not any(f.severity == Severity.ERROR for f in findings)
+
+    if expected_added is not None:
+        before = len(parse(original, "<original>").instructions)
+        found = len(program.instructions)
+        if found != before + expected_added:
+            report.phantom_valid = False
+            report.errors.append(
+                f"Candidate contains {found} Phantom instruction(s) but {before + expected_added} "
+                f"were expected ({before} existing + {expected_added} planned); "
+                "an inserted instruction could not be read back"
+            )
 
     if report.host_syntax_valid:
         try:

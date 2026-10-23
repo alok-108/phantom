@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 
@@ -308,6 +310,211 @@ def test_runtime_license_metadata_after_initialize():
     assert errors == []
 
     assert runtime.get_metadata("license") == "MIT"
+def _instruction(instruction_type, *values):
+    """Build runtime inputs directly, including arguments validation would reject."""
+    return PhantomInstruction(
+        type=instruction_type,
+        arguments=tuple(
+            Argument(
+                type=ArgumentType.INTEGER if isinstance(value, int) else ArgumentType.STRING,
+                value=value,
+            )
+            for value in values
+        ),
+        source=SourceLocation(file="runtime_test.py", line=1),
+    )
+
+
+def test_runtime_initialize_skips_denied_instruction_and_continues():
+    runtime = PhantomRuntime(CapabilityGrant([Capability.METADATA]))
+    program = PhantomProgram(instructions=[
+        _instruction(InstructionType.EVENT_DECLARE, "denied"),
+        _instruction(InstructionType.META_AUTHOR, "allowed"),
+    ])
+
+    errors = runtime.initialize(program)
+
+    assert len(errors) == 1
+    assert isinstance(errors[0], RuntimeError)
+    assert str(errors[0]) == (
+        "Instruction 'event.declare' requires capabilities [cap.events], which are not granted."
+    )
+    assert "denied" not in runtime.get_state()["events"]
+    assert runtime.get_metadata("author") == "allowed"
+
+
+@pytest.mark.parametrize("values", [(), ("",)])
+def test_runtime_initialize_event_declare_requires_name(values):
+    runtime = PhantomRuntime()
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.EVENT_DECLARE, *values),
+    ]))
+
+    assert [str(error) for error in errors] == [
+        "event.declare requires a non-empty name argument",
+    ]
+    assert set(runtime.get_state()["events"]) == {
+        "phantom.pre_execute", "phantom.post_execute", "phantom.shutdown",
+    }
+
+
+@pytest.mark.parametrize("values", [(), ("ready",), ("", "module.handler"), ("ready", "")])
+def test_runtime_initialize_event_on_requires_event_and_handler(values):
+    runtime = PhantomRuntime()
+    runtime.declare_event("ready")
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.EVENT_ON, *values),
+    ]))
+
+    assert [str(error) for error in errors] == [
+        "event.on requires event name and handler path arguments",
+    ]
+    assert runtime.get_state()["events"]["ready"] == []
+
+
+def test_runtime_initialize_event_on_registers_handler():
+    runtime = PhantomRuntime()
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.EVENT_DECLARE, "ready"),
+        _instruction(InstructionType.EVENT_ON, "ready", "module.handler"),
+    ]))
+
+    assert errors == []
+    assert runtime.get_state()["events"]["ready"] == ["module.handler"]
+
+
+@pytest.mark.parametrize("values", [(), ("runs",), ("", 2), ("runs", "2")])
+def test_runtime_initialize_counter_create_requires_name_and_integer_limit(values):
+    runtime = PhantomRuntime()
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.COUNTER_CREATE, *values),
+    ]))
+
+    assert [str(error) for error in errors] == [
+        "counter.create requires name and integer limit arguments",
+    ]
+    assert runtime.get_state()["counters"] == {}
+
+
+@pytest.mark.parametrize("values", [(), ("",)])
+def test_runtime_initialize_counter_increment_requires_name(values):
+    runtime = PhantomRuntime()
+    runtime.create_counter("runs", 2)
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.COUNTER_INCREMENT, *values),
+    ]))
+
+    assert [str(error) for error in errors] == [
+        "counter.increment requires a counter name argument",
+    ]
+    assert runtime.get_counter("runs") == (0, 2)
+
+
+@pytest.mark.parametrize("values, expected", [(("1.2.3",), "1.2.3"), ((), "")])
+def test_runtime_initialize_version_metadata(values, expected):
+    runtime = PhantomRuntime()
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.META_VERSION, *values),
+    ]))
+
+    assert errors == []
+    assert runtime.get_metadata("version") == expected
+
+
+def test_runtime_initialize_returns_runtime_error_and_continues():
+    runtime = PhantomRuntime()
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.EVENT_DECLARE, "ready"),
+        _instruction(InstructionType.EVENT_DECLARE, "ready"),
+        _instruction(InstructionType.META_AUTHOR, "after error"),
+    ]))
+
+    assert [str(error) for error in errors] == ["Event 'ready' has already been declared"]
+    assert runtime.get_metadata("author") == "after error"
+
+
+def test_runtime_initialize_wraps_unexpected_error_and_continues(monkeypatch):
+    runtime = PhantomRuntime()
+    instruction = _instruction(InstructionType.EVENT_DECLARE, "ready")
+
+    def fail_declaration(name):
+        raise ValueError("synthetic declaration failure")
+
+    monkeypatch.setattr(runtime, "declare_event", fail_declaration)
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        instruction,
+        _instruction(InstructionType.META_AUTHOR, "after error"),
+    ]))
+
+    assert len(errors) == 1
+    assert isinstance(errors[0], RuntimeError)
+    assert str(errors[0]) == (
+        f"Unexpected error processing instruction {instruction}: synthetic declaration failure"
+    )
+    assert "ready" not in runtime.get_state()["events"]
+    assert runtime.get_metadata("author") == "after error"
+
+
+@pytest.mark.parametrize("handler, message", [
+    (42, "Handler must be a dotted string path or callable, got int"),
+    ("undotted", "Invalid handler path 'undotted': must contain at least 'module.function'"),
+])
+def test_runtime_invalid_handler_reference_records_diagnostic(handler, message):
+    runtime = PhantomRuntime()
+    runtime.register_handler("phantom.pre_execute", handler)
+
+    assert runtime.fire_event("phantom.pre_execute") == []
+
+    diagnostics = runtime.get_diagnostics()
+    assert len(diagnostics) == 1
+    assert diagnostics[0].severity == Severity.ERROR
+    assert diagnostics[0].message == (
+        f"Failed to resolve handler '{handler}' for event 'phantom.pre_execute': {message}"
+    )
+
+
+def test_runtime_handler_resolution_adds_cwd(monkeypatch, tmp_path):
+    module_name = "phantom_runtime_cwd_callback"
+    (tmp_path / f"{module_name}.py").write_text(
+        "def handler(value):\n    return value + 1\n", encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, "path", [entry for entry in sys.path if entry != str(tmp_path)])
+    # Record the previous module entry so monkeypatch also removes the later import.
+    monkeypatch.setitem(sys.modules, module_name, None)
+    del sys.modules[module_name]
+    runtime = PhantomRuntime()
+    runtime.register_handler("phantom.pre_execute", f"{module_name}.handler")
+
+    assert runtime.fire_event("phantom.pre_execute", value=41) == [42]
+    assert sys.path[0] == str(tmp_path)
+    assert runtime.get_diagnostics() == []
+
+
+def test_runtime_non_callable_handler_records_diagnostic(monkeypatch):
+    module = ModuleType("phantom_runtime_non_callable")
+    module.handler = 42
+    monkeypatch.setitem(sys.modules, module.__name__, module)
+    runtime = PhantomRuntime()
+    handler_path = f"{module.__name__}.handler"
+    runtime.register_handler("phantom.pre_execute", handler_path)
+
+    assert runtime.fire_event("phantom.pre_execute") == []
+
+    diagnostics = runtime.get_diagnostics()
+    assert len(diagnostics) == 1
+    assert diagnostics[0].severity == Severity.ERROR
+    assert diagnostics[0].message == (
+        f"Failed to resolve handler '{handler_path}' for event 'phantom.pre_execute': "
+        f"Resolved attribute '{handler_path}' is not callable"
+    )
 
 
 def test_runtime_capability_restriction():

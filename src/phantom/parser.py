@@ -12,6 +12,7 @@ import re
 from phantom.encoding import UnicodeDecoder, WhitespaceDecoder
 from phantom.grammar import (
     COMMENT_LINE_PATTERN,
+    COMMENT_TRAILING_PATTERN,
     INSTRUCTION_ID_PATTERN,
     SPEC_VERSION,
     ZW_PERMITTED_CODEPOINTS,
@@ -25,6 +26,7 @@ from phantom.ir import (
     ParseError,
     PhantomInstruction,
     PhantomProgram,
+    Severity,
     SourceLocation,
 )
 from phantom.lexer import Token, TokenType, tokenize
@@ -177,6 +179,25 @@ def parse(content: str, filepath: str = "<string>") -> PhantomProgram:
                 instructions.append(_build_instruction(m.group(2), m.group(3), m.group(4), loc))
             except ValueError as exc:
                 errors.append(ParseError(str(exc), loc))
+        elif tok.type == TokenType.MALFORMED_INSTRUCTION:
+            loc = SourceLocation(filepath, tok.line, tok.column, EncodingMode.COMMENT)
+            if COMMENT_TRAILING_PATTERN.match(tok.value):
+                errors.append(
+                    ParseError(
+                        "Instruction followed by a trailing comment is ordinary source and is "
+                        "ignored; put the instruction on a line of its own",
+                        loc,
+                        Severity.WARNING,
+                    )
+                )
+            else:
+                errors.append(
+                    ParseError(
+                        "Malformed instruction: expected "
+                        "'#: phantom:<major.minor.patch> <id>(<arguments>)' on a line of its own",
+                        loc,
+                    )
+                )
         elif tok.type in (TokenType.WS_BEGIN, TokenType.ZW_BEGIN):
             block_mode = (
                 EncodingMode.WHITESPACE if tok.type == TokenType.WS_BEGIN else EncodingMode.UNICODE

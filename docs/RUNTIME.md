@@ -78,4 +78,4 @@ Hook output precedes the host's output because the host's output is captured and
 - The host runs as an ordinary Python subprocess. Phantom adds no imports, globals or decorators and does not edit the file.
 - A host that reads its own source file or inspects its own comments will see the instruction layer; that is unavoidable.
 - Phantom does not claim full Python compatibility merely because it can launch a program: it launches `sys.executable`, so behavior is that interpreter's.
-- Resource limits: the host timeout only. There is no memory or CPU sandboxing.
+- Resource limits: the host timeout only. On timeout the host **and every process it started** are killed (process group on POSIX, job object with a `taskkill` fallback on Windows), so a child that keeps the output pipes open cannot stretch the timeout. There is no memory or CPU sandboxing.

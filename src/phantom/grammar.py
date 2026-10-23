@@ -188,6 +188,17 @@ COMMENT_VERSION_CANDIDATE_PATTERN = re.compile(
     r'\(\s*(.*?)\s*\)\s*$'
 )
 
+# A line that starts like an instruction but fails the full grammar is almost
+# certainly a typo (missing parenthesis, no arguments list, ...). The lexer
+# reports it instead of silently treating it as ordinary source.
+COMMENT_ATTEMPT_PATTERN = re.compile(r'^(\s*)#:\s*phantom:')
+
+# A complete instruction followed by a trailing comment. The specification makes
+# such a line ordinary source, so it is only worth a warning, not an error.
+COMMENT_TRAILING_PATTERN = re.compile(
+    r'^(\s*)#:\s*phantom:\S+\s+[a-z][a-z0-9]*\.[a-z][a-z0-9_]*\(.*\)\s*#.*$'
+)
+
 # Validates an instruction identifier like "event.declare"
 INSTRUCTION_ID_PATTERN = re.compile(r"^[a-z][a-z0-9]*\.[a-z][a-z0-9_]*$")
 

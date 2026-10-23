@@ -99,11 +99,21 @@ def test_other_malformed_versions_are_also_diagnosed(encode_text, version):
 
 @pytest.mark.parametrize("source", [
     '# ordinary comment mentioning phantom:٠.١.٠ meta.author("Alice")',
-    '#: phantom:٠.١.٠ meta.author("Alice") # trailing comment',
-    'text = \'#: phantom:٠.١.٠ meta.author("Alice")\'',
-    '#: phantom:٠.١.٠ meta.author("Alice"',
+    'text = '#: phantom:٠.١.٠ meta.author("Alice")'',
 ])
 def test_incomplete_instruction_shapes_remain_ordinary_source(source):
     program = parse(source)
     assert program.instructions == []
     assert program.errors == []
+
+
+def test_trailing_comment_after_instruction_is_ignored_with_a_warning():
+    program = parse('#: phantom:٠.١.٠ meta.author("Alice") # trailing comment')
+    assert program.instructions == []
+    assert [e.severity.value for e in program.errors] == ["warning"]
+
+
+def test_unterminated_instruction_is_an_error():
+    program = parse('#: phantom:٠.١.٠ meta.author("Alice"')
+    assert program.instructions == []
+    assert [e.severity.value for e in program.errors] == ["error"]

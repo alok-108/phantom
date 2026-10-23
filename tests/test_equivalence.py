@@ -32,11 +32,12 @@ def test_different_exit_code():
     assert res.candidate_exit_code == 3
 
 
-def test_same_traceback_is_equivalent_despite_paths():
+def test_same_traceback_is_not_a_difference_despite_paths_and_line_numbers():
     boom = "raise ValueError('x')\n"
     res = compare_behavior(boom, "# c\n" + boom.replace("\n", "  \n"))
-    # line numbers shift in tracebacks, so this is reported, not hidden
-    assert res.verdict in (ComparisonVerdict.EQUIVALENT, ComparisonVerdict.DIFFERENT)
+    assert res.differences == []
+    # both fail the same way, which does not show that they behave alike
+    assert res.verdict == ComparisonVerdict.INCONCLUSIVE
 
 
 def test_syntax_error_is_validation_failure():
@@ -82,3 +83,33 @@ class TestCandidateValidation:
         assert not report.passed
         # Check for the argument name or a word indicating the count issue
         assert any("spdx" in e or "arity" in e or "argument" in e for e in report.errors)
+
+def test_identical_programs_that_print_their_own_path_are_equivalent():
+    source = "import sys\nprint(__file__)\nprint(repr(__file__))\nprint(sys.argv[0])\n"
+    res = compare_behavior(source, source)
+    assert res.verdict == ComparisonVerdict.EQUIVALENT, res.differences
+
+
+def test_a_real_stdout_difference_is_still_found_next_to_path_output():
+    res = compare_behavior("print(__file__)\nprint('a')\n", "print(__file__)\nprint('b')\n")
+    assert res.verdict == ComparisonVerdict.DIFFERENT
+    assert "stdout differs" in res.differences
+
+
+def test_programs_that_both_crash_are_inconclusive_not_equivalent():
+    source = "import module_that_does_not_exist_zz\nprint('unreachable')\n"
+    res = compare_behavior(source, '#: phantom:0.1.0 meta.author("A")\n' + source)
+    assert res.verdict == ComparisonVerdict.INCONCLUSIVE
+    assert res.original_exit_code == res.candidate_exit_code == 1
+    assert any("sibling modules" in n for n in res.notes)
+
+
+def test_a_clean_nonzero_exit_that_differs_is_still_different():
+    res = compare_behavior("raise SystemExit(2)\n", "raise SystemExit(3)\n")
+    assert res.verdict == ComparisonVerdict.DIFFERENT
+
+
+def test_a_different_exception_message_is_still_a_difference():
+    res = compare_behavior("raise ValueError('a')\n", "# x\nraise ValueError('b')\n")
+    assert res.verdict == ComparisonVerdict.DIFFERENT
+    assert "stderr differs" in res.differences

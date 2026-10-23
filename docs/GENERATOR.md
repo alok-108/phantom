@@ -77,14 +77,14 @@ result.success, result.diff, result.candidate_source, result.errors
 
 ## Behavior comparison (`phantom verify`)
 
-`compare_behavior` runs the original and candidate in subprocesses (30 s timeout each) and compares stdout, stderr (with the script path masked) and exit code.
+`compare_behavior` runs the original and candidate in subprocesses (30 s timeout each) and compares stdout, stderr and exit code. Both programs are copied into temporary directories under the **same file name** (`program.py`), and the temporary directory is masked in both streams, so a program that prints its own path (`__file__`, `sys.argv[0]`) is not reported as different. Line numbers inside tracebacks of the script are masked too, because the candidate has extra lines.
 
 | Result | Meaning | Exit |
 | :--- | :--- | :--- |
 | Tested equivalence for the single tested run | identical on this one run | 0 |
 | Behavior difference detected | stdout, stderr or exit code differ | 1 |
 | Validation failed | a file is not valid Python | 2 |
-| Not verified (inconclusive) | a program timed out or failed to start | 3 |
+| Not verified (inconclusive) | a program timed out or failed to start, **or both programs failed with the same output** (for example because they import sibling modules or read files next to themselves, which are not in the temporary directory) | 3 |
 
 An "equivalent" result is **not** a proof for other inputs. It exercises one run with no arguments or stdin and does not capture return values, filesystem or network effects, timing, randomness, environment, or concurrency. The static AST check in step 5 is the stronger evidence for host preservation; `verify` complements it.
 

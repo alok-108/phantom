@@ -67,7 +67,9 @@ def generate(request: GenerationRequest, provider: LLMProvider) -> GenerationRes
         result.errors.append(str(exc))
         return result
 
-    report = validate_candidate(request.source_code, candidate)
+    report = validate_candidate(
+        request.source_code, candidate, expected_added=len(plan.instructions)
+    )
     result.candidate_source = candidate
     result.diff = unified_diff(
         request.source_code,

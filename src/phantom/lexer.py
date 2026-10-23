@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from phantom.grammar import (
+    COMMENT_ATTEMPT_PATTERN,
     COMMENT_LINE_PATTERN,
     COMMENT_VERSION_CANDIDATE_PATTERN,
     HYBRID_HEADER,
@@ -29,6 +30,7 @@ class TokenType(Enum):
     """Token types emitted by the Phantom lexer."""
 
     COMMENT_INSTRUCTION = "COMMENT_INSTRUCTION"
+    MALFORMED_INSTRUCTION = "MALFORMED_INSTRUCTION"
     WS_BEGIN = "WS_BEGIN"
     WS_END = "WS_END"
     WS_DATA_LINE = "WS_DATA_LINE"
@@ -105,10 +107,13 @@ class PhantomLexer:
                     yield Token(TokenType.ZW_BEGIN, line, lineno, col)
                 else:
                     match = COMMENT_LINE_PATTERN.match(line) or COMMENT_VERSION_CANDIDATE_PATTERN.match(line)
+                    attempt = COMMENT_ATTEMPT_PATTERN.match(line)
                     if match:
                         leading_ws = match.group(1)
                         col = len(leading_ws)
                         yield Token(TokenType.COMMENT_INSTRUCTION, line, lineno, col)
+                    elif attempt:
+                        yield Token(TokenType.MALFORMED_INSTRUCTION, line, lineno, len(attempt.group(1)))
                     else:
                         yield Token(TokenType.SOURCE_LINE, line, lineno, 0)
 
