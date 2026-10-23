@@ -175,7 +175,15 @@ COMMENT_MARKER = "#:"
 # Matches a full Phantom comment-encoded instruction line.
 # Groups: (1) leading whitespace  (2) version  (3) instruction id  (4) raw args
 COMMENT_LINE_PATTERN = re.compile(
-    r'^(\s*)#:\s*phantom:(\d+\.\d+\.\d+)\s+'
+    r'^(\s*)#:\s*phantom:([0-9]+\.[0-9]+\.[0-9]+)\s+'
+    r'([a-z][a-z0-9]*\.[a-z][a-z0-9_]*)'
+    r'\(\s*(.*?)\s*\)\s*$'
+)
+
+# Recognize malformed versions for diagnostics without accepting them as syntax.
+# The rest of the line must still have the full instruction shape.
+COMMENT_VERSION_CANDIDATE_PATTERN = re.compile(
+    r'^(\s*)#:\s*phantom:(\S+)\s+'
     r'([a-z][a-z0-9]*\.[a-z][a-z0-9_]*)'
     r'\(\s*(.*?)\s*\)\s*$'
 )
@@ -185,7 +193,7 @@ INSTRUCTION_ID_PATTERN = re.compile(r"^[a-z][a-z0-9]*\.[a-z][a-z0-9_]*$")
 
 # Argument tokenization patterns
 STRING_ARG_PATTERN = re.compile(r'"([^"\\]*(?:\\.[^"\\]*)*)"')
-INTEGER_ARG_PATTERN = re.compile(r"-?\d+")
+INTEGER_ARG_PATTERN = re.compile(r"-?[0-9]+")
 IDENTIFIER_ARG_PATTERN = re.compile(r"[a-zA-Z_][a-zA-Z0-9_.]*")
 
 

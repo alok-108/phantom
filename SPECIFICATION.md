@@ -26,7 +26,7 @@ Standard Python does **not** execute the instruction layer. Instructions take ef
 ## 3. File format
 
 1. UTF-8 text, extension `.py`. Undecodable bytes are replaced when reading; no normalisation (NFC/NFKC) is applied.
-2. `\n` and `\r\n` line endings are both accepted. Parsing **MUST NOT** rewrite the file.
+2. Physical source lines are delimited only by `\n`, `\r\n`, or `\r`. Other Unicode separators (including U+0085, U+2028, and U+2029) are source-line content, not line endings. Parsing **MUST NOT** rewrite the file.
 3. Line and column numbers are 1-based (line) and 0-based (column, stored; shown 1-based in diagnostics). The location of an instruction decoded from a whitespace or zero-width block is the location of its block's opening marker.
 
 ## 4. Instruction syntax (comment form)
@@ -42,6 +42,7 @@ string        = '"' { char } '"'
 char          = any character except '"' and '\' | '\' ( '"' | '\' | 'n' | 't' | 'r' )
 integer       = [ "-" ] digit { digit }
 semver        = digit+ "." digit+ "." digit+
+digit         = [0-9]
 ws0 = { space | tab }     ws1 = space | tab, { space | tab }
 ```
 
@@ -50,6 +51,7 @@ Rules:
 - The instruction **MUST** occupy the whole line. A trailing comment, code before `#:`, or a `#:` inside a string literal makes the line ordinary source.
 - The space after `#:` is optional.
 - Arguments are literals only. Expressions (`1+1`, `"a"+"b"`), names, calls and nesting are a parse error.
+- Integer literals and version components use ASCII decimal digits (`0`–`9`) only. Unicode digits, including Arabic-Indic and fullwidth digits, are not numeric syntax; they remain allowed inside string literals. An otherwise complete comment instruction with a malformed version produces a parse error rather than being ignored.
 - *Reserved:* an unquoted identifier argument (`ArgumentType.IDENTIFIER`) exists in the IR but is not accepted by the v0.1.0 parser.
 - Ordinary comments, including ones mentioning `phantom:0.1.0`, are never instructions unless they match the whole grammar.
 

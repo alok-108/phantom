@@ -1,6 +1,6 @@
 # Runtime
 
-`phantom run FILE [-- HOST_ARGS]` is the only way Phantom instructions take effect. Standard `python FILE` ignores them.
+`phantom run FILE [--timeout SECONDS] [-- HOST_ARGS]` is the only way Phantom instructions take effect. Standard `python FILE` ignores them.
 
 ## Lifecycle
 
@@ -11,12 +11,12 @@
 | 3 | Create the runtime with the default capability grant. |
 | 4 | **Initialise**: apply every instruction in source order (declare events, register handlers, create/increment counters, record notes and metadata). Runtime errors here are printed as `[RuntimeWarning]` on stderr and do not stop the run. |
 | 5 | Fire `phantom.pre_execute(host_file, args)`. |
-| 6 | Run the host as a subprocess: `sys.executable FILE ARGS…`, UTF-8, 30-second timeout. |
+| 6 | Run the host as a subprocess: `sys.executable FILE ARGS…`, UTF-8, timeout (default 30 seconds, configurable with `--timeout`). |
 | 7 | Fire `phantom.post_execute(host_file, result)`. |
 | 8 | Fire `phantom.shutdown()`. |
 | 9 | Print the host's captured stdout and stderr, then Phantom diagnostics. **Exit with the host's exit code** (124 if it timed out). |
 
-Exit codes: `0` success, `1` file missing/unreadable, `2` validation failed, otherwise the host's code.
+Exit codes: `0` success, `1` file missing/unreadable or invalid `--timeout`, `2` validation failed, otherwise the host's code.
 
 ### Instructions are applied at initialisation
 
@@ -29,7 +29,8 @@ An instruction is not "triggered" when execution passes the line it is written o
 - **Handlers** are dotted paths such as `"events.announce_done"`. They are resolved by import when the event fires, relative to the host's directory.
 - **Order** is registration order, deterministically.
 - **Handler arguments**: keyword arguments the handler declares by name, or all of them if it accepts `**kwargs`; a handler taking no arguments is called with none. `pre_execute`: `host_file`, `args`. `post_execute`: `host_file`, `result` (exit_code, stdout, stderr, duration_ms). `shutdown`: none.
-- **Errors**: an unresolvable handler or a handler exception becomes an `ERROR` diagnostic; the remaining handlers still run.
+- **Signature checks** happen before invocation. Only parameters accepting keywords receive matching event arguments; required positional-only parameters cannot be supplied by an event. If a callable has no inspectable signature, it receives the full event payload as keyword arguments once.
+- **Errors**: an unresolvable handler, incompatible signature, or handler exception becomes one `ERROR` diagnostic; the remaining handlers still run. Each registered handler is invoked at most once per event firing. Exceptions raised inside a handler, including `TypeError` and `ValueError`, never trigger a retry.
 - **Duplicates/missing**: redeclaring an event is a validation warning and a runtime error (reported, not fatal). Registering for an undeclared event is a validation error.
 
 See `docs/examples/events.py`:

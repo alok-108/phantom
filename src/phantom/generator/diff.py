@@ -9,6 +9,7 @@ from __future__ import annotations
 import difflib
 
 from phantom.lexer import TokenType, tokenize
+from phantom.lines import split_physical_lines
 
 _LAYER_TOKENS = frozenset(
     {
@@ -33,8 +34,8 @@ def unified_diff(
     """Return a unified diff between two source texts ('' when identical)."""
     return "".join(
         difflib.unified_diff(
-            original.splitlines(keepends=True),
-            candidate.splitlines(keepends=True),
+            split_physical_lines(original, keepends=True),
+            split_physical_lines(candidate, keepends=True),
             fromfile=from_name,
             tofile=to_name,
         )
@@ -45,7 +46,7 @@ def strip_phantom_layer(source: str) -> str:
     """Remove every line that belongs to the Phantom instruction layer."""
     drop = {tok.line for tok in tokenize(source) if tok.type in _LAYER_TOKENS}
     kept = [
-        line for idx, line in enumerate(source.splitlines(keepends=True), start=1)
+        line for idx, line in enumerate(split_physical_lines(source, keepends=True), start=1)
         if idx not in drop
     ]
     return "".join(kept)

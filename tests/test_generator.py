@@ -171,6 +171,19 @@ class TestWorkflow:
         assert "+#: phantom:0.1.0 meta.author" in res.diff
         assert strip_phantom_layer(res.candidate_source) == PROGRAM
 
+    @pytest.mark.parametrize("enc", ["comment", "whitespace", "unicode"])
+    @pytest.mark.parametrize("message", ["a\nb", "a\rb", "a\tb", 'a\r\nb\t"\\c'])
+    def test_string_control_characters_are_preserved(self, enc, message):
+        res = generate(
+            _request(), StaticProvider(_plan(("diagnostic.note", message), encoding=enc))
+        )
+        assert res.success and res.validation_passed, res.errors
+        assert strip_phantom_layer(res.candidate_source) == PROGRAM
+        program = parse(res.candidate_source)
+        assert not program.errors
+        assert len(program.instructions) == 1
+        assert program.instructions[0].get_string_arg(0) == message
+
     def test_model_line_numbers_are_ignored(self):
         plan = json.loads(_plan(("meta.author", "A")))
         plan["instructions"][0]["placement_line"] = 7

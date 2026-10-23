@@ -13,6 +13,7 @@ from enum import Enum
 
 from phantom.grammar import (
     COMMENT_LINE_PATTERN,
+    COMMENT_VERSION_CANDIDATE_PATTERN,
     HYBRID_HEADER,
     WS_BEGIN_MARKER,
     WS_END_MARKER,
@@ -21,6 +22,7 @@ from phantom.grammar import (
     ZW_PERMITTED_CODEPOINTS,
     ZW_REJECTED_CODEPOINTS,
 )
+from phantom.lines import split_physical_lines
 
 
 class TokenType(Enum):
@@ -81,7 +83,7 @@ class PhantomLexer:
 
     def iter_tokens(self) -> Iterator[Token]:
         """Yield tokens line by line from source, followed by EOF."""
-        lines = self.source.splitlines()
+        lines = split_physical_lines(self.source)
         state = LexerState.NORMAL
 
         for line_idx, raw_line in enumerate(lines):
@@ -102,7 +104,7 @@ class PhantomLexer:
                     state = LexerState.IN_ZW_BLOCK
                     yield Token(TokenType.ZW_BEGIN, line, lineno, col)
                 else:
-                    match = COMMENT_LINE_PATTERN.match(line)
+                    match = COMMENT_LINE_PATTERN.match(line) or COMMENT_VERSION_CANDIDATE_PATTERN.match(line)
                     if match:
                         leading_ws = match.group(1)
                         col = len(leading_ws)

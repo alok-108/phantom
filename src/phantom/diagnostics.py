@@ -10,6 +10,7 @@ import json
 from typing import Any
 
 from phantom.ir import ParseError, Severity, SourceLocation, ValidationError
+from phantom.lines import split_physical_lines
 from phantom.version import __version__
 
 Finding = ParseError | ValidationError
@@ -38,7 +39,7 @@ def render(finding: Finding, source: str | None = None, color: bool = False) -> 
 
     out = [head, f"  --> {loc.file}:{loc.line}:{loc.column + 1}"]
     if source is not None:
-        lines = source.splitlines()
+        lines = split_physical_lines(source)
         if 1 <= loc.line <= len(lines):
             text = lines[loc.line - 1]
             gutter = f"{loc.line:>4} | "

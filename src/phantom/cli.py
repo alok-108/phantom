@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import json
+import math
 import os
 import sys
 from typing import Any
@@ -32,6 +33,7 @@ from phantom.generator.provider import (
 )
 from phantom.generator.workflow import source_digest
 from phantom.ir import EncodingMode, PhantomProgram, Severity, ValidationError
+from phantom.lines import split_physical_lines
 from phantom.parser import parse_file
 from phantom.runtime import PhantomRuntime
 from phantom.validator import audit_source, validate
@@ -195,13 +197,15 @@ def cmd_run(args: argparse.Namespace) -> int:
         print(f"Error: File not found: '{filepath}'", file=sys.stderr)
         return 1
 
+    timeout = getattr(args, "timeout", 30.0)
+    if not math.isfinite(timeout) or timeout <= 0:
+        print("Error: --timeout must be positive", file=sys.stderr)
+        return 1
+
     # Extract extra arguments for host program
-    host_args: list[str] = []
-    if args.host_args:
-        raw_args = list(args.host_args)
-        if raw_args and raw_args[0] == "--":
-            raw_args = raw_args[1:]
-        host_args = raw_args
+    host_args = list(args.host_args or [])
+    if host_args and host_args[0] == "--":
+        host_args = host_args[1:]
 
     print(f"=== Phantom Runtime v{__version__} ===")
 
@@ -242,7 +246,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             print(f"[RuntimeWarning] {r_err}", file=sys.stderr)
 
     # Execute host program
-    host_res = runtime.execute_host(filepath, args=host_args)
+    host_res = runtime.execute_host(filepath, args=host_args, timeout=timeout)
 
     # Shutdown runtime
     runtime.shutdown()
@@ -487,8 +491,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
             if x != y:
                 sys.stderr.writelines(
                     difflib.unified_diff(
-                        x.splitlines(keepends=True),
-                        y.splitlines(keepends=True),
+                        split_physical_lines(x, keepends=True),
+                        split_physical_lines(y, keepends=True),
                         f"original {tag}",
                         f"candidate {tag}",
                     )
@@ -552,8 +556,14 @@ def create_parser() -> argparse.ArgumentParser:
     )
     run_p.add_argument("file", help="Source file to run")
     run_p.add_argument(
+        "--timeout",
+        type=float,
+        default=30.0,
+        help="Host program timeout in seconds (default: 30.0)",
+    )
+    run_p.add_argument(
         "host_args",
-        nargs=argparse.REMAINDER,
+        nargs="*",
         help="Arguments passed to the host program (use '--' before args if needed)",
     )
 
@@ -619,10 +629,21 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
 
+    if "--" in argv:
+        dash_idx = argv.index("--")
+        parse_argv = argv[:dash_idx]
+        dash_args = argv[dash_idx + 1 :]
+    else:
+        parse_argv = argv
+        dash_args = None
+
     try:
-        args = parser.parse_args(argv)
+        args = parser.parse_args(parse_argv)
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 0
+
+    if dash_args is not None and getattr(args, "command", None) == "run":
+        args.host_args = (getattr(args, "host_args", None) or []) + dash_args
 
     if args.command == "check":
         return cmd_check(args)

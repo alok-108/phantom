@@ -60,16 +60,16 @@ class CapabilityError(PhantomError):
 
     def __init__(
         self,
-        capability_or_message: Capability | str,
-        capability: Capability | None = None,
+        capability: Capability | None,
+        message: str | None = None,
     ) -> None:
-        if isinstance(capability_or_message, Capability):
-            self.capability: Capability | None = capability_or_message
-            msg = f"Capability '{capability_or_message.value}' is required but not granted."
-        else:
-            self.capability = capability
-            msg = str(capability_or_message)
-        super().__init__(msg)
+        self.capability = capability
+        if message is None:
+            if capability is None:
+                message = "A required capability is missing."
+            else:
+                message = f"Capability '{capability.value}' is required but not granted."
+        super().__init__(message)
 
 
 class CapabilityGrant:
@@ -89,8 +89,8 @@ class CapabilityGrant:
         """Assert that a capability is granted, raising CapabilityError if not."""
         if not self.check(capability):
             raise CapabilityError(
-                capability,
-                f"Missing required capability: {capability.value}",
+                capability=capability,
+                message=f"Missing required capability: {capability.value}",
             )
 
     def check_instruction(self, instruction_type: InstructionType) -> bool:
@@ -104,9 +104,10 @@ class CapabilityGrant:
         missing = required - self.granted
         if missing:
             missing_str = ", ".join(sorted(c.value for c in missing))
+            capability = next(iter(missing)) if len(missing) == 1 else None
             raise CapabilityError(
-                next(iter(missing)),
-                f"Instruction '{instruction_type.value}' requires capabilities [{missing_str}], which are not granted.",
+                capability=capability,
+                message=f"Instruction '{instruction_type.value}' requires capabilities [{missing_str}], which are not granted.",
             )
 
     def __contains__(self, item: Capability) -> bool:

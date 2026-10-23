@@ -16,6 +16,7 @@ from phantom.ir import (
     Severity,
     ValidationError,
 )
+from phantom.lines import split_physical_lines
 
 BUILTIN_EVENTS = frozenset({"phantom.pre_execute", "phantom.post_execute", "phantom.shutdown"})
 _HANDLER_PATH = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)+$")
@@ -144,7 +145,8 @@ def audit_source(source: str, filename: str = "<string>") -> list[ValidationErro
 
     findings: list[ValidationError] = []
     in_zw = False
-    for lineno, line in enumerate(source.splitlines(), start=1):
+    audited_separators = "\x85\u2028\u2029"
+    for lineno, line in enumerate(split_physical_lines(source), start=1):
         stripped = line.strip()
         if stripped == ZW_BEGIN_MARKER:
             in_zw = True
@@ -153,6 +155,14 @@ def audit_source(source: str, filename: str = "<string>") -> list[ValidationErro
             in_zw = False
             continue
         for col, ch in enumerate(line):
+            if ch in audited_separators:
+                findings.append(
+                    ValidationError(
+                        f"Unexpected Unicode line separator U+{ord(ch):04X}",
+                        source=SourceLocation(filename, lineno, col, EncodingMode.UNICODE),
+                    )
+                )
+                continue
             if ch in ZW_PERMITTED_CODEPOINTS and in_zw:
                 continue
             if ch in ZW_PERMITTED_CODEPOINTS or ch in ZW_REJECTED_CODEPOINTS or ch in _BIDI_CONTROLS:

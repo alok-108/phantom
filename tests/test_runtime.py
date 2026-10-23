@@ -92,6 +92,122 @@ def test_runtime_event_order_and_exception_handling():
     assert any("boom" in d.message for d in diagnostics)
 
 
+@pytest.mark.parametrize("error_type", [TypeError, ValueError])
+@pytest.mark.parametrize("handler_kind", ["no_args", "named", "var_kw"])
+def test_runtime_handler_error_is_not_retried(error_type, handler_kind):
+    runtime = PhantomRuntime()
+    calls = []
+
+    def fail(value):
+        calls.append(value)
+        raise error_type("error inside handler")
+
+    def no_args():
+        fail(None)
+
+    def named(value):
+        fail(value)
+
+    def var_kw(**kwargs):
+        fail(kwargs["value"])
+
+    handler = {"no_args": no_args, "named": named, "var_kw": var_kw}[handler_kind]
+    runtime.register_handler("phantom.pre_execute", handler)
+    runtime.register_handler("phantom.pre_execute", lambda: "next handler")
+
+    assert runtime.fire_event("phantom.pre_execute", value=42, extra=True) == ["next handler"]
+    assert calls == [None if handler_kind == "no_args" else 42]
+    diagnostics = runtime.get_diagnostics()
+    assert len(diagnostics) == 1
+    assert diagnostics[0].severity == Severity.ERROR
+    assert "error inside handler" in diagnostics[0].message
+
+
+def test_runtime_callback_keyword_selection():
+    runtime = PhantomRuntime()
+
+    def named(value, *, optional=7):
+        return value, optional
+
+    def optional_only(optional=7):
+        return optional
+
+    def positional_default(value=7, /):
+        return value
+
+    class Handler:
+        def __call__(self, value):
+            return value
+
+        def method(self, *, value):
+            return value
+
+    handler = Handler()
+    callbacks = [
+        lambda: "no args",
+        named,
+        optional_only,
+        positional_default,
+        lambda **kwargs: kwargs,
+        handler,
+        handler.method,
+    ]
+    for callback in callbacks:
+        runtime.register_handler("phantom.pre_execute", callback)
+
+    assert runtime.fire_event("phantom.pre_execute", value=42, extra=True) == [
+        "no args", (42, 7), 7, 7, {"value": 42, "extra": True}, 42, 42,
+    ]
+    assert runtime.get_diagnostics() == []
+
+
+@pytest.mark.parametrize("positional_only", [False, True])
+def test_runtime_callback_invalid_signature_does_not_run(positional_only):
+    runtime = PhantomRuntime()
+    calls = []
+
+    def named(required):
+        calls.append(required)
+
+    def positional(required, /):
+        calls.append(required)
+
+    runtime.register_handler("phantom.pre_execute", positional if positional_only else named)
+    kwargs = {"required": 42} if positional_only else {"extra": True}
+    assert runtime.fire_event("phantom.pre_execute", **kwargs) == []
+    assert calls == []
+    assert len(runtime.get_diagnostics()) == 1
+    assert runtime.get_diagnostics()[0].severity == Severity.ERROR
+
+
+@pytest.mark.parametrize("signature_error", [TypeError, ValueError])
+@pytest.mark.parametrize("handler_error", [None, TypeError, ValueError])
+def test_runtime_uninspectable_callback_runs_once(monkeypatch, signature_error, handler_error):
+    runtime = PhantomRuntime()
+    calls = []
+
+    def unavailable_signature(fn):
+        raise signature_error("signature unavailable")
+
+    def handler(**kwargs):
+        calls.append(kwargs)
+        if handler_error is not None:
+            raise handler_error("error inside handler")
+        return "called"
+
+    monkeypatch.setattr("phantom.runtime.inspect.signature", unavailable_signature)
+    runtime.register_handler("phantom.pre_execute", handler)
+    assert runtime.fire_event("phantom.pre_execute", value=42) == (
+        ["called"] if handler_error is None else []
+    )
+    assert calls == [{"value": 42}]
+    diagnostics = runtime.get_diagnostics()
+    assert len(diagnostics) == (0 if handler_error is None else 1)
+    if handler_error is not None:
+        assert diagnostics[0].severity == Severity.ERROR
+        assert "error inside handler" in diagnostics[0].message
+
+
 def test_runtime_unresolvable_handler():
     runtime = PhantomRuntime()
     runtime.declare_event("missing_handler_ev")
@@ -224,3 +340,12 @@ def test_runtime_execute_host_lifecycle():
 
     runtime.shutdown()
     assert len(shutdown_fired) == 1
+
+
+def test_runtime_execute_host_timeout(tmp_path):
+    script = tmp_path / "sleep_script.py"
+    script.write_text("import time; time.sleep(5)\n")
+    runtime = PhantomRuntime()
+    res = runtime.execute_host(str(script), timeout=0.2)
+    assert res.exit_code == 124
+    assert "timed out" in res.stderr.lower()

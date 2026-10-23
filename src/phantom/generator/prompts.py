@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from phantom.generator.models import GenerationRequest
 from phantom.grammar import INSTRUCTION_REGISTRY
+from phantom.lines import split_physical_lines
 
 SYSTEM_PROMPT = """\
 You annotate Python source with Phantom instructions. You NEVER rewrite, \
@@ -37,7 +38,7 @@ def describe_instructions() -> str:
 
 
 def _numbered(source: str) -> str:
-    return "\n".join(f"{i:4d} | {line}" for i, line in enumerate(source.splitlines(), start=1))
+    return "\n".join(f"{i:4d} | {line}" for i, line in enumerate(split_physical_lines(source), start=1))
 
 
 def build_prompt(request: GenerationRequest, target_line: int = 1) -> str:

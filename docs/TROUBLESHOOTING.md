@@ -19,7 +19,7 @@
 | `[RuntimeWarning] Event '…' has already been declared` | Duplicate `event.declare` | Remove the duplicate |
 | `exceeded limit` diagnostic | More increments than the limit | Raise the limit or remove increments |
 | `phantom run` hooks print before host output | Host output is captured then printed | Expected |
-| Host exit code 124 | Host exceeded 30 s | Make it faster; there is no timeout flag in v0.1.0 |
+| Host exit code 124 | Host exceeded timeout (default 30 s) | Make it faster or increase the limit with `phantom run FILE --timeout SECONDS` |
 | `generate`: `remote generation not authorized` | No consent given non-interactively | Pass `--allow-remote` if you accept sending source to the provider |
 | `generate`: `GEMINI_API_KEY is not set` | Missing key | Set the environment variable |
 | `generate`: `google-genai is not installed` | Optional extra missing | `pip install "phantom-lang[llm]"` |

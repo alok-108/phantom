@@ -15,6 +15,8 @@ The instruction layer is a small declarative language embedded next to your Pyth
 
 A comment that merely contains the word `phantom` is just a comment.
 
+The encoders and generator write newline, carriage return, and tab characters in string arguments as `\n`, `\r`, and `\t`, so each instruction remains on one logical line. Literal backslash sequences (for example, the two characters `\n`) remain literal after a round trip. Other line separators, such as U+0085, U+2028, and U+2029, are not covered by these escapes and still have known round-trip limitations ([#51](https://github.com/hayagrivai-labs/phantom/issues/51)).
+
 ## Instructions
 
 | Instruction | What it does | Notes |

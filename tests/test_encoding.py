@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ast
+
 import pytest
 
 from phantom.encoding import (
@@ -22,6 +24,7 @@ from phantom.ir import (
     PhantomInstruction,
     SourceLocation,
 )
+from phantom.parser import parse
 
 TEXT = 'phantom:0.1.0 diagnostic.note("héllo ✓")'
 
@@ -43,6 +46,20 @@ def test_comment_roundtrip():
 def test_comment_decoder_rejects_non_instruction():
     with pytest.raises(ValueError):
         CommentDecoder.decode("# just a comment")
+
+
+@pytest.mark.parametrize("mode", [EncodingMode.COMMENT, EncodingMode.WHITESPACE, EncodingMode.UNICODE])
+@pytest.mark.parametrize("message", ["a\nb", "a\rb", "a\tb", "a\r\nb\tc", r'literal \n \r \t and "quotes"', 'héllo\n"\\\t\r✓'])
+def test_string_escapes_roundtrip_through_parser(mode, message):
+    encoded = encode_instruction(_note(message), mode)
+    ast.parse(encoded)
+    decoded = decode_source(encoded, mode)
+    assert len(decoded) == 1
+    assert "\n" not in decoded[0] and "\r" not in decoded[0] and "\t" not in decoded[0]
+    program = parse(encoded)
+    assert not program.errors
+    assert len(program.instructions) == 1
+    assert program.instructions[0].get_string_arg(0) == message
 
 
 def test_whitespace_roundtrip_is_utf8_exact():

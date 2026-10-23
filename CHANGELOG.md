@@ -4,6 +4,13 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 ## [Unreleased]
 
+### Fixed
+- Source scanning uses Python physical line endings only (LF, CRLF, CR); strict audit flags NEL, line separator, and paragraph separator.
+- Encoders emit the existing `\n`, `\r`, and `\t` escapes for string arguments, preserving these characters when instructions are parsed back in comment, whitespace, and Unicode modes.
+- Integer arguments and instruction versions now require ASCII digits in all encodings. Arabic-Indic, fullwidth, and other Unicode digits produce parse errors instead of being accepted as numbers; malformed versions in otherwise complete comment instructions are diagnosed instead of ignored.
+- Preserve instruction-specific messages when capability checks fail, including all missing capabilities.
+- Event handlers are invoked at most once per registration when an event fires, even if they raise `TypeError` or `ValueError`; signature validation no longer retries failing handlers or replaces their original error.
+
 ### Documentation
 - Add Hindi translations of the README and Quickstart guide.
 
@@ -21,6 +28,7 @@ Thanks to @jez-elijah (tests for `generate --stdin`, prompts and consent, #39) a
 - **Language:** Added `meta.license` instruction to record SPDX license identifiers.
 - README demo and "Why / Try it" sections, a generated terminal demo and social preview image (`scripts/build_assets.py`), and a welcome workflow that greets first-time contributors.
 - `phantom diff --host-only` compares the Python host layer without Phantom instructions, without executing or modifying either file.
+- CLI: `--timeout` option for `phantom run` to configure host program execution timeout (defaults to 30.0s).
 - Discoverability: README badges and a "contributors welcome" banner, a dev container for Codespaces, private vulnerability reporting, pinned starter issues, and a welcome discussion.
 - Maintainer and community files: `MAINTAINERS.md`, `.github/CODEOWNERS`, `.github/dependabot.yml`, `docs/RELEASING.md`, and architecture decision records in `docs/adr/`.
 - Contributor tooling: `docs/CONTRIBUTOR_GUIDE.md` (how to add instructions, encodings, providers, experiments), a rewritten `CONTRIBUTING.md`, issue templates (bug, feature, language proposal, research proposal), a pull request template, and a proposal template (`docs/proposals/0000-template.md`).

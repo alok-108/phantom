@@ -20,6 +20,7 @@ from phantom.ir import (
     PhantomInstruction,
     SourceLocation,
 )
+from phantom.lines import split_physical_lines
 
 _MODES = {
     "comment": EncodingMode.COMMENT,
@@ -35,10 +36,13 @@ class TransformError(ValueError):
 def unsafe_insertion_lines(source: str) -> set[int]:
     """Line numbers before which inserting a new line would change the program."""
     unsafe: set[int] = set()
-    lines = source.splitlines()
+    lines = split_physical_lines(source)
     try:
         depth = 0
-        for tok in tokenize.generate_tokens(io.StringIO(source).readline):
+        # tokenize's StringIO.readline only splits on LF, unlike Python's source
+        # parser which recognizes lone CR as a physical line boundary.
+        token_source = source.replace("\r\n", "\n").replace("\r", "\n")
+        for tok in tokenize.generate_tokens(io.StringIO(token_source).readline):
             if tok.type == tokenize.OP:
                 if tok.string in "([{":
                     depth += 1
@@ -72,11 +76,10 @@ def apply_plan(source: str, plan: TransformationPlan) -> str:
     if not plan.valid:
         raise TransformError("Plan is not valid: " + "; ".join(plan.validation_errors))
 
-    newline = "\r\n" if "\r\n" in source else "\n"
-    lines = source.splitlines()
+    raw_lines = split_physical_lines(source, keepends=True)
+    lines = split_physical_lines(source)
     unsafe = unsafe_insertion_lines(source)
     total = len(lines)
-
     inserts: dict[int, list[str]] = {}
     for planned in plan.instructions:
         at = min(planned.placement_line, total + 1)
@@ -95,14 +98,30 @@ def apply_plan(source: str, plan: TransformationPlan) -> str:
         text = encode_instruction(_to_instruction(planned), _MODES[planned.encoding])
         inserts.setdefault(at, []).extend(text.split("\n"))
 
-    out: list[str] = []
-    for lineno in range(1, total + 2):
-        out.extend(inserts.get(lineno, []))
-        if lineno <= total:
-            out.append(lines[lineno - 1])
-    trailing = newline if source.endswith(("\n", "\r")) or not source else ""
-    return newline.join(out) + trailing
+    def ending(line: str) -> str:
+        if line.endswith("\r\n"):
+            return "\r\n"
+        if line.endswith("\n") or line.endswith("\r"):
+            return line[-1]
+        return ""
 
+    output: list[str] = []
+    for lineno in range(1, total + 2):
+        additions = inserts.get(lineno, [])
+        if additions:
+            prior_ending = ending(raw_lines[lineno - 2]) if lineno > 1 else ""
+            next_ending = ending(raw_lines[lineno - 1]) if lineno <= total else ""
+            separator = prior_ending or next_ending or next(
+                (ending(line) for line in raw_lines if ending(line)), "\n"
+            )
+            if lineno == total + 1 and raw_lines and not ending(raw_lines[-1]):
+                output.append(separator)
+            output.append(separator.join(additions))
+            if lineno <= total or source.endswith(("\n", "\r")) or not source:
+                output.append(separator)
+        if lineno <= total:
+            output.append(raw_lines[lineno - 1])
+    return "".join(output)
 
 def resolve_placement(source: str, placement: str) -> int:
     """Resolve a placement spec to a 1-based insertion line.
@@ -115,7 +134,7 @@ def resolve_placement(source: str, placement: str) -> int:
     """
     import ast
 
-    total = len(source.splitlines())
+    total = len(split_physical_lines(source))
     spec = placement.strip()
     if spec in ("", "beginning"):
         return 1

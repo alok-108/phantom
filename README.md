@@ -104,7 +104,7 @@ Walkthrough: [docs/QUICKSTART.md](docs/QUICKSTART.md).
 | :--- | :--- | :--- |
 | `phantom check FILE [--strict] [--format sarif]` | Validate; exit 2 on errors | No |
 | `phantom inspect FILE [--json] [--strict]` | Show recognised instructions, locations, capabilities | No |
-| `phantom run FILE [-- ARGS]` | Validate, apply, run the host; exits with the host's status | **Yes** |
+| `phantom run FILE [--timeout SEC] [-- ARGS]` | Validate, apply, run the host; exits with the host's status | **Yes** |
 | `phantom generate FILE --intent TEXT [--placement …] [--encoding …] [--output …] [--dry-run] [--allow-remote]` | Propose a candidate with Phantom instructions | No (sends source to the provider) |
 | `phantom diff ORIGINAL CANDIDATE` | Unified diff | No |
 | `phantom verify ORIGINAL CANDIDATE` | Run both and compare stdout/stderr/exit code | **Yes** (both) |
