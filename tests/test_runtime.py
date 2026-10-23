@@ -176,6 +176,24 @@ def test_runtime_initialize_program():
     assert runtime.get_counter("runs") == (1, 5)
 
 
+def test_runtime_license_metadata_after_initialize():
+    loc = SourceLocation(file="test.py", line=1, column=0, encoding=EncodingMode.COMMENT)
+    instructions = [
+        PhantomInstruction(
+            type=InstructionType.META_LICENSE,
+            arguments=(Argument(type=ArgumentType.STRING, value="MIT"),),
+            source=loc,
+        ),
+    ]
+    program = PhantomProgram(instructions=instructions, source_file="test.py")
+
+    runtime = PhantomRuntime()
+    errors = runtime.initialize(program)
+    assert errors == []
+
+    assert runtime.get_metadata("license") == "MIT"
+
+
 def test_runtime_capability_restriction():
     # Grant only STDIO (no EVENTS, COUNTERS, etc.)
     grant = CapabilityGrant([Capability.STDIO])

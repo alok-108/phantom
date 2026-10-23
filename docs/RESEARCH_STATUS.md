@@ -6,7 +6,7 @@ Labels: **Implemented** · **Experimental** · **Proposed** · **Hypothesis** ·
 
 | Capability | Status | Notes |
 | :--- | :--- | :--- |
-| eight instructionss (events, counters, notes, metadata) | Implemented | [SPECIFICATION.md](../SPECIFICATION.md) |
+| eight instructions (events, counters, notes, metadata) | Implemented | [SPECIFICATION.md](../SPECIFICATION.md) |
 | Typed IR, lexer, parser, validator | Implemented | |
 | Comment encoding | Implemented | Recommended |
 | Whitespace encoding | Experimental | Fragile under formatters; see [ENCODINGS.md](ENCODINGS.md) |

@@ -3,7 +3,7 @@
 | Symptom | Cause | Fix |
 | :--- | :--- | :--- |
 | `phantom: command not found` | Virtualenv not active or scripts dir not on `PATH` | Activate the venv, or run `python -m phantom …` |
-| `Unknown instruction identifier: 'x.y'` | Not in the registry | Use one of the eight instructionss ([LANGUAGE_GUIDE.md](LANGUAGE_GUIDE.md)) |
+| `Unknown instruction identifier: 'x.y'` | Not in the registry | Use one of the eight instructions ([LANGUAGE_GUIDE.md](LANGUAGE_GUIDE.md)) |
 | `Unsupported spec version '…'` | `phantom:<ver>` is not `0.1.0` | Change the version |
 | `Instruction '…' takes N argument(s), got M` | Wrong arity | Check the signature |
 | `Argument 2 ('limit') of 'counter.create' must be integer, got string` | `"10"` instead of `10` | Remove the quotes |

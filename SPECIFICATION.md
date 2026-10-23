@@ -63,7 +63,7 @@ Rules:
 | `counter.create` | `name: string`, `limit: integer` | `cap.counters` | Executable |
 | `counter.increment` | `name: string` | `cap.counters` | Executable |
 | `meta.author` | `name: string` | `cap.metadata` | Metadata only |
-| `meta.license` | `name`: string | `cap.metadata` | Metadata only |
+| `meta.license` | `spdx: string | `cap.metadata` | Metadata only |
 | `meta.version` | `version: string` | `cap.metadata` | Metadata only |
 
 "Executable" means the runtime performs an action; it never means Python code is evaluated. Unknown identifiers are a parse error and are never dispatched.
@@ -83,8 +83,14 @@ Creates a counter at 0 with an upper bound. **Validation (errors):** `limit > 0`
 ### 5.5 `counter.increment(name)`
 Increments by one. **Validation:** the counter **MUST** have been created earlier in the file (error); more `counter.increment` instructions than the counter's limit is a *warning*. **Runtime:** incrementing past the limit records an error diagnostic and leaves the counter at its limit; it does not abort the program.
 
-### 5.6 `meta.author(name)`, 5.7 `meta.version(version)`, 5.8 `meta.license(name)`
-Record metadata. A second instruction of the same kind is a *warning*.
+### 5.6 `meta.author(name)`
+Record the author's name. A second instruction of the same kind is a *warning*.
+
+### 5.7 `meta.version(version)`
+Record the version string. A second instruction of the same kind is a *warning*.
+
+### 5.8 `meta.license(identifier)`
+Record the SPDX license identifier (e.g., `"MIT"`). A second instruction of the same kind is a *warning*.
 
 ### 5.9 Built-in events
 `phantom.pre_execute`, `phantom.post_execute`, `phantom.shutdown` exist without declaration. They are the only events the runtime fires (§9). Handlers for custom events may be registered but nothing fires them in v0.1.0.

@@ -106,7 +106,7 @@ The long-term research direction is **Phantom C**: an investigation into whether
 To maintain clarity and engineering integrity, we explicitly delineate what is real today versus what is future exploration:
 
 ### Implemented in v0.1.0
-- eight instructionss: `event.declare`, `event.on`, `diagnostic.note`, `counter.create`, `counter.increment`, `meta.author`, `meta.version`.
+- eight instructions: `event.declare`, `event.on`, `diagnostic.note`, `counter.create`, `counter.increment`, `meta.author`, `meta.license`,`meta.version`.
 - A formal grammar, lexer, parser, typed IR and validator.
 - Four encodings: comment (recommended), whitespace, zero-width Unicode, hybrid. The last three are *experimental* (fragile under formatters and normalisation).
 - CLI: `check`, `inspect`, `run`, `generate`, `diff`, `verify`.
