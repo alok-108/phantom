@@ -65,7 +65,7 @@ Rules:
 | `counter.create` | `name: string`, `limit: integer` | `cap.counters` | Executable |
 | `counter.increment` | `name: string` | `cap.counters` | Executable |
 | `meta.author` | `name: string` | `cap.metadata` | Metadata only |
-| `meta.license` | `spdx: string `| `cap.metadata` | Metadata only |
+| `meta.license` | `spdx: string` | `cap.metadata` | Metadata only |
 | `meta.version` | `version: string` | `cap.metadata` | Metadata only |
 
 "Executable" means the runtime performs an action; it never means Python code is evaluated. Unknown identifiers are a parse error and are never dispatched.
