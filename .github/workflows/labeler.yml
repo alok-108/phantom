@@ -1,0 +1,19 @@
+name: labeler
+
+# Labels pull requests by the paths they touch (config: .github/labeler.yml).
+# The config is read from the base branch and no pull request code is checked out,
+# which is what makes pull_request_target safe here.
+on:
+  pull_request_target:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          sync-labels: false

@@ -20,7 +20,7 @@ Optional, for the LLM generator: `pip install -e ".[all]"` (needs Python ≥ 3.1
 
 ## Your first pull request in about 10 minutes
 
-1. Pick an issue labelled [`good first issue`](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and comment that you are taking it.
+1. Pick an issue labelled [`good first issue`](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and comment `/take` on it: you are assigned automatically (up to two open issues at a time). Changed your mind? Comment `/release`. Claims with no activity for about three weeks are released automatically.
 2. Fork the repo on GitHub, then:
    ```bash
    git clone https://github.com/<you>/phantom.git && cd phantom

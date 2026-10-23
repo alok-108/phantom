@@ -1,0 +1,34 @@
+name: thanks
+
+# Thanks a contributor when their first pull request is merged and points to what to do next.
+# It never checks out or runs contributor code.
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  thanks:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && github.event.pull_request.user.type != 'Bot'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(pr.author_association)) return;
+
+            const q = `repo:${owner}/${repo} author:${author} is:pr is:merged`;
+            const merged = await github.rest.search.issuesAndPullRequests({ q, per_page: 1 });
+            if (merged.data.total_count !== 1) return; // not their first merged PR
+
+            const base = `https://github.com/${owner}/${repo}`;
+            const next = `${base}/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22`;
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: pr.number,
+              body: `Merged. Thank you, @${author}, and welcome to the contributors of ${repo}!\n\nIf you'd like to keep going, there are more [open issues that need help](${next}); comment \`/take\` on one to claim it. Telling a friend or starring the repo helps new people find the project. Add yourself to [AUTHORS.md](${base}/blob/main/AUTHORS.md) in your next PR if you like.`,
+            });

@@ -1,0 +1,91 @@
+name: stale-claims
+
+# Keeps claimed issues from getting stuck: nudge the assignee after 14 quiet days,
+# release the issue after 7 more. An open pull request that mentions the issue counts as activity.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only log what would happen"
+        type: boolean
+        default: true
+
+permissions:
+  issues: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const dry = process.env.DRY_RUN === 'true';
+            const DAY = 24 * 60 * 60 * 1000;
+            const NUDGE_AFTER = 14 * DAY;
+            const RELEASE_AFTER = 7 * DAY;
+            const MARK = '<!-- phantom:stale-claim -->';
+            const now = Date.now();
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', assignee: '*', per_page: 100,
+            });
+
+            for (const issue of issues) {
+              if (issue.pull_request) continue;
+              const names = issue.labels.map((l) => (typeof l === 'string' ? l : l.name));
+              if (!names.includes('help wanted') && !names.includes('good first issue')) continue;
+              const assignees = issue.assignees.map((a) => a.login);
+
+              // Maintainers keep their claims; only outside contributors are swept.
+              let maintainer = false;
+              for (const login of assignees) {
+                const perm = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner, repo, username: login,
+                });
+                if (['admin', 'maintain', 'write'].includes(perm.data.permission)) maintainer = true;
+              }
+              if (maintainer) continue;
+
+              const timeline = await github.paginate(github.rest.issues.listEventsForTimeline, {
+                owner, repo, issue_number: issue.number, per_page: 100,
+              });
+
+              let lastActivity = 0;
+              let nudgeAt = 0;
+              let hasOpenPR = false;
+              for (const ev of timeline) {
+                const at = Date.parse(ev.created_at || ev.submitted_at || 0) || 0;
+                if (ev.event === 'assigned') lastActivity = Math.max(lastActivity, at);
+                if (ev.event === 'commented') {
+                  if (ev.body && ev.body.includes(MARK)) nudgeAt = Math.max(nudgeAt, at);
+                  else if (ev.actor && ev.actor.type !== 'Bot') lastActivity = Math.max(lastActivity, at);
+                }
+                if (ev.event === 'cross-referenced' && ev.source?.issue?.pull_request
+                    && ev.source.issue.state === 'open') hasOpenPR = true;
+              }
+              if (hasOpenPR) continue;
+
+              if (nudgeAt && nudgeAt > lastActivity) {
+                if (now - nudgeAt < RELEASE_AFTER) continue;
+                console.log(`#${issue.number}: releasing ${assignees.join(', ')}`);
+                if (dry) continue;
+                await github.rest.issues.removeAssignees({ owner, repo, issue_number: issue.number, assignees });
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: issue.number,
+                  body: `Releasing this issue since there has been no activity, so someone else can take it (\`/take\`). ${assignees.map((a) => '@' + a).join(', ')}: you are very welcome to claim it again any time.`,
+                });
+              } else if (now - lastActivity >= NUDGE_AFTER) {
+                console.log(`#${issue.number}: nudging ${assignees.join(', ')}`);
+                if (dry) continue;
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: issue.number,
+                  body: `${MARK}\nHi ${assignees.map((a) => '@' + a).join(', ')}, are you still working on this? Reply or open a (draft) pull request within 7 days to keep it, otherwise it will be released for others. No worries if your plans changed.`,
+                });
+              }
+            }

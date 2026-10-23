@@ -7,6 +7,9 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 ### Documentation
 - Add Hindi translations of the README and Quickstart guide.
 
+### Added
+- Contributor automation: comment `/take` to be assigned a `help wanted` issue (and `/release` to give it back), a daily sweep that nudges and then releases inactive claims, path-based PR labels, and a thank-you on a first merged pull request.
+
 ## [0.1.1] — 2026-10-21
 
 Thanks to @jez-elijah (tests for `generate --stdin`, prompts and consent, #39) and @dbdefault (`phantom diff --host-only`, #40) for their first contributions.
