@@ -38,7 +38,7 @@ phantom generate program.py --intent "count requests and note startup" \
 | `--encoding` | Asked interactively if omitted on a terminal. `comment` (default; `comments` accepted), `whitespace`, `unicode`. `hybrid` is refused by the generator: it cannot be validated reliably for LLM-chosen layouts |
 | `--output PATH` | Write the candidate here. Must differ from the input |
 | `--dry-run` | Show plan and diff; write nothing |
-| `--provider` | `gemini` (the only built-in) |
+| `--provider` | `gemini` or `openai` |
 | `--plan-file PATH` | Use a local JSON plan instead of calling a provider; offline, nothing is sent (used by [the examples](examples/README.md)) |
 | `--allow-remote` | Consent to sending the source to the provider |
 
@@ -59,9 +59,12 @@ Running the candidate is a separate, explicit step by you (`phantom run candidat
 
 ## Providers
 
+Install the optional provider SDK with `pip install "phantom-lang[llm]"`. For OpenAI-compatible endpoints, configure `OPENAI_API_KEY`, `PHANTOM_OPENAI_MODEL`, and optionally `PHANTOM_OPENAI_BASE_URL`. The source file is sent to the configured remote service only after the existing `--allow-remote` consent flow.
+
 `phantom.generator.provider.LLMProvider` is a one-method interface (`complete(prompt) -> str`). Included:
 
 - `GeminiProvider` — uses the optional `google-genai` package and `GEMINI_API_KEY`. The model defaults to `gemini-2.5-flash` and can be changed with `PHANTOM_GEMINI_MODEL`. Requests use a 60-second timeout. The call shape (`genai.Client(api_key=…, http_options=HttpOptions(timeout=ms))`, `client.models.generate_content(model=…, contents=…)`) was checked against `google-genai` 2.32.0. **It has not been exercised against the live API** (no key, no paid calls): the tests drive it with a fake SDK. Check the current `google-genai` documentation and available model names before relying on it.
+- `OpenAICompatibleProvider` — uses the optional `openai` package and `OPENAI_API_KEY`. Set `PHANTOM_OPENAI_MODEL` to a model supported by your endpoint; the provider does not choose or invent a model ID. Set `PHANTOM_OPENAI_BASE_URL` for a compatible endpoint (defaults to `https://api.openai.com/v1`). Requests use a 60-second timeout. The SDK call shape was checked against the official [OpenAI Python library](https://github.com/openai/openai-python); live endpoint use has not been tested. Unit tests use a fake SDK and make no network requests.
 - `RetryingProvider` — wraps any provider with bounded retries (default 2, max 5) and exponential backoff.
 - `StaticProvider` — returns canned text; used by the tests and useful offline.
 

@@ -13,6 +13,7 @@ from phantom.generator.planner import parse_plan, validate_plan
 from phantom.generator.prompts import build_prompt
 from phantom.generator.provider import (
     GeminiProvider,
+    OpenAICompatibleProvider,
     ProviderError,
     RetryingProvider,
     redact,
@@ -266,6 +267,96 @@ class TestPromptAndProviders:
                 return "ok"
 
         assert RetryingProvider(Once(""), sleep=lambda s: None).complete("x") == "ok"
+
+
+class TestOpenAICompatibleWiring:
+    """Exercise OpenAICompatibleProvider against a fake SDK (no network or SDK needed)."""
+
+    def _install_fake(self, monkeypatch, behavior):
+        import sys
+        import types
+
+        calls = {}
+
+        class Completions:
+            def create(self, model, messages):
+                calls["model"], calls["messages"] = model, messages
+                return behavior()
+
+        class OpenAI:
+            def __init__(self, **kwargs):
+                calls.update(kwargs)
+                self.chat = types.SimpleNamespace(
+                    completions=Completions()
+                )
+
+        sdk = types.ModuleType("openai")
+        sdk.OpenAI = OpenAI
+        monkeypatch.setitem(sys.modules, "openai", sdk)
+        return calls
+
+    def test_success_uses_configured_endpoint_model_and_timeout(self, monkeypatch):
+        response = types_ns(
+            choices=[types_ns(message=types_ns(content="PLAN"))]
+        )
+        calls = self._install_fake(monkeypatch, lambda: response)
+        provider = OpenAICompatibleProvider(
+            api_key="k", model="configured-model", base_url="https://llm.example/v1", timeout=7
+        )
+        assert provider.complete("hello") == "PLAN"
+        assert calls == {
+            "api_key": "k",
+            "base_url": "https://llm.example/v1",
+            "timeout": 7,
+            "max_retries": 0,
+            "model": "configured-model",
+            "messages": [{"role": "user", "content": "hello"}],
+        }
+
+    def test_reads_configuration_from_environment(self, monkeypatch):
+        from phantom.generator.provider import get_provider
+
+        monkeypatch.setenv("OPENAI_API_KEY", "secret")
+        monkeypatch.setenv("PHANTOM_OPENAI_MODEL", "endpoint-model")
+        monkeypatch.setenv("PHANTOM_OPENAI_BASE_URL", "https://llm.example/v1")
+        provider = get_provider("openai")
+        assert isinstance(provider, OpenAICompatibleProvider)
+        assert provider.api_key == "secret"
+        assert provider.model == "endpoint-model"
+        assert provider.base_url == "https://llm.example/v1"
+
+    def test_requires_key_and_model(self, monkeypatch):
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        monkeypatch.delenv("PHANTOM_OPENAI_MODEL", raising=False)
+        with pytest.raises(ProviderError, match="OPENAI_API_KEY"):
+            OpenAICompatibleProvider()
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        with pytest.raises(ProviderError, match="PHANTOM_OPENAI_MODEL"):
+            OpenAICompatibleProvider()
+
+    def test_failure_is_redacted(self, monkeypatch):
+        def boom():
+            raise RuntimeError("401 for key secret-key-123456")
+
+        self._install_fake(monkeypatch, boom)
+        with pytest.raises(ProviderError) as info:
+            OpenAICompatibleProvider(
+                api_key="secret-key-123456", model="configured-model"
+            ).complete("x")
+        assert "secret-key-123456" not in str(info.value)
+        assert info.value.__cause__ is None
+
+    def test_empty_choices_return_empty_text(self, monkeypatch):
+        self._install_fake(monkeypatch, lambda: types_ns(choices=[]))
+        provider = OpenAICompatibleProvider(api_key="k", model="configured-model")
+        assert provider.complete("hello") == ""
+
+    def test_missing_sdk_message(self, monkeypatch):
+        import sys
+
+        monkeypatch.setitem(sys.modules, "openai", None)
+        with pytest.raises(ProviderError, match="openai is not installed"):
+            OpenAICompatibleProvider(api_key="k", model="configured-model").complete("x")
 
 
 class TestDiff:

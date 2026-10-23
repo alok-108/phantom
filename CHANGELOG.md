@@ -4,6 +4,9 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 ## [Unreleased]
 
+### Added
+- Optional OpenAI-compatible chat-completions provider for the generator, configurable by environment variables.
+
 ### Documentation
 - Add Hindi translations of the README and Quickstart guide.
 

@@ -13,6 +13,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1"
 
 
 class ProviderError(RuntimeError):
@@ -85,6 +86,58 @@ class GeminiProvider(LLMProvider):
         return response.text or ""
 
 
+class OpenAICompatibleProvider(LLMProvider):
+    """OpenAI-compatible chat completions via the optional `openai` package."""
+
+    name = "openai"
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        base_url: str | None = None,
+        timeout: float = 60.0,
+    ) -> None:
+        self.timeout = timeout
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        self.model = model or os.environ.get("PHANTOM_OPENAI_MODEL")
+        self.base_url = base_url or os.environ.get(
+            "PHANTOM_OPENAI_BASE_URL", DEFAULT_OPENAI_BASE_URL
+        )
+        if not self.api_key:
+            raise ProviderError("OPENAI_API_KEY is not set")
+        if not self.model:
+            raise ProviderError(
+                "PHANTOM_OPENAI_MODEL is not set; set it to a model supported by your endpoint"
+            )
+
+    def complete(self, prompt: str) -> str:
+        try:
+            from openai import OpenAI
+        except ImportError as exc:
+            raise ProviderError(
+                "openai is not installed; run: pip install 'phantom-lang[llm]'"
+            ) from exc
+        try:
+            client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url,
+                timeout=self.timeout,
+                max_retries=0,
+            )
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as exc:
+            raise ProviderError(
+                f"OpenAI-compatible request failed: {redact(str(exc), (self.api_key,))}"
+            ) from None
+        if not response.choices:
+            return ""
+        return response.choices[0].message.content or ""
+
+
 class StaticProvider(LLMProvider):
     """Returns a canned or computed response. Used for tests and offline runs."""
 
@@ -130,4 +183,6 @@ def get_provider(name: str = "gemini") -> LLMProvider:
     """Construct a provider by name."""
     if name == "gemini":
         return GeminiProvider()
+    if name == "openai":
+        return OpenAICompatibleProvider()
     raise ProviderError(f"Unknown provider: '{name}'")

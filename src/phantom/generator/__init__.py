@@ -10,7 +10,13 @@ from phantom.generator.models import (
     PlannedInstruction,
     TransformationPlan,
 )
-from phantom.generator.provider import GeminiProvider, LLMProvider, ProviderError, StaticProvider
+from phantom.generator.provider import (
+    GeminiProvider,
+    LLMProvider,
+    OpenAICompatibleProvider,
+    ProviderError,
+    StaticProvider,
+)
 from phantom.generator.workflow import generate
 
 __all__ = [
@@ -21,6 +27,7 @@ __all__ = [
     "GenerationRequest",
     "GenerationResult",
     "LLMProvider",
+    "OpenAICompatibleProvider",
     "PlannedInstruction",
     "ProviderError",
     "StaticProvider",
