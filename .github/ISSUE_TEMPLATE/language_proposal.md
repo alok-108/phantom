@@ -4,7 +4,7 @@ about: New or changed instruction, encoding, capability or runtime semantics
 labels: proposal, language
 ---
 
-Read [docs/CONTRIBUTOR_GUIDE.md section 8](https://github.com/alok-108/phantom/blob/main/docs/CONTRIBUTOR_GUIDE.md#8-proposing-a-language-change) first.
+Read [docs/CONTRIBUTOR_GUIDE.md section 8](https://github.com/hayagrivai-labs/phantom/blob/main/docs/CONTRIBUTOR_GUIDE.md#8-proposing-a-language-change) first.
 
 **Motivation** - a concrete example program that cannot be expressed today.
 

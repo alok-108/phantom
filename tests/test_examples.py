@@ -52,7 +52,7 @@ def test_comments_run_output():
     result = _phantom("run", "docs/examples/comments.py")
     assert result.returncode == 0
     assert result.stdout.splitlines() == [
-        "=== Phantom Runtime v0.1.0 ===",
+        "=== Phantom Runtime v0.1.1 ===",
         "[OK] Validation passed (5 instruction(s), 0 warning(s))",
         "Hello, World!",
         "",
@@ -64,7 +64,7 @@ def test_comments_run_output():
 def test_events_run_output():
     result = _phantom("run", "docs/examples/events.py")
     assert result.stdout.splitlines() == [
-        "=== Phantom Runtime v0.1.0 ===",
+        "=== Phantom Runtime v0.1.1 ===",
         "[OK] Validation passed (2 instruction(s), 0 warning(s))",
         "[hook] about to run events.py",
         "[hook] finished with exit code 0",
@@ -152,3 +152,20 @@ def test_verify_example_detects_change():
     assert result.returncode == 1
     assert "Result: Behavior difference detected" in result.stdout
     assert "-12" in result.stderr and "+13" in result.stderr
+
+
+def test_host_only_diff_is_read_only(tmp_path):
+    original = tmp_path / "original.py"
+    candidate = tmp_path / "candidate.py"
+    host = 'raise RuntimeError("diff must not execute host code")\n'
+    original.write_text(host, encoding="utf-8")
+    candidate_text = '#: phantom:0.1.0 meta.author("Example")\n' + host
+    candidate.write_text(candidate_text, encoding="utf-8")
+
+    result = _phantom("diff", "--host-only", str(original), str(candidate))
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == ""
+    assert result.stderr == ""
+    assert original.read_text(encoding="utf-8") == host
+    assert candidate.read_text(encoding="utf-8") == candidate_text

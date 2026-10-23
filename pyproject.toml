@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "phantom-lang"
-version = "0.1.0"
+version = "0.1.1"
 description = "A dual-layer programming language — structured instructions embedded in ordinary Python source."
 readme = "README.md"
 license = {text = "MIT"}
@@ -32,9 +32,9 @@ llm = [
     "google-genai>=1.0.0",
 ]
 dev = [
-    "pytest>=7.0",
+    "pytest>=9.1.1",
     "pytest-cov>=4.0",
-    "ruff>=0.4.0",
+    "ruff>=0.17.1",
 ]
 all = [
     "phantom-lang[llm,dev]",

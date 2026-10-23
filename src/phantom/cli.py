@@ -21,6 +21,7 @@ from phantom.generator import (
     compare_behavior,
     generate,
 )
+from phantom.generator.diff import host_layer_diff
 from phantom.generator.provider import (
     LLMProvider,
     ProviderError,
@@ -431,6 +432,10 @@ def cmd_diff(args: argparse.Namespace) -> int:
         print(f"Error reading files: {exc}", file=sys.stderr)
         return 1
 
+    if args.host_only:
+        sys.stdout.write(host_layer_diff("".join(orig_lines), "".join(cand_lines)))
+        return 0
+
     diff = list(
         difflib.unified_diff(
             orig_lines,
@@ -586,6 +591,10 @@ def create_parser() -> argparse.ArgumentParser:
     )
     diff_p.add_argument("original", help="Original file")
     diff_p.add_argument("candidate", help="Candidate file")
+    diff_p.add_argument(
+        "--host-only", action="store_true",
+        help="Compare only the Python host layer, excluding Phantom instructions",
+    )
 
     # verify
     verify_p = subparsers.add_parser(

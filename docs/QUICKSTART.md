@@ -11,7 +11,7 @@ phantom --version
 ```
 
 ```text
-phantom 0.1.0
+phantom 0.1.1
 ```
 
 (`python -m phantom …` is equivalent if the `phantom` script is not on your `PATH`.)
@@ -103,7 +103,7 @@ phantom run docs/examples/comments.py
 ```
 
 ```text
-=== Phantom Runtime v0.1.0 ===
+=== Phantom Runtime v0.1.1 ===
 [OK] Validation passed (5 instruction(s), 0 warning(s))
 Hello, World!
 
@@ -122,7 +122,7 @@ phantom run docs/examples/events.py
 ```
 
 ```text
-=== Phantom Runtime v0.1.0 ===
+=== Phantom Runtime v0.1.1 ===
 [OK] Validation passed (2 instruction(s), 0 warning(s))
 [hook] about to run events.py
 [hook] finished with exit code 0
@@ -138,7 +138,7 @@ phantom run docs/examples/whitespace.py
 ```
 
 ```text
-=== Phantom Runtime v0.1.0 ===
+=== Phantom Runtime v0.1.1 ===
 [OK] Validation passed (1 instruction(s), 0 warning(s))
 Executing core Python logic!
 

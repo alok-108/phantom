@@ -1,8 +1,44 @@
 # Phantom
 
+🌐 **Translations:** [हिन्दी](docs/hi/README.md)
+
+[![tests](https://github.com/hayagrivai-labs/phantom/actions/workflows/tests.yml/badge.svg)](https://github.com/hayagrivai-labs/phantom/actions/workflows/tests.yml)
+[![release](https://img.shields.io/github/v/release/hayagrivai-labs/phantom)](https://github.com/hayagrivai-labs/phantom/releases)
+[![license: MIT](https://img.shields.io/github/license/hayagrivai-labs/phantom)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue)](docs/COMPATIBILITY.md)
+[![good first issues](https://img.shields.io/github/issues/hayagrivai-labs/phantom/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+[![discussions](https://img.shields.io/github/discussions/hayagrivai-labs/phantom)](https://github.com/hayagrivai-labs/phantom/discussions)
+
+> **Contributors welcome.** New here? Pick a [good first issue](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22), read the [Contributor Guide](docs/CONTRIBUTOR_GUIDE.md), and say hello in [Discussions](https://github.com/hayagrivai-labs/phantom/discussions). Adding a new instruction takes four code edits. Issues labelled `mentor available` come with maintainer help. [Open in a Codespace](https://codespaces.new/hayagrivai-labs/phantom) for a ready-to-go environment.
+
 **Phantom** is a dual-layer programming concept: ordinary Python source plus a second, structured *instruction layer* embedded in comments (or in whitespace / zero-width blocks), with no Phantom imports, decorators or wrappers in your code.
 
-> Version **0.1.0** — an early release. Small, tested, and honest about what it does not do (see [Limitations](#current-limitations)).
+> Version **0.1.1** — an early release. Small, tested, and honest about what it does not do (see [Limitations](#current-limitations)).
+
+<p align="center">
+  <img src="docs/assets/demo.svg" alt="Terminal demo: python ignores the Phantom lines; phantom check validates them; phantom run applies them; phantom generate proposes them as a diff" width="100%">
+</p>
+
+## Why
+
+Real Python code gets cluttered with scaffolding that isn't the business logic: metrics calls, lifecycle hooks, provenance notes, decorators, `import` lines for tooling. Phantom tries a different split. Your file stays ordinary Python. The scaffolding lives in a **second, typed, validated layer** next to it, which tools (and people) can read, check and apply, and which an LLM can propose **as a diff, never as a rewrite**.
+
+- **Your code is untouched.** `python app.py` runs it exactly as before. Phantom never edits it.
+- **The second layer is inspectable.** A formal grammar, `phantom check`, `phantom inspect`, and a strict audit for invisible characters.
+- **AI changes are verifiable.** `phantom generate` only inserts lines, and accepts a candidate only if the Python AST is identical to the original.
+- **Small and honest.** Seven instructions, no runtime dependencies, features labelled *Implemented / Experimental / Proposed*.
+
+## Try it in 30 seconds
+
+```bash
+pip install "git+https://github.com/hayagrivai-labs/phantom.git"
+printf 'print("Hello")\n#: phantom:0.1.0 diagnostic.note("it works")\n' > hello.py
+phantom run hello.py
+```
+
+You should see `Hello` followed by a Phantom diagnostic `it works`. (Not on PyPI yet; see [docs/RELEASING.md](docs/RELEASING.md).)
+
+If Phantom looks useful or interesting, a star helps other people find it. If you want to shape it, the [good first issues](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are the best way in.
 
 ## What it is
 
@@ -52,7 +88,7 @@ phantom run     docs/examples/comments.py     # apply instructions, run the host
 ```
 
 ```text
-=== Phantom Runtime v0.1.0 ===
+=== Phantom Runtime v0.1.1 ===
 [OK] Validation passed (5 instruction(s), 0 warning(s))
 Hello, World!
 
@@ -121,7 +157,13 @@ python scripts/verify_release.py         # release consistency gates
 
 ## Contributing
 
-Contributions of every size are welcome: bug fixes, tests, docs, new instructions, encodings, LLM providers and research experiments. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the step-by-step [Contributor Guide](docs/CONTRIBUTOR_GUIDE.md) (adding an instruction takes four code edits). Ideas are tracked as GitHub issues labelled `good first issue`, `help wanted` and `proposal`.
+Contributions of every size are welcome: bug fixes, tests, docs, new instructions, encodings, LLM providers and research experiments. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the step-by-step [Contributor Guide](docs/CONTRIBUTOR_GUIDE.md) (adding an instruction takes four code edits). Ideas are tracked as GitHub issues labelled `good first issue`, `help wanted`, `mentor available` and `needs design`. Before a pull request run `ruff check src tests scripts`, `pytest` and `python scripts/verify_release.py`. Questions and ideas are welcome in [Discussions](https://github.com/hayagrivai-labs/phantom/discussions); maintainers are listed in [MAINTAINERS.md](MAINTAINERS.md) and design decisions in [docs/adr/](docs/adr/).
+
+### Contributors
+
+<a href="https://github.com/hayagrivai-labs/phantom/graphs/contributors"><img src="https://contrib.rocks/image?repo=hayagrivai-labs/phantom" alt="Contributors"></a>
+
+Everyone who has a pull request merged is thanked in the release notes.
 
 ## Documentation
 

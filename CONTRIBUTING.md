@@ -7,14 +7,34 @@ Thanks for wanting to help. Phantom is an early-stage open-source language proje
 ## Quick start
 
 ```bash
-git clone https://github.com/alok-108/phantom.git      # or your fork
+git clone https://github.com/hayagrivai-labs/phantom.git      # or your fork
 cd phantom
 python -m venv .venv
 source .venv/bin/activate                              # Windows: .venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
 ```
 
+Or open a ready-made environment with one click: [GitHub Codespaces](https://codespaces.new/hayagrivai-labs/phantom) (uses `.devcontainer/devcontainer.json`; it installs the dev extras and runs the tests).
+
 Optional, for the LLM generator: `pip install -e ".[all]"` (needs Python ≥ 3.10).
+
+## Your first pull request in about 10 minutes
+
+1. Pick an issue labelled [`good first issue`](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and comment `/take` on it: you are assigned automatically (up to two open issues at a time). Changed your mind? Comment `/release`. Claims with no activity for about three weeks are released automatically.
+2. Fork the repo on GitHub, then:
+   ```bash
+   git clone https://github.com/<you>/phantom.git && cd phantom
+   git checkout -b my-change
+   python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\Activate.ps1
+   pip install -e ".[dev]"
+   pytest -q                                              # everything should pass before you start
+   ```
+3. Make the change, and add a test that fails without it.
+4. Run the checks: `ruff check src tests scripts && pytest -q && python scripts/verify_release.py`.
+5. Push and open a pull request; fill in the template. A maintainer approves the first CI run on a fork, so it may take a short while to start.
+6. Respond to review comments by pushing more commits to the same branch.
+
+Stuck at any step? Ask in the issue; that is what `mentor available` is for.
 
 ## Before every pull request
 
@@ -39,6 +59,24 @@ CI runs the tests on Python 3.10–3.13 on Ubuntu and Windows and the release ch
 | Run a visibility / Phantom C experiment | [Guide §7](docs/CONTRIBUTOR_GUIDE.md#7-research-contributions) |
 | Propose a language change | [Guide §8](docs/CONTRIBUTOR_GUIDE.md#8-proposing-a-language-change) and the proposal template |
 | Report a security issue | [SECURITY.md](SECURITY.md); do not open a public issue |
+
+## Finding something to work on
+
+Issues are labelled so you can pick by size and area:
+
+| Label | Meaning |
+| :--- | :--- |
+| `good first issue` | Small, well specified, no design decisions |
+| `difficulty: easy` / `medium` / `hard` | A few hours / needs some knowledge of the codebase / design decisions or tricky edge cases |
+| `area: cli`, `parser`, `validator`, `runtime`, `generator`, `encodings`, `ci`, `docs` | Where in the code the work is |
+| `mentor available` | A maintainer will help with questions and review |
+| `needs design` | Discuss the approach in the issue before writing code |
+| `help wanted` | Maintainers would welcome a contribution |
+| `feedback` | We want to hear how you use it |
+
+To take an issue, comment on it so nobody duplicates the work. A draft pull request is fine, and
+so is asking questions in the issue. Architecture decisions are recorded in [docs/adr/](docs/adr/);
+read them before proposing changes to the model.
 
 ## Project principles
 
