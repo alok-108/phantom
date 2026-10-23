@@ -30,6 +30,6 @@ This document states Phantom's security posture honestly, including what it does
 
 ## Reporting a vulnerability
 
-No dedicated security mailbox is published for this project, and none is invented here. Report privately to the maintainer (GitHub: [alok-108](https://github.com/alok-108)); if private vulnerability reporting is enabled on [the repository](https://github.com/alok-108/phantom/security), use that. Please include: affected version, a minimal source file, steps to reproduce, and impact. Please do not disclose publicly before a fix is available.
+No dedicated security mailbox is published for this project, and none is invented here. Report privately to the maintainer (GitHub: [alok-108](https://github.com/alok-108)); private vulnerability reporting is enabled on [the repository](https://github.com/hayagrivai-labs/phantom/security/advisories/new), so please use that. Please include: affected version, a minimal source file, steps to reproduce, and impact. Please do not disclose publicly before a fix is available.
 
 Examples of relevant issues: parser crashes or hangs on crafted input, any path from instruction data to code execution, capability bypass, encoding spoofing that defeats `--strict`, generator behavior that modifies host code or writes to the input file.

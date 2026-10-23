@@ -4,7 +4,7 @@ about: A measurement or study about visibility, auditability or Phantom C
 labels: research
 ---
 
-Read [docs/research/EXPERIMENTAL_METHOD.md](https://github.com/alok-108/phantom/blob/main/docs/research/EXPERIMENTAL_METHOD.md) first. Proposals aiming to evade security products or conceal execution from authorized owners will be closed.
+Read [docs/research/EXPERIMENTAL_METHOD.md](https://github.com/hayagrivai-labs/phantom/blob/main/docs/research/EXPERIMENTAL_METHOD.md) first. Proposals aiming to evade security products or conceal execution from authorized owners will be closed.
 
 **Property studied** (one of: readability, detectability, auditability, provenance, execution visibility)
 

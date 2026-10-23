@@ -49,7 +49,7 @@ Workflow: fork → branch → change → `ruff check src tests scripts && pytest
 ## 2. Development setup
 
 ```bash
-git clone https://github.com/alok-108/phantom.git
+git clone https://github.com/hayagrivai-labs/phantom.git
 cd phantom
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\Activate.ps1
 pip install -e ".[dev]"

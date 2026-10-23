@@ -1,0 +1,38 @@
+name: welcome
+
+# Posts one friendly comment on a contributor's first issue or first pull request.
+# It never checks out or runs contributor code, which is what makes pull_request_target safe here.
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]' && github.event.sender.type != 'Bot'
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const isPR = context.eventName === 'pull_request_target';
+            const author = context.payload.sender.login;
+            const assoc = (isPR ? context.payload.pull_request : context.payload.issue).author_association;
+            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(assoc)) return;
+
+            const q = `repo:${owner}/${repo} author:${author} ${isPR ? 'is:pr' : 'is:issue'}`;
+            const found = await github.rest.search.issuesAndPullRequests({ q, per_page: 2 });
+            if (found.data.total_count > 1) return; // not their first one
+
+            const number = (isPR ? context.payload.pull_request : context.payload.issue).number;
+            const guide = `https://github.com/${owner}/${repo}/blob/main/docs/CONTRIBUTOR_GUIDE.md`;
+            const body = isPR
+              ? `Thanks for your first pull request, @${author}! A maintainer will take a look soon.\n\nWhile you wait: please make sure \`ruff check src tests scripts\`, \`pytest\` and \`python scripts/verify_release.py\` pass (the checklist is in the PR template), and that tests and docs are included for anything that changes behavior. CI on a first contribution needs a maintainer to approve the run, so don't worry if it hasn't started. The [Contributor Guide](${guide}) has the details.`
+              : `Thanks for opening your first issue, @${author}! A maintainer will respond soon.\n\nIf you'd like to work on it yourself, comment \`/take\` and you will be assigned (if it is marked \`help wanted\`). The [Contributor Guide](${guide}) explains how to get set up, and issues labelled \`good first issue\` or \`mentor available\` are a good place to start.`;
+            await github.rest.issues.createComment({ owner, repo, issue_number: number, body });

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1140" height="620" viewBox="0 0 1140 620" role="img" aria-label="Phantom terminal demo">
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace; font-size: 14px; white-space: pre; }
+    .out { fill: #c9d1d9; }
+    .cmd { fill: #ffffff; font-weight: 600; }
+    .prompt { fill: #3fb950; }
+    .add { fill: #3fb950; }
+  </style>
+  <rect width="1140" height="620" rx="10" fill="#0d1117"/>
+  <rect width="1140" height="36" rx="10" fill="#161b22"/>
+  <rect y="26" width="1140" height="10" fill="#161b22"/>
+  <circle cx="22" cy="18" r="6" fill="#ff5f56"/><circle cx="42" cy="18" r="6" fill="#ffbd2e"/><circle cx="62" cy="18" r="6" fill="#27c93f"/>
+  <text x="570" y="23" text-anchor="middle" class="out" style="font-size:13px">phantom: ordinary Python + a second layer</text>
+  <text x="24" y="70" class="out"><tspan class="prompt">$ </tspan><tspan class="cmd">python docs/examples/comments.py</tspan></text>
+<text x="24" y="90" class="out" xml:space="preserve">Hello, World!</text>
+<text x="24" y="110" class="out" xml:space="preserve"></text>
+<text x="24" y="130" class="out"><tspan class="prompt">$ </tspan><tspan class="cmd">phantom check docs/examples/comments.py</tspan></text>
+<text x="24" y="150" class="out" xml:space="preserve">0 error(s), 0 warning(s)</text>
+<text x="24" y="170" class="out" xml:space="preserve"></text>
+<text x="24" y="190" class="out"><tspan class="prompt">$ </tspan><tspan class="cmd">phantom run docs/examples/comments.py</tspan></text>
+<text x="24" y="210" class="out" xml:space="preserve">=== Phantom Runtime v0.1.1 ===</text>
+<text x="24" y="230" class="out" xml:space="preserve">[OK] Validation passed (5 instruction(s), 0 warning(s))</text>
+<text x="24" y="250" class="out" xml:space="preserve">Hello, World!</text>
+<text x="24" y="270" class="out" xml:space="preserve"></text>
+<text x="24" y="290" class="out" xml:space="preserve">--- Phantom Diagnostics ---</text>
+<text x="24" y="310" class="out" xml:space="preserve">[INFO] [docs/examples/comments.py:18:0 [comment]] Greeting counter initialised</text>
+<text x="24" y="330" class="out" xml:space="preserve"></text>
+<text x="24" y="350" class="out"><tspan class="prompt">$ </tspan><tspan class="cmd">phantom generate docs/examples/generation/program.py --intent annotate \</tspan></text>
+<text x="24" y="370" class="cmd" xml:space="preserve">    --plan-file docs/examples/generation/plan.json --dry-run</text>
+<text x="24" y="390" class="out" xml:space="preserve">Where should Phantom be added? [beginning|end|line:N|near:NAME] (beginning) Encoding? [comment|whitespace|unicode] (comment) Plan:</text>
+<text x="24" y="410" class="out" xml:space="preserve">  - meta.author  [comment]  provenance</text>
+<text x="24" y="430" class="out" xml:space="preserve">  - diagnostic.note  [comment]  reviewer hint</text>
+<text x="24" y="450" class="out" xml:space="preserve"></text>
+<text x="24" y="470" class="out" xml:space="preserve">Diff:</text>
+<text x="24" y="490" class="out" xml:space="preserve">--- docs/examples/generation/program.py</text>
+<text x="24" y="510" class="out" xml:space="preserve">+++ candidate</text>
+<text x="24" y="530" class="out" xml:space="preserve">@@ -1,3 +1,5 @@</text>
+<text x="24" y="550" class="add" xml:space="preserve">+#: phantom:0.1.0 meta.author("Example plan")</text>
+<text x="24" y="570" class="add" xml:space="preserve">+#: phantom:0.1.0 diagnostic.note("total() annotated")</text>
+<text x="24" y="590" class="out" xml:space="preserve">...</text>
+</svg>

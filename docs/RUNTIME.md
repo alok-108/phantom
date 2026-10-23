@@ -36,7 +36,7 @@ See `docs/examples/events.py`:
 
 ```text
 $ phantom run docs/examples/events.py
-=== Phantom Runtime v0.1.0 ===
+=== Phantom Runtime v0.1.1 ===
 [OK] Validation passed (2 instruction(s), 0 warning(s))
 [hook] about to run events.py
 [hook] finished with exit code 0
