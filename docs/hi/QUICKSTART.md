@@ -146,7 +146,7 @@ Executing core Python logic!
 [INFO] [docs/examples/whitespace.py:11:0 [whitespace]] hidden in whitespace
 ```
 
-वास्तविक काम में इनका उपयोग करने से पहले [ENCODINGS.md](../../ENCODINGS.md) पढ़ें।
+वास्तविक काम में इनका उपयोग करने से पहले [ENCODINGS.md](../ENCODINGS.md) पढ़ें।
 
 ## 9. Generate करें (वैकल्पिक, remote)
 
@@ -159,4 +159,4 @@ phantom generate docs/examples/hello.py --intent "note the program start" \
 
 ## आगे पढ़ें
 
-[LANGUAGE_GUIDE.md](../LANGUAGE_GUIDE.md) · [ENCODINGS.md](../../ENCODINGS.md) · [RUNTIME.md](../RUNTIME.md) · [GENERATOR.md](../GENERATOR.md)
+[LANGUAGE_GUIDE.md](../LANGUAGE_GUIDE.md) · [ENCODINGS.md](../ENCODINGS.md) · [RUNTIME.md](../RUNTIME.md) · [GENERATOR.md](../GENERATOR.md)

@@ -60,7 +60,7 @@ Phantom Python को संशोधित नहीं करता, import ho
 
 - सात instructions: events, सीमित counters, diagnostic notes और author/version metadata ([संदर्भ](../../docs/LANGUAGE_GUIDE.md))।
 - Formal grammar ([SPECIFICATION.md](../../SPECIFICATION.md)) और typed, immutable IR।
-- चार encodings: **comment** (अनुशंसित), whitespace, zero-width Unicode और hybrid ([ENCODINGS.md](../../ENCODINGS.md))।
+- चार encodings: **comment** (अनुशंसित), whitespace, zero-width Unicode और hybrid ([ENCODINGS.md](../ENCODINGS.md))।
 - Line/column diagnostics और SARIF export के साथ static validation।
 - Invisible और bidirectional characters की सख्त जाँच (`--strict`)।
 - सामान्य functions वाले lifecycle event handlers; प्रति-instruction capabilities।
@@ -169,7 +169,7 @@ python scripts/verify_release.py         # release consistency gates
 
 [SPECIFICATION](../../SPECIFICATION.md) · [VISION](../../VISION.md) · [ROADMAP](../../ROADMAP.md) · [CHANGELOG](../../CHANGELOG.md) · [SECURITY](../../SECURITY.md) · [CONTRIBUTING](../../CONTRIBUTING.md)
 
-Guides: [Contributor guide](../CONTRIBUTOR_GUIDE.md) · [Installation](../INSTALLATION.md) · [Quickstart](QUICKSTART.md) · [Language](../LANGUAGE_GUIDE.md) · [Encodings](../../ENCODINGS.md) · [Runtime](../RUNTIME.md) · [Generator](../GENERATOR.md) · [Architecture](../ARCHITECTURE.md) · [Compatibility](../COMPATIBILITY.md) · [Troubleshooting](../TROUBLESHOOTING.md) · [FAQ](../FAQ.md) · [Threat model](../THREAT_MODEL.md) · [Research status](../RESEARCH_STATUS.md)
+Guides: [Contributor guide](../CONTRIBUTOR_GUIDE.md) · [Installation](../INSTALLATION.md) · [Quickstart](QUICKSTART.md) · [Language](../LANGUAGE_GUIDE.md) · [Encodings](../ENCODINGS.md) · [Runtime](../RUNTIME.md) · [Generator](../GENERATOR.md) · [Architecture](../ARCHITECTURE.md) · [Compatibility](../COMPATIBILITY.md) · [Troubleshooting](../TROUBLESHOOTING.md) · [FAQ](../FAQ.md) · [Threat model](../THREAT_MODEL.md) · [Research status](../RESEARCH_STATUS.md)
 
 Research: [overview](../research/README.md) · [Phantom C](../research/PHANTOM_C.md) · [Observability](../research/OBSERVABILITY.md) · [Method](../research/EXPERIMENTAL_METHOD.md)
 
