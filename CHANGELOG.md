@@ -5,7 +5,6 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 ## [Unreleased]
 
 ### Fixed
-- SARIF `artifactLocation.uri` values are now percent-encoded URI references: spaces, `#`, `%` and other reserved characters in paths no longer produce invalid or truncated URIs, and absolute paths (POSIX and Windows drive letters) are emitted as `file:` URIs (#55).
 - Source scanning uses Python physical line endings only (LF, CRLF, CR); strict audit flags NEL, line separator, and paragraph separator.
 - Encoders emit the existing `\n`, `\r`, and `\t` escapes for string arguments, preserving these characters when instructions are parsed back in comment, whitespace, and Unicode modes.
 - A line that starts with `#: phantom:` but does not match the grammar is now a parse error (it used to be silently ignored); a complete instruction followed by a trailing comment is ignored with a warning.
@@ -14,6 +13,9 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - The host timeout is enforced even when the host leaves a child process holding the output pipes: the whole process tree is killed on expiry (#53).
 - `phantom verify` no longer reports identical programs as different when they print their own path or fail with the same traceback at shifted line numbers, and no longer reports two programs that both crash identically as equivalent (now inconclusive) (#52).
 - Preserve instruction-specific messages when capability checks fail, including all missing capabilities.
+- SARIF `artifactLocation.uri` values are now percent-encoded URI references: spaces, `#`, `%` and other reserved characters in paths no longer produce invalid or truncated URIs, and absolute paths (POSIX and Windows drive letters) are emitted as `file:` URIs (#55).
+- Maintainer inbox: a workflow that keeps one issue up to date with CI runs waiting for approval, pull requests without a maintainer response and the size of the beginner-issue pool, and pings the maintainers once per waiting pull request.
+- Instruction lines are matched in linear time: a crafted line (for example `#: phantom:0.1.0 a.b(` followed by a few thousand spaces) used to take minutes to parse because the pattern backtracked cubically (#78).
 - `validator.py` spelled the bidirectional controls it audits as raw characters; they are now explicit code points, and a test keeps invisible/bidirectional characters out of `src/`, `scripts/` and the workflows.
 - Event handlers are invoked at most once per registration when an event fires, even if they raise `TypeError` or `ValueError`; signature validation no longer retries failing handlers or replaces their original error.
 
@@ -27,11 +29,9 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - Tests for runtime initialization errors, denied instructions, version metadata, and handler resolution diagnostics.
 - Experimental VS Code extension (`editors/vscode`): decodes hidden whitespace and zero-width instruction blocks on hover, reports them and stray invisible or bidirectional characters in the Problems panel, and highlights comment-encoded instructions. Its decoding is cross-checked against the Python encoders through generated fixtures (#36).
 - Contributor automation: comment `/take` to be assigned a `help wanted` issue (and `/release` to give it back), a daily sweep that nudges and then releases inactive claims, path-based PR labels, and a thank-you on a first merged pull request.
-- Maintainer inbox: a workflow that keeps one issue up to date with CI runs waiting for approval, pull requests without a maintainer response and the size of the beginner-issue pool, and pings the maintainers once per waiting pull request.
 - `meta.license(spdx)` instruction: records an SPDX license identifier as metadata (capability `cap.metadata`).
 
 ### Security
-- Instruction lines are matched in linear time: a crafted line (for example `#: phantom:0.1.0 a.b(` followed by a few thousand spaces) used to take minutes to parse because the pattern backtracked cubically (#78).
 - Opt-in security controls for `phantom run`: `--deny CAP` / `--allow-only CAP` (also on `check` and `inspect`) enforce a capability policy before anything runs (#30), and `--handlers-from DIR` / `--allow-handler PATTERN` decide which `event.on` handler modules may be imported, before importing them (#31).
 
 ## [0.1.1] — 2026-10-21
