@@ -68,6 +68,28 @@ def test_render_with_caret():
     assert "f.py:1:5" in text and "^" in text and src.strip() in text
 
 
+def _caret_line(text: str) -> str:
+    return text.splitlines()[-1]
+
+
+def test_render_caret_keeps_a_tab_indent():
+    src = "\t#: phantom:0.1.0 bogus.thing()\n"
+    err = parse(src, "f.py").errors[0]
+    assert _caret_line(diagnostics.render(err, src)).endswith("\t^")
+
+
+def test_render_caret_keeps_mixed_tab_and_space_indent():
+    src = "\t  #: phantom:0.1.0 bogus.thing()\n"
+    err = parse(src, "f.py").errors[0]
+    assert _caret_line(diagnostics.render(err, src)).endswith("\t  ^")
+
+
+def test_render_caret_is_unchanged_for_space_indent():
+    src = "    #: phantom:0.1.0 bogus.thing()\n"
+    err = parse(src, "f.py").errors[0]
+    assert _caret_line(diagnostics.render(err, src)).endswith("    ^")
+
+
 def test_render_without_source_and_with_color():
     err = ValidationError("bad", _inst())
     assert "error: bad" in diagnostics.render(err)
