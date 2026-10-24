@@ -46,7 +46,7 @@ def render(finding: Finding, source: str | None = None, color: bool = False) -> 
             out.append(f"{gutter}{text}")
             # Keep tabs in the caret prefix so the marker lines up with the
             # source line at any tab width (#84).
-            prefix = "".join("	" if ch == "	" else " " for ch in text[: loc.column])
+            prefix = "".join("\t" if ch == "\t" else " " for ch in text[: loc.column])
             out.append(f"{' ' * (len(gutter) - 2)}| {prefix}^")
     return "\n".join(out)
 
