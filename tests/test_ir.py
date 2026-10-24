@@ -90,3 +90,27 @@ def test_sarif_shape():
     region = result["locations"][0]["physicalLocation"]["region"]
     assert region == {"startLine": 2, "startColumn": 5}
     json.loads(diagnostics.to_sarif_json([]))
+
+
+def _sarif_uri(path: str) -> str:
+    err = ParseError("bad", SourceLocation(path, 1))
+    log = diagnostics.to_sarif([err])
+    return log["runs"][0]["results"][0]["locations"][0]["physicalLocation"]["artifactLocation"]["uri"]
+
+
+@pytest.mark.parametrize(
+    ("path", "uri"),
+    [
+        ("src/app.py", "src/app.py"),
+        ("my dir/app.py", "my%20dir/app.py"),
+        ("issue#1/app.py", "issue%231/app.py"),
+        ("50%/app.py", "50%25/app.py"),
+        ("src\\pkg\\app.py", "src/pkg/app.py"),
+        ("my dir\\app #2.py", "my%20dir/app%20%232.py"),
+        ("/home/me/my dir/app.py", "file:///home/me/my%20dir/app.py"),
+        ("C:\\Users\\me\\app.py", "file:///C:/Users/me/app.py"),
+        ("d:/my dir/app.py", "file:///d:/my%20dir/app.py"),
+    ],
+)
+def test_sarif_uri_is_encoded(path, uri):
+    assert _sarif_uri(path) == uri

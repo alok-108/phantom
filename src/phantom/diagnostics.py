@@ -7,7 +7,9 @@ for CI systems.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
+from urllib.parse import quote
 
 from phantom.ir import ParseError, Severity, SourceLocation, ValidationError
 from phantom.lines import split_physical_lines
@@ -18,6 +20,20 @@ Finding = ParseError | ValidationError
 _SARIF_LEVEL = {Severity.ERROR: "error", Severity.WARNING: "warning", Severity.INFO: "note"}
 _ANSI = {Severity.ERROR: "\033[31m", Severity.WARNING: "\033[33m", Severity.INFO: "\033[36m"}
 _RESET = "\033[0m"
+_DRIVE = re.compile(r"[A-Za-z]:/")
+
+
+def _sarif_uri(path: str) -> str:
+    """Return ``path`` as a SARIF ``artifactLocation.uri`` (RFC 3986 URI reference).
+
+    Relative paths stay relative references; absolute paths become ``file`` URIs.
+    """
+    posix = path.replace("\\", "/")
+    if _DRIVE.match(posix):
+        return "file:///" + posix[:2] + quote(posix[2:])
+    if posix.startswith("/"):
+        return "file://" + quote(posix)
+    return quote(posix)
 
 
 def finding_location(finding: Finding) -> SourceLocation | None:
@@ -68,7 +84,7 @@ def to_sarif(findings: list[Finding]) -> dict[str, Any]:
             item["locations"] = [
                 {
                     "physicalLocation": {
-                        "artifactLocation": {"uri": loc.file.replace("\\", "/")},
+                        "artifactLocation": {"uri": _sarif_uri(loc.file)},
                         "region": {"startLine": loc.line, "startColumn": loc.column + 1},
                     }
                 }
