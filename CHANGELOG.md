@@ -5,6 +5,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 ## [Unreleased]
 
 ### Fixed
+- `check`, `inspect`, `verify`, `generate` and `diff` now read sources through one helper: a file that is not valid UTF-8 fails with `Error: '<file>' is not valid UTF-8 (byte 0x.. at position N)` and exit code 1, instead of a traceback (`verify`, `generate`) or silently replaced bytes (`check`, `inspect`, `diff`); a leading UTF-8 BOM is dropped everywhere (#54).
 - A leading UTF-8 BOM no longer silently hides the first instruction: `parse_file`, `check` and `inspect` read sources as `utf-8-sig`, so the BOM is dropped as Python does, and `check --strict` no longer reports it as U+FEFF (#44).
 - Source scanning uses Python physical line endings only (LF, CRLF, CR); strict audit flags NEL, line separator, and paragraph separator.
 - Encoders emit the existing `\n`, `\r`, and `\t` escapes for string arguments, preserving these characters when instructions are parsed back in comment, whitespace, and Unicode modes.
