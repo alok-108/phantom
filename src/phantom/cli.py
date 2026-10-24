@@ -124,7 +124,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         val_errors += check_policy(program, grant)
     all_diagnostics: list[Any] = list(program.errors) + list(val_errors)
     if args.strict:
-        with open(filepath, encoding="utf-8", errors="replace") as f:
+        with open(filepath, encoding="utf-8-sig", errors="replace") as f:
             all_diagnostics += audit_source(f.read(), filepath)
 
     error_count = sum(
@@ -138,7 +138,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         print(diagnostics.to_sarif_json(all_diagnostics))
         return 2 if error_count > 0 else 0
 
-    with open(filepath, encoding="utf-8", errors="replace") as f:
+    with open(filepath, encoding="utf-8-sig", errors="replace") as f:
         source_text = f.read()
     for diag in all_diagnostics:
         out = (
@@ -170,7 +170,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
     strict_findings: list[Any] = []
     if args.strict:
-        with open(filepath, encoding="utf-8", errors="replace") as f:
+        with open(filepath, encoding="utf-8-sig", errors="replace") as f:
             strict_findings = audit_source(f.read(), filepath)
 
     grant = _grant_from_args(args)

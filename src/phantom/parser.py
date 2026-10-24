@@ -233,6 +233,10 @@ def parse(content: str, filepath: str = "<string>") -> PhantomProgram:
 
 
 def parse_file(filepath: str) -> PhantomProgram:
-    """Parse a file from disk."""
-    with open(filepath, encoding="utf-8", errors="replace") as f:
+    """Parse a file from disk.
+
+    A leading UTF-8 BOM is dropped (``utf-8-sig``), as Python itself does, so it
+    cannot hide an instruction on the first line.
+    """
+    with open(filepath, encoding="utf-8-sig", errors="replace") as f:
         return parse(f.read(), filepath)

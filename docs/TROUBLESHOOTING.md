@@ -26,6 +26,7 @@
 | `generate`: `'f' is ambiguous (defined at lines …)` | Two definitions share a name | Use `--placement line:N` |
 | `generate`: `Line N is inside a multi-line construct` | The target is within a string/bracket | Choose another line |
 | `generate`: `Host code differs …` | The candidate's AST differs from the original's | The candidate is not accepted; this should not happen with the insert-only transformer and indicates a bug |
+| `check` reports 0 errors / `inspect` shows 0 instructions for a file saved with a UTF-8 BOM (older versions) | The BOM hid the first-line instruction | Phantom now reads files as `utf-8-sig` and drops a leading BOM, as Python does; upgrade. A U+FEFF anywhere else is still reported by `check --strict` |
 | Garbled characters on Windows | Legacy console code page | `$env:PYTHONUTF8 = "1"` |
 
 For anything unexpected, `phantom inspect --json FILE` shows exactly what was recognised and where.
