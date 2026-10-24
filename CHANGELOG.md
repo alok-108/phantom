@@ -14,6 +14,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - `phantom verify` no longer reports identical programs as different when they print their own path or fail with the same traceback at shifted line numbers, and no longer reports two programs that both crash identically as equivalent (now inconclusive) (#52).
 - Preserve instruction-specific messages when capability checks fail, including all missing capabilities.
 - `validator.py` spelled the bidirectional controls it audits as raw characters; they are now explicit code points, and a test keeps invisible/bidirectional characters out of `src/`, `scripts/` and the workflows.
+- `phantom inspect` prints parse errors in text mode (rendered like `check`) instead of hiding them, and exits 2 on parse errors in both text and `--json` mode (#80).
 - Event handlers are invoked at most once per registration when an event fires, even if they raise `TypeError` or `ValueError`; signature validation no longer retries failing handlers or replaces their original error.
 
 ### Documentation

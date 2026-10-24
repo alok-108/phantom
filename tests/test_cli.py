@@ -83,6 +83,45 @@ def test_cli_inspect_json(capsys):
     assert "required_capabilities" in first
 
 
+_MALFORMED = 'x = 1\n#: phantom:0.1.0 meta.author("a"\nprint(x)\n'
+
+
+def test_cli_inspect_text_shows_parse_errors(capsys, tmp_path):
+    target = tmp_path / "bad.py"
+    target.write_text(_MALFORMED, encoding="utf-8")
+    ret = main(["inspect", str(target)])
+    assert ret == 2
+    out, err = capsys.readouterr()
+    assert "Total Instructions: 0" in out
+    assert "error: Malformed instruction" in err
+    assert f"--> {target}:2:" in err
+    assert '#: phantom:0.1.0 meta.author("a"' in err
+    assert "^" in err
+
+
+def test_cli_inspect_json_parse_errors_exit_2(capsys, tmp_path):
+    target = tmp_path / "bad.py"
+    target.write_text(_MALFORMED, encoding="utf-8")
+    ret = main(["inspect", str(target), "--json"])
+    assert ret == 2
+    out, _ = capsys.readouterr()
+    parsed = json.loads(out)
+    assert parsed["has_errors"] is True
+    assert parsed["errors"][0]["severity"] == "error"
+    assert "Malformed instruction" in parsed["errors"][0]["message"]
+
+
+def test_cli_inspect_clean_file_has_no_errors(capsys):
+    target = FIXTURES_DIR / "valid_comments.py"
+    assert main(["inspect", str(target)]) == 0
+    out, err = capsys.readouterr()
+    assert out.startswith("File: ")
+    assert "Instructions:" in out
+    assert "error" not in out + err
+    assert main(["inspect", str(target), "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["errors"] == []
+
+
 def test_cli_run_valid(capsys):
     target = FIXTURES_DIR / "valid_plain.py"
     ret = main(["run", str(target)])

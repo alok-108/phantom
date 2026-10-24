@@ -174,6 +174,9 @@ def cmd_inspect(args: argparse.Namespace) -> int:
             strict_findings = audit_source(f.read(), filepath)
 
     grant = _grant_from_args(args)
+    # Parse errors make inspect fail like check, in both output modes.
+    has_parse_errors = any(e.severity == Severity.ERROR for e in program.errors)
+    exit_code = 2 if strict_findings or has_parse_errors else 0
 
     def blocked_by(inst: Any) -> list[str]:
         if grant is None:
@@ -222,7 +225,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
         }
         data["strict_findings"] = [str(f) for f in strict_findings]
         print(json.dumps(data, indent=2))
-        return 2 if strict_findings else 0
+        return exit_code
 
     # Human-readable output
     print(f"File: {program.source_file or filepath}")
@@ -230,9 +233,15 @@ def cmd_inspect(args: argparse.Namespace) -> int:
     print(f"Total Instructions: {program.instruction_count}")
     for f in strict_findings:
         print(f"  strict: {f}", file=sys.stderr)
+    if program.errors:
+        with open(filepath, encoding="utf-8", errors="replace") as src:
+            source_text = src.read()
+        for err in program.errors:
+            out = sys.stderr if err.severity == Severity.ERROR else sys.stdout
+            print(diagnostics.render(err, source_text), file=out)
     if program.instruction_count == 0:
         print("  (no Phantom instructions found)")
-        return 2 if strict_findings else 0
+        return exit_code
 
     print("\nInstructions:")
     for idx, inst in enumerate(program.instructions, start=1):
@@ -250,7 +259,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
         if denied:
             print(f"      Policy:       BLOCKED (denied: {', '.join(denied)})")
 
-    return 2 if strict_findings else 0
+    return exit_code
 
 
 def cmd_run(args: argparse.Namespace) -> int:

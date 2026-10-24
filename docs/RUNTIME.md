@@ -18,6 +18,8 @@
 
 Exit codes: `0` success, `1` file missing/unreadable or invalid `--timeout`, `2` validation failed, otherwise the host's code.
 
+`phantom inspect` (text and `--json`) exits `2` when the file has parse errors or `--strict` findings, like `check`; `1` when the file is missing or unreadable; `0` otherwise. In text mode it prints each parse error the way `check` does (message, `file:line:col`, source line with a caret) before the instruction list.
+
 ### Instructions are applied at initialisation
 
 An instruction is not "triggered" when execution passes the line it is written on. The whole instruction layer is applied before the host starts. In particular `counter.increment` records a fact about the program; it is not a hook inside your loop. Per-line hooks inside host control flow are not part of v0.1.0.
