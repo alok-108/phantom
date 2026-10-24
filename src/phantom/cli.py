@@ -7,6 +7,7 @@ for Phantom dual-layer Python programs.
 from __future__ import annotations
 
 import argparse
+import codecs
 import difflib
 import json
 import math
@@ -45,6 +46,26 @@ from phantom.parser import parse_file
 from phantom.runtime import PhantomRuntime
 from phantom.validator import audit_source, check_policy, validate
 from phantom.version import __version__
+
+
+def read_source(path: str) -> str | None:
+    """Read a source file as UTF-8 (a leading BOM is dropped) with universal newlines.
+
+    On undecodable bytes, print one clear error and return ``None`` so every command
+    fails the same way (exit code 1) instead of crashing or silently replacing bytes.
+    """
+    with open(path, "rb") as f:
+        data = f.read()
+    try:
+        text = data.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        pos = exc.start + (len(codecs.BOM_UTF8) if data.startswith(codecs.BOM_UTF8) else 0)
+        print(
+            f"Error: '{path}' is not valid UTF-8 (byte 0x{data[pos]:02x} at position {pos})",
+            file=sys.stderr,
+        )
+        return None
+    return text.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def load_and_parse(filepath: str) -> PhantomProgram:
@@ -111,6 +132,9 @@ def cmd_check(args: argparse.Namespace) -> int:
     if not os.path.isfile(filepath):
         print(f"Error: File not found: '{filepath}'", file=sys.stderr)
         return 1
+    source_text = read_source(filepath)
+    if source_text is None:
+        return 1
 
     try:
         program = load_and_parse(filepath)
@@ -124,8 +148,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         val_errors += check_policy(program, grant)
     all_diagnostics: list[Any] = list(program.errors) + list(val_errors)
     if args.strict:
-        with open(filepath, encoding="utf-8-sig", errors="replace") as f:
-            all_diagnostics += audit_source(f.read(), filepath)
+        all_diagnostics += audit_source(source_text, filepath)
 
     error_count = sum(
         1 for d in all_diagnostics if getattr(d, "severity", None) == Severity.ERROR
@@ -138,8 +161,6 @@ def cmd_check(args: argparse.Namespace) -> int:
         print(diagnostics.to_sarif_json(all_diagnostics))
         return 2 if error_count > 0 else 0
 
-    with open(filepath, encoding="utf-8-sig", errors="replace") as f:
-        source_text = f.read()
     for diag in all_diagnostics:
         out = (
             sys.stderr
@@ -161,6 +182,9 @@ def cmd_inspect(args: argparse.Namespace) -> int:
     if not os.path.isfile(filepath):
         print(f"Error: File not found: '{filepath}'", file=sys.stderr)
         return 1
+    source_text = read_source(filepath)
+    if source_text is None:
+        return 1
 
     try:
         program = load_and_parse(filepath)
@@ -170,8 +194,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
     strict_findings: list[Any] = []
     if args.strict:
-        with open(filepath, encoding="utf-8-sig", errors="replace") as f:
-            strict_findings = audit_source(f.read(), filepath)
+        strict_findings = audit_source(source_text, filepath)
 
     grant = _grant_from_args(args)
     # Parse errors make inspect fail like check, in both output modes.
@@ -234,8 +257,6 @@ def cmd_inspect(args: argparse.Namespace) -> int:
     for f in strict_findings:
         print(f"  strict: {f}", file=sys.stderr)
     if program.errors:
-        with open(filepath, encoding="utf-8", errors="replace") as src:
-            source_text = src.read()
         for err in program.errors:
             out = sys.stderr if err.severity == Severity.ERROR else sys.stdout
             print(diagnostics.render(err, source_text), file=out)
@@ -393,8 +414,10 @@ def cmd_generate(args: argparse.Namespace, provider: LLMProvider | None = None) 
         if not os.path.isfile(args.file):
             print(f"Error: File not found: '{args.file}'", file=sys.stderr)
             return 1
-        with open(args.file, encoding="utf-8") as f:
-            source = f.read()
+        file_source = read_source(args.file)
+        if file_source is None:
+            return 1
+        source = file_source
         name = args.file
 
     interactive = sys.stdin.isatty() and not args.stdin
@@ -473,8 +496,9 @@ def cmd_generate(args: argparse.Namespace, provider: LLMProvider | None = None) 
         return 2
 
     if name and os.path.isfile(name):
-        with open(name, encoding="utf-8") as f:
-            current = f.read()
+        current = read_source(name)
+        if current is None:
+            return 1
         if source_digest(current) != result.source_sha256:
             print(
                 f"error: {name} changed while the candidate was being generated; "
@@ -511,13 +535,15 @@ def cmd_diff(args: argparse.Namespace) -> int:
         return 1
 
     try:
-        with open(orig_path, encoding="utf-8", errors="replace") as f:
-            orig_lines = f.readlines()
-        with open(cand_path, encoding="utf-8", errors="replace") as f:
-            cand_lines = f.readlines()
-    except Exception as exc:
+        orig_text = read_source(orig_path)
+        cand_text = read_source(cand_path)
+    except OSError as exc:
         print(f"Error reading files: {exc}", file=sys.stderr)
         return 1
+    if orig_text is None or cand_text is None:
+        return 1
+    orig_lines = split_physical_lines(orig_text, keepends=True)
+    cand_lines = split_physical_lines(cand_text, keepends=True)
 
     if args.host_only:
         sys.stdout.write(host_layer_diff("".join(orig_lines), "".join(cand_lines)))
@@ -554,10 +580,12 @@ def cmd_verify(args: argparse.Namespace) -> int:
         if not os.path.isfile(path):
             print(f"Error: {label} file not found: '{path}'", file=sys.stderr)
             return 1
-    with open(args.original, encoding="utf-8") as f:
-        original = f.read()
-    with open(args.candidate, encoding="utf-8") as f:
-        candidate = f.read()
+    original = read_source(args.original)
+    if original is None:
+        return 1
+    candidate = read_source(args.candidate)
+    if candidate is None:
+        return 1
 
     result = compare_behavior(original, candidate, timeout=args.timeout)
     label, code = _VERDICT_LABELS[result.verdict]
