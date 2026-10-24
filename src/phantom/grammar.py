@@ -172,20 +172,62 @@ INSTRUCTION_REGISTRY: dict[str, InstructionSpec] = {
 
 COMMENT_MARKER = "#:"
 
+class LineMatch:
+    """The result of an `InstructionLinePattern`: `group(n)` like `re.Match`, with the
+    last group (the raw argument text) already stripped of surrounding whitespace."""
+
+    __slots__ = ("_match", "_args_group")
+
+    def __init__(self, match: re.Match[str], args_group: int) -> None:
+        self._match = match
+        self._args_group = args_group
+
+    def group(self, index: int = 0) -> str:
+        if index == self._args_group:
+            return self._match.group(index).strip()
+        return self._match.group(index)
+
+
+class InstructionLinePattern:
+    r"""Matches ``<head>(<arguments>)`` lines in linear time.
+
+    The earlier single regular expression ended in ``\(\s*(.*?)\s*\)\s*$``. Its three
+    overlapping whitespace-capable parts backtrack cubically, so a line such as
+    ``#: phantom:0.1.0 a.b(`` followed by a few thousand spaces took minutes to reject. Here
+    trailing whitespace is removed first (``str.rstrip`` is linear), the arguments are
+    captured greedily up to the final ``)`` and stripped afterwards; the accepted language
+    is the same.
+    """
+
+    def __init__(self, head: str) -> None:
+        self._regex = re.compile(head + r"\((.*)\)$")
+        self._args_group = self._regex.groups
+
+    def match(self, line: str) -> LineMatch | None:
+        found = self._regex.match(line.rstrip())
+        return LineMatch(found, self._args_group) if found else None
+
+    fullmatch = match
+
+
 # Matches a full Phantom comment-encoded instruction line.
 # Groups: (1) leading whitespace  (2) version  (3) instruction id  (4) raw args
-COMMENT_LINE_PATTERN = re.compile(
+COMMENT_LINE_PATTERN = InstructionLinePattern(
     r'^(\s*)#:\s*phantom:([0-9]+\.[0-9]+\.[0-9]+)\s+'
     r'([a-z][a-z0-9]*\.[a-z][a-z0-9_]*)'
-    r'\(\s*(.*?)\s*\)\s*$'
 )
 
 # Recognize malformed versions for diagnostics without accepting them as syntax.
 # The rest of the line must still have the full instruction shape.
-COMMENT_VERSION_CANDIDATE_PATTERN = re.compile(
+COMMENT_VERSION_CANDIDATE_PATTERN = InstructionLinePattern(
     r'^(\s*)#:\s*phantom:(\S+)\s+'
     r'([a-z][a-z0-9]*\.[a-z][a-z0-9_]*)'
-    r'\(\s*(.*?)\s*\)\s*$'
+)
+
+# Decoded (whitespace / zero-width) instruction text: no comment marker, no indentation.
+INSTRUCTION_TEXT_PATTERN = InstructionLinePattern(
+    r'^phantom:([0-9]+\.[0-9]+\.[0-9]+)\s+'
+    r'([a-z][a-z0-9]*\.[a-z][a-z0-9_]*)'
 )
 
 # A line that starts like an instruction but fails the full grammar is almost

@@ -14,6 +14,7 @@ from phantom.grammar import (
     COMMENT_LINE_PATTERN,
     COMMENT_TRAILING_PATTERN,
     INSTRUCTION_ID_PATTERN,
+    INSTRUCTION_TEXT_PATTERN,
     SPEC_VERSION,
     ZW_PERMITTED_CODEPOINTS,
     ZW_REJECTED_CODEPOINTS,
@@ -32,9 +33,6 @@ from phantom.ir import (
 from phantom.lexer import Token, TokenType, tokenize
 from phantom.lines import split_physical_lines
 
-_INSTRUCTION_TEXT_PATTERN = re.compile(
-    r"^phantom:([0-9]+\.[0-9]+\.[0-9]+)\s+([a-z][a-z0-9]*\.[a-z][a-z0-9_]*)\(\s*(.*?)\s*\)$"
-)
 _INVISIBLE = ZW_PERMITTED_CODEPOINTS | ZW_REJECTED_CODEPOINTS
 _STRING_TOKEN =re.compile(r'"((?:[^"\\]|\\.)*)"')
 _INTEGER_TOKEN = re.compile(r"-?[0-9]+")
@@ -107,7 +105,7 @@ def _build_instruction(
 def _parse_text(
     text: str, loc: SourceLocation, errors: list[ParseError]
 ) -> PhantomInstruction | None:
-    m = _INSTRUCTION_TEXT_PATTERN.match(text.strip())
+    m = INSTRUCTION_TEXT_PATTERN.match(text.strip())
     if not m:
         errors.append(ParseError(f"Malformed decoded instruction: {text.strip()!r}", loc))
         return None
