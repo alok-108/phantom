@@ -1,0 +1,39 @@
+name: maintainer-inbox
+
+# Keeps one tracking issue up to date with what is waiting for a maintainer: CI runs that need
+# approval, pull requests nobody answered, and the size of the beginner-issue pool.
+# Contributors drop out when they wait; this makes waiting visible and pings the maintainers.
+# It only reads pull requests and writes to its own issue.
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only print the inbox; change nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  actions: read
+
+jobs:
+  inbox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/github-script@v7
+        env:
+          # Comma-separated GitHub logins. Edit when maintainers change (see MAINTAINERS.md).
+          MAINTAINERS: alok-108
+          REVIEW_AFTER_HOURS: "48"
+          POOL_MINIMUM: "10"
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        with:
+          script: |
+            const run = require('./.github/scripts/maintainer-inbox.js');
+            const result = await run({ github, context, core, env: process.env });
+            core.info(JSON.stringify(result));
