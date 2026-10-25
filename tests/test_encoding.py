@@ -123,12 +123,20 @@ def test_decode_source_by_mode():
 def test_hybrid_precedence_dedupes_with_comment_first():
     same = _note("same")
     src = HybridCodec.encode_instructions(
-        [same, same],
-        mode_map={0: EncodingMode.WHITESPACE, 1: EncodingMode.COMMENT},
+        [same, same, same],
+        mode_map={0: EncodingMode.WHITESPACE, 1: EncodingMode.COMMENT, 2: EncodingMode.UNICODE},
     )
     decoded = HybridCodec.decode_instructions(src)
     assert decoded == ['phantom:0.1.0 diagnostic.note("same")']
 
+def test_hybrid_precedence_dedupes_with_comment_second():
+    same = _note("same")
+    src = HybridCodec.encode_instructions(
+        [same, same],
+        mode_map={0: EncodingMode.HYBRID},
+    )
+    decoded = HybridCodec.decode_instructions(src)
+    assert decoded == ['phantom:0.1.0 diagnostic.note("same")']
 
 def test_trailing_whitespace_on_source_does_not_create_instructions():
     assert decode_source("x = 1   \n\t\n   \n") == []
