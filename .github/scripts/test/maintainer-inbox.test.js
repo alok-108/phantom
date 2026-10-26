@@ -123,13 +123,15 @@ test('a dry run changes nothing', async () => {
 });
 
 test('an approval request shows how long it has been waiting', async () => {
+  // The fixture is built a moment before `now` is sampled and the age is floor()ed, so assert a
+  // small range rather than an exact hour. Pinning `3h` here is what made this flake in CI.
   const { github, calls } = makeGithub({
-    pulls: [makePr(5, 'newbie', { hoursOld: 3 })], blockedShas: ['sha5'], blockedAgeHours: 3,
+    pulls: [makePr(5, 'newbie', { hoursOld: 3.5 })], blockedShas: ['sha5'], blockedAgeHours: 3.5,
   });
   await run({ github, context, core: {}, env: env() });
-  assert.match(calls.created[0].body, /#5 PR 5 \(@newbie\) - waiting 3h/);
+  assert.match(calls.created[0].body, /#5 PR 5 \(@newbie\) - waiting [23]h/);
   assert.doesNotMatch(calls.created[0].body, /:warning:/);
-  assert.match(calls.commented[0].body, /CI has been waiting for your approval for 3h/);
+  assert.match(calls.commented[0].body, /CI has been waiting for your approval for [23]h/);
 });
 
 test('an approval request past the alert threshold is called out and mentions the maintainers', async () => {
@@ -139,7 +141,10 @@ test('an approval request past the alert threshold is called out and mentions th
   const result = await run({ github, context, core: {}, env: env() });
   assert.equal(result.awaitingCi, 1);
   assert.equal(result.overdueCi, 1);
-  assert.match(calls.created[0].body, /#5 PR 5 \(@newbie\) - waiting 50h :warning:/);
+  // The fixture is aged 50h and floor() runs against a slightly later `now`, so allow 49 or 50.
+  // Pinning a single value here is exactly the flake that failed CI on the first push.
+  assert.match(calls.created[0].body, /#5 PR 5 \(@newbie\) - waiting (49|50)h :warning:/);
+  assert.doesNotMatch(calls.created[0].body, /age unknown/);
   assert.match(calls.created[0].body, /1 of these has been waiting 24h or more/);
   assert.match(calls.created[0].body, /most likely reason someone gives up/);
   // The overdue warning must ping, not just sit in the issue body.
