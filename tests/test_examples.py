@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -46,6 +47,16 @@ def test_examples_check_clean_even_in_strict_mode(name):
     result = _phantom("check", "--strict", f"docs/examples/{name}.py")
     assert result.returncode == 0, result.stdout + result.stderr
     assert "0 error(s), 0 warning(s)" in result.stdout
+
+
+def test_check_json_example_is_machine_readable():
+    result = _phantom("check", "--json", "docs/examples/comments.py")
+    assert result.returncode == 0, result.stderr
+    data = json.loads(result.stdout)
+    assert data["file"] == "docs/examples/comments.py"
+    assert data["valid"] is True
+    assert data["errors"] == []
+    assert data["warnings"] == []
 
 
 def test_comments_run_output():

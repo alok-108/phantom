@@ -157,6 +157,33 @@ def cmd_check(args: argparse.Namespace) -> int:
         key=lambda d: (lambda loc: loc.line if loc else 0)(diagnostics.finding_location(d))
     )
 
+    if args.json:
+
+        def as_json(finding: Any) -> dict[str, Any]:
+            location = diagnostics.finding_location(finding)
+            return {
+                "message": finding.message,
+                "line": location.line if location else None,
+                "column": location.column + 1 if location else None,
+                "severity": finding.severity.value,
+            }
+
+        errors = [d for d in all_diagnostics if d.severity == Severity.ERROR]
+        warnings = [d for d in all_diagnostics if d.severity == Severity.WARNING]
+        print(
+            json.dumps(
+                {
+                    "file": program.source_file or filepath,
+                    "valid": error_count == 0,
+                    "instruction_count": program.instruction_count,
+                    "errors": [as_json(d) for d in errors],
+                    "warnings": [as_json(d) for d in warnings],
+                },
+                indent=2,
+            )
+        )
+        return 2 if error_count > 0 else 0
+
     if args.format == "sarif":
         print(diagnostics.to_sarif_json(all_diagnostics))
         return 2 if error_count > 0 else 0
@@ -645,6 +672,9 @@ def create_parser() -> argparse.ArgumentParser:
     )
     check_p.add_argument(
         "--format", choices=("text", "sarif"), default="text", help="Output format"
+    )
+    check_p.add_argument(
+        "--json", action="store_true", help="Output validation findings as JSON"
     )
     _add_policy_args(check_p)
 

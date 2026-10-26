@@ -85,6 +85,7 @@ See [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
 ```bash
 phantom check   docs/examples/comments.py     # validate, run nothing
+phantom check --json docs/examples/comments.py # machine-readable validation result
 phantom inspect docs/examples/comments.py     # show decoded instructions
 phantom run     docs/examples/comments.py     # apply instructions, run the host
 ```
@@ -104,7 +105,7 @@ Walkthrough: [docs/QUICKSTART.md](docs/QUICKSTART.md).
 
 | Command | Purpose | Executes your code? |
 | :--- | :--- | :--- |
-| `phantom check FILE [--strict] [--format sarif] [--deny CAP] [--allow-only CAP]` | Validate (optionally against a capability policy); exit 2 on errors | No |
+| `phantom check FILE [--strict] [--format sarif] [--json] [--deny CAP] [--allow-only CAP]` | Validate (optionally against a capability policy); exit 2 on errors. `--json` prints machine-readable findings | No |
 | `phantom inspect FILE [--json] [--strict] [--deny CAP] [--allow-only CAP]` | Show recognised instructions, locations, capabilities (and which a policy blocks) and any parse errors; exit 2 on parse errors or `--strict` findings | No |
 | `phantom run FILE [--timeout SEC] [--deny CAP] [--allow-only CAP] [--handlers-from DIR] [--allow-handler PATTERN] [-- ARGS]` | Validate, apply, run the host; exits with the host's status | **Yes** |
 | `phantom generate FILE --intent TEXT [--placement …] [--encoding …] [--output …] [--dry-run] [--allow-remote]` | Propose a candidate with Phantom instructions | No (sends source to the provider) |

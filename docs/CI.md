@@ -41,6 +41,7 @@ pip install git+https://github.com/hayagrivai-labs/phantom.git
 bash scripts/ci_check.sh src tests         # from a checkout of this repository
 # or, per file:
 phantom check --strict path/to/file.py
+phantom check --json path/to/file.py       # JSON summary and structured findings
 phantom check --format sarif path/to/file.py > phantom.sarif
 ```
 

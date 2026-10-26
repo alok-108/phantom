@@ -53,6 +53,51 @@ def test_cli_check_invalid(capsys):
     assert "error(s)" in combined
 
 
+def test_cli_check_json_valid(capsys):
+    target = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["check", str(target), "--json"])
+    assert ret == 0
+    out, err = capsys.readouterr()
+    parsed = json.loads(out)
+    assert parsed["file"] == str(target)
+    assert parsed["valid"] is True
+    assert parsed["instruction_count"] > 0
+    assert parsed["errors"] == []
+    assert parsed["warnings"] == []
+    assert err == ""
+
+
+def test_cli_check_json_invalid(capsys):
+    target = FIXTURES_DIR / "invalid_instructions.py"
+    ret = main(["check", str(target), "--json"])
+    assert ret == 2
+    out, err = capsys.readouterr()
+    parsed = json.loads(out)
+    assert parsed["valid"] is False
+    assert parsed["errors"]
+    assert {"message", "line", "column", "severity"} <= set(parsed["errors"][0])
+    assert parsed["errors"][0]["severity"] == "error"
+    assert err == ""
+
+
+def test_cli_check_json_includes_warnings(capsys, tmp_path):
+    target = tmp_path / "duplicate_event.py"
+    target.write_text(
+        '#: phantom:0.1.0 event.declare("ready")\n'
+        '#: phantom:0.1.0 event.declare("ready")\n',
+        encoding="utf-8",
+    )
+    ret = main(["check", str(target), "--json"])
+    assert ret == 0
+    out, err = capsys.readouterr()
+    parsed = json.loads(out)
+    assert parsed["valid"] is True
+    assert parsed["errors"] == []
+    assert parsed["warnings"][0]["severity"] == "warning"
+    assert parsed["warnings"][0]["line"] == 2
+    assert err == ""
+
+
 def test_cli_check_not_found(capsys):
     ret = main(["check", "not_real_file.py"])
     assert ret == 1
