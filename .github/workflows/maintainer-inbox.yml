@@ -30,6 +30,9 @@ jobs:
           # Comma-separated GitHub logins. Edit when maintainers change (see MAINTAINERS.md).
           MAINTAINERS: alok-108
           REVIEW_AFTER_HOURS: "48"
+          # A pull request whose CI is waiting for approval gets a warning after this long.
+          # Nobody but a maintainer can clear that state, and the contributor sees nothing.
+          APPROVAL_ALERT_AFTER_HOURS: "24"
           POOL_MINIMUM: "10"
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
         with:

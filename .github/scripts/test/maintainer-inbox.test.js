@@ -14,7 +14,7 @@ function makePr(number, login, { hoursOld = 100, draft = false, type = 'User', s
   };
 }
 
-function makeGithub({ pulls = [], blockedShas = [], reviews = {}, comments = {}, pool = 12, existingIssue = null, inboxComments = [] }) {
+function makeGithub({ pulls = [], blockedShas = [], blockedAgeHours = 1, reviews = {}, comments = {}, pool = 12, existingIssue = null, inboxComments = [] }) {
   const calls = { created: [], updated: [], commented: [] };
   const LIST = Symbol('pulls'), REVIEWS = Symbol('reviews'), COMMENTS = Symbol('comments'), ISSUES = Symbol('issues');
   const github = {
@@ -29,7 +29,11 @@ function makeGithub({ pulls = [], blockedShas = [], reviews = {}, comments = {},
       },
       actions: {
         listWorkflowRunsForRepo: async ({ head_sha }) => ({
-          data: { workflow_runs: [{ conclusion: blockedShas.includes(head_sha) ? 'action_required' : 'success' }] },
+          data: {
+            workflow_runs: blockedShas.includes(head_sha)
+              ? [{ conclusion: 'action_required', created_at: ago(blockedAgeHours) }]
+              : [{ conclusion: 'success', created_at: ago(blockedAgeHours) }],
+          },
         }),
       },
       search: { issuesAndPullRequests: async () => ({ data: { total_count: pool } }) },
@@ -47,7 +51,7 @@ function makeGithub({ pulls = [], blockedShas = [], reviews = {}, comments = {},
 }
 
 const context = { repo: { owner: 'o', repo: 'r' } };
-const env = (extra = {}) => ({ MAINTAINERS: 'boss', REVIEW_AFTER_HOURS: '48', POOL_MINIMUM: '10', DRY_RUN: 'false', ...extra });
+const env = (extra = {}) => ({ MAINTAINERS: 'boss', REVIEW_AFTER_HOURS: '48', APPROVAL_ALERT_AFTER_HOURS: '24', POOL_MINIMUM: '10', DRY_RUN: 'false', ...extra });
 
 test('a pull request whose CI needs approval is listed and the maintainer is pinged once', async () => {
   const { github, calls } = makeGithub({ pulls: [makePr(5, 'newbie', { hoursOld: 3 })], blockedShas: ['sha5'] });
@@ -58,7 +62,8 @@ test('a pull request whose CI needs approval is listed and the maintainer is pin
   assert.match(calls.created[0].body, /#5 PR 5 \(@newbie\)/);
   assert.deepEqual(calls.created[0].assignees, ['boss']);
   assert.equal(calls.commented.length, 1);
-  assert.match(calls.commented[0].body, /@boss #5 \(@newbie\): CI is waiting for your approval/);
+  // Don't assert an exact hour count on a fixture built milliseconds ago: floor() makes it 0h.
+  assert.match(calls.commented[0].body, /@boss #5 \(@newbie\): CI has been waiting for your approval for \d+h/);
 });
 
 test('an existing inbox is updated and a pull request already pinged is not pinged again', async () => {
@@ -115,4 +120,72 @@ test('a dry run changes nothing', async () => {
   const { github, calls } = makeGithub({ pulls: [makePr(5, 'newbie')], blockedShas: ['sha5'] });
   await run({ github, context, core: {}, env: env({ DRY_RUN: 'true' }) });
   assert.deepEqual([calls.created.length, calls.updated.length, calls.commented.length], [0, 0, 0]);
+});
+
+test('an approval request shows how long it has been waiting', async () => {
+  const { github, calls } = makeGithub({
+    pulls: [makePr(5, 'newbie', { hoursOld: 3 })], blockedShas: ['sha5'], blockedAgeHours: 3,
+  });
+  await run({ github, context, core: {}, env: env() });
+  assert.match(calls.created[0].body, /#5 PR 5 \(@newbie\) - waiting 3h/);
+  assert.doesNotMatch(calls.created[0].body, /:warning:/);
+  assert.match(calls.commented[0].body, /CI has been waiting for your approval for 3h/);
+});
+
+test('an approval request past the alert threshold is called out and mentions the maintainers', async () => {
+  const { github, calls } = makeGithub({
+    pulls: [makePr(5, 'newbie', { hoursOld: 50 })], blockedShas: ['sha5'], blockedAgeHours: 50,
+  });
+  const result = await run({ github, context, core: {}, env: env() });
+  assert.equal(result.awaitingCi, 1);
+  assert.equal(result.overdueCi, 1);
+  assert.match(calls.created[0].body, /#5 PR 5 \(@newbie\) - waiting 50h :warning:/);
+  assert.match(calls.created[0].body, /1 of these has been waiting 24h or more/);
+  assert.match(calls.created[0].body, /most likely reason someone gives up/);
+  // The overdue warning must ping, not just sit in the issue body.
+  assert.match(calls.created[0].body, /@boss/);
+});
+
+test('approval requests are listed longest-waiting first', async () => {
+  const { github, calls } = makeGithub({
+    pulls: [makePr(1, 'quick', { hoursOld: 2 }), makePr(2, 'stuck', { hoursOld: 90 })],
+    blockedShas: ['sha1', 'sha2'], blockedAgeHours: 2,
+  });
+  // Give the two PRs different approval ages by overriding the runs response per sha.
+  const runList = github.rest.actions.listWorkflowRunsForRepo;
+  github.rest.actions.listWorkflowRunsForRepo = async ({ head_sha }) => {
+    const res = await runList({ head_sha });
+    res.data.workflow_runs[0].created_at = ago(head_sha === 'sha2' ? 90 : 2);
+    return res;
+  };
+  await run({ github, context, core: {}, env: env() });
+  const body = calls.created[0].body;
+  assert.ok(body.indexOf('#2') < body.indexOf('#1'), 'the longest wait should be listed first');
+});
+
+test('a bot is skipped even when the payload omits user.type', async () => {
+  // GitHub App and github-actions[bot] authors sometimes arrive without type: 'Bot'.
+  const { github } = makeGithub({
+    pulls: [makePr(1, 'github-actions[bot]', { type: undefined }), makePr(2, 'dependabot[bot]', { type: undefined })],
+    blockedShas: ['sha1', 'sha2'],
+  });
+  const result = await run({ github, context, core: {}, env: env({ DRY_RUN: 'true' }) });
+  assert.equal(result.awaitingCi, 0);
+  assert.equal(result.awaitingReview, 0);
+});
+
+test('an approval request with no usable timestamp is listed without a bogus age', async () => {
+  const { github, calls } = makeGithub({ pulls: [makePr(5, 'newbie')], blockedShas: ['sha5'] });
+  github.rest.actions.listWorkflowRunsForRepo = async () => ({
+    data: { workflow_runs: [{ conclusion: 'action_required' }] }, // no created_at at all
+  });
+  const result = await run({ github, context, core: {}, env: env() });
+  // Being unable to age it must not silently hide a contributor who is waiting...
+  assert.equal(result.awaitingCi, 1);
+  // ...and it must not be treated as ancient, or this warns forever.
+  assert.equal(result.overdueCi, 0);
+  assert.match(calls.created[0].body, /#5 PR 5 \(@newbie\) - waiting for approval \(age unknown\)/);
+  assert.doesNotMatch(calls.created[0].body, /:warning:/);
+  assert.doesNotMatch(calls.created[0].body, /waiting 2\d\d\d\d\d h/);
+  assert.match(calls.commented[0].body, /CI is waiting for your approval/);
 });
