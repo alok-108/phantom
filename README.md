@@ -1,6 +1,6 @@
 # Phantom
 
-🌐 **Translations:** [हिन्दी](docs/hi/README.md) · [Deutsch](docs/de/QUICKSTART.md)
+🌐 **Translations:** [हिन्दी](docs/hi/README.md) · [Deutsch](docs/de/QUICKSTART.md) · [Spanish](docs/es/QUICKSTART.md)
 
 [![tests](https://github.com/hayagrivai-labs/phantom/actions/workflows/tests.yml/badge.svg)](https://github.com/hayagrivai-labs/phantom/actions/workflows/tests.yml)
 [![release](https://img.shields.io/github/v/release/hayagrivai-labs/phantom)](https://github.com/hayagrivai-labs/phantom/releases)

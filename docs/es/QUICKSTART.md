@@ -1,3 +1,7 @@
+  # Idiomas
+
+  🌐 **Idiomas:** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · [Deutsch](../de/QUICKSTART.md) · [Spanish](../es/QUICKSTART.md)
+
   # Inicio Rápido
 
   Todos los comandos y resultados que aparecen a continuación se obtuvieron ejecutando los archivos de ejemplo del repositorio. Las rutas son relativas a la raíz del repositorio.
@@ -157,6 +161,86 @@
   ```
 
   Este comando envía el archivo al proveedor configurado. (Requiere instalar `pip install "phantom-lang[llm]"` y disponer de una variable `GEMINI_API_KEY`). Consulta [GENERATOR.md](../GENERATOR.md).
+
+## 10. Restringir las capacidades y los permisos
+Puedes restringir las capacidades disponibles durante la ejecución mediante `--deny` o limitar los directorios desde los que se permite importar módulos de controladores de eventos mediante `--handlers-from`.
+
+### Bloquear capacidades
+Usa `--deny` para bloquear capacidades especificas, como `cap.counters`:
+
+```bash
+phantom inspect docs/examples/policy.py --deny cap.counters
+```
+
+Salida:
+```text
+File: docs/examples/policy.py
+Spec Version: 0.1.0
+Total Instructions: 3
+
+Instructions:
+  [1] counter.create
+      Arguments:    string='cap.counters', integer=10
+      Source:       docs/examples/policy.py:10:0
+      Encoding:     comment
+      Capabilities: cap.counters
+      Policy:       BLOCKED (denied: cap.counters)
+  [2] counter.increment
+      Arguments:    string='cap.counters'
+      Source:       docs/examples/policy.py:11:0
+      Encoding:     comment
+      Capabilities: cap.counters
+      Policy:       BLOCKED (denied: cap.counters)
+  [3] event.on
+      Arguments:    string='phantom.pre_execute', string='hooks.on_start'
+      Source:       docs/examples/policy.py:12:0
+      Encoding:     comment
+      Capabilities: cap.events
+```
+
+Si intentas ejecutar el archivo con capacidades denegadas, se detendrá la ejecución antes de que se inicie el programa anfitrión. (exit código de salida 2):
+
+```bash
+phantom run docs/examples/policy.py --deny cap.counters
+```
+
+Salida:
+```text
+=== Phantom Runtime v0.1.1 ===
+[ERROR] docs/examples/policy.py:10:0 [comment]: Instruction 'counter.create' requires cap.counters, which the capability policy denies
+[ERROR] docs/examples/policy.py:11:0 [comment]: Instruction 'counter.increment' requires cap.counters, which the capability policy denies
+Validation failed: 2 error(s), 0 warning(s)
+```
+
+### Restringir los controladores de eventos
+Utiliza `--handlers-from` para restringir los directorios desde los que se pueden importar módulos de controladores de eventos:
+
+```bash
+phantom run docs/examples/policy.py --handlers-from docs/examples
+```
+
+Salida:
+```text
+=== Phantom Runtime v0.1.1 ===
+[OK] Validation passed (3 instruction(s), 0 warning(s))
+[hook] starting docs/examples/policy.py
+Running host program under policy rules.
+```
+
+Si el módulo del controlador se encuentra fuera del directorio especificado, el entorno de ejecución rechazará la importación:
+```bash
+phantom run docs/examples/policy.py --handlers-from /tmp/elsewhere
+```
+
+Salida:
+```text
+=== Phantom Runtime v0.1.1 ===
+[OK] Validation passed (3 instruction(s), 0 warning(s))
+Running host program under policy rules.
+
+--- Phantom Diagnostics ---
+[ERROR] Failed to resolve handler 'hooks.on_start' for event 'phantom.pre_execute': handler 'hooks.on_start' is not allowed by the handler policy (module at docs\examples\hooks.py); it was not imported
+```
 
   ## Siguientes pasos
 
