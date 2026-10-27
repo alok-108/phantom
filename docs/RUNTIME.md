@@ -20,6 +20,10 @@ Exit codes: `0` success, `1` file missing/unreadable or invalid `--timeout`, `2`
 
 `phantom inspect` (text and `--json`) exits `2` when the file has parse errors or `--strict` findings, like `check`; `1` when the file is missing or unreadable; `0` otherwise. In text mode it prints each parse error the way `check` does (message, `file:line:col`, source line with a caret) before the instruction list.
 
+### JSON output
+
+`phantom inspect --json` prints one object. Its top-level keys are fixed: `schema`, `schema_version`, `source_file`, `spec_version`, `instruction_count`, `has_errors`, `instructions`, `errors`, `strict_findings`. `schema` is always `phantom.inspect` and `schema_version` is currently `1.0`. Tools consuming the output should check both fields and treat a different `schema_version` as a format change. This change adds the two schema fields and leaves every existing key untouched.
+
 ### Instructions are applied at initialisation
 
 An instruction is not "triggered" when execution passes the line it is written on. The whole instruction layer is applied before the host starts. In particular `counter.increment` records a fact about the program; it is not a hook inside your loop. Per-line hooks inside host control flow are not part of v0.1.0.

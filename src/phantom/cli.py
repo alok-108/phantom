@@ -215,6 +215,8 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
     if args.json:
         data = {
+            "schema": "phantom.inspect",
+            "schema_version": "1.0",
             "source_file": program.source_file or filepath,
             "spec_version": program.spec_version,
             "instruction_count": program.instruction_count,

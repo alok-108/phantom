@@ -92,6 +92,37 @@ def test_cli_inspect_json(capsys):
     assert "required_capabilities" in first
 
 
+def test_cli_inspect_json_schema_fields(capsys):
+    target = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["inspect", str(target), "--json"])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    parsed = json.loads(out)
+    assert parsed["schema"] == "phantom.inspect"
+    assert parsed["schema_version"] == "1.0"
+    # The top-level key set is fixed so later changes are deliberate.
+    assert set(parsed) == {
+        "schema",
+        "schema_version",
+        "source_file",
+        "spec_version",
+        "instruction_count",
+        "has_errors",
+        "instructions",
+        "errors",
+        "strict_findings",
+    }
+
+
+def test_cli_inspect_text_has_no_schema_fields(capsys):
+    target = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["inspect", str(target)])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    assert "phantom.inspect" not in out
+    assert "schema_version" not in out
+
+
 _MALFORMED = 'x = 1\n#: phantom:0.1.0 meta.author("a"\nprint(x)\n'
 
 

@@ -120,3 +120,14 @@ class TestValidator:
         prog = parse('#: phantom:0.1.0 meta.license("MIT")\n#: phantom:0.1.0 meta.license("Apache-2.0")\n')
         (finding,) = validate(prog)
         assert finding.severity == Severity.WARNING
+
+    def test_single_meta_tags_is_clean(self):
+        prog = parse('#: phantom:0.1.0 meta.tags("telemetry,audit,compliance")\n')
+        assert prog.errors == []
+        assert validate(prog) == []
+
+    def test_duplicate_meta_tags_is_warning(self):
+        prog = parse('#: phantom:0.1.0 meta.tags("telemetry")\n#: phantom:0.1.0 meta.tags("audit")\n')
+        (finding,) = validate(prog)
+        assert finding.severity == Severity.WARNING
+        assert "meta.tags" in finding.message

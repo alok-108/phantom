@@ -1,6 +1,6 @@
 # Quick Start
 
-🌐 **Languages:** English · [हिन्दी](https://github.com/hayagrivai-labs/phantom/pull/hi/QUICKSTART.md) · [Português (Brasil)](https://github.com/hayagrivai-labs/phantom/pull/pt-BR/QUICKSTART.md)
+🌐 **Languages:** English · [हिन्दी](hi/QUICKSTART.md) · [Português (Brasil)](pt-BR/QUICKSTART.md) · [Deutsch](de/QUICKSTART.md)
 
 Every command and output below was produced by running the repository's example files. Paths are relative to the repository root.
 

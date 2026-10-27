@@ -173,6 +173,17 @@ INSTRUCTION_REGISTRY: dict[str, InstructionSpec] = {
         ),
         description="Declare the license of the instruction layer.",
     ),
+    "meta.tags": InstructionSpec(
+        type=InstructionType.META_TAGS,
+        arguments=(
+            ArgumentSpec(
+                "tags",
+                ArgumentType.STRING,
+                description="Comma-separated tags",
+            ),
+        ),
+        description="Declare keyword tags for the instruction layer.",
+    ),
 }
 
 

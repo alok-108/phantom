@@ -24,6 +24,7 @@ class InstructionType(Enum):
     META_AUTHOR = "meta.author"
     META_VERSION = "meta.version"
     META_LICENSE = "meta.license"
+    META_TAGS = "meta.tags"
 
 
 class ArgumentType(Enum):

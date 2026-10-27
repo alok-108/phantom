@@ -118,7 +118,12 @@ def validate(program: PhantomProgram) -> list[ValidationError]:
                 # counted against the limit from the reset, not from creation.
                 increments[name] = 0
 
-        elif inst.type in (InstructionType.META_AUTHOR, InstructionType.META_VERSION, InstructionType.META_LICENSE):
+        elif inst.type in (
+            InstructionType.META_AUTHOR,
+            InstructionType.META_VERSION,
+            InstructionType.META_LICENSE,
+            InstructionType.META_TAGS,
+        ):
             prior: PhantomInstruction | None = metas.get(inst.type)
             if prior is not None:
                 add(

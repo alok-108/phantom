@@ -44,6 +44,7 @@ INSTRUCTION_CAPABILITIES: dict[InstructionType, frozenset[Capability]] = {
     InstructionType.META_AUTHOR: frozenset({Capability.METADATA}),
     InstructionType.META_VERSION: frozenset({Capability.METADATA}),
     InstructionType.META_LICENSE: frozenset({Capability.METADATA}),
+    InstructionType.META_TAGS: frozenset({Capability.METADATA}),
 }
 
 

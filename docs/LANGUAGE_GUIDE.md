@@ -30,6 +30,7 @@ The encoders and generator write newline, carriage return, and tab characters in
 | `meta.author(name)` | Records the author | Metadata only |
 | `meta.version(version)` | Records a version label | Metadata only |
 | `meta.license(name)` | Records a license label | Metadata only |
+| `meta.tags(tags)` | Records keyword tags as a comma-separated string | Metadata only |
 
 ### Events
 

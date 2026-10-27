@@ -365,6 +365,36 @@ def test_runtime_license_metadata_after_initialize():
     assert errors == []
 
     assert runtime.get_metadata("license") == "MIT"
+
+
+def test_runtime_tags_metadata_after_initialize():
+    loc = SourceLocation(file="test.py", line=1, column=0, encoding=EncodingMode.COMMENT)
+    instructions = [
+        PhantomInstruction(
+            type=InstructionType.META_TAGS,
+            arguments=(Argument(type=ArgumentType.STRING, value="telemetry,audit,compliance"),),
+            source=loc,
+        ),
+    ]
+    program = PhantomProgram(instructions=instructions, source_file="test.py")
+
+    runtime = PhantomRuntime()
+    errors = runtime.initialize(program)
+    assert errors == []
+
+    assert runtime.get_metadata("tags") == "telemetry,audit,compliance"
+
+
+@pytest.mark.parametrize("values, expected", [(("telemetry,audit",), "telemetry,audit"), ((), "")])
+def test_runtime_initialize_tags_metadata(values, expected):
+    runtime = PhantomRuntime()
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.META_TAGS, *values),
+    ]))
+
+    assert errors == []
+    assert runtime.get_metadata("tags") == expected
 def _instruction(instruction_type, *values):
     """Build runtime inputs directly, including arguments validation would reject."""
     return PhantomInstruction(
