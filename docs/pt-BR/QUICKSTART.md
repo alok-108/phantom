@@ -1,5 +1,7 @@
 # Início rápido
 
+🌐 **Idiomas:** [English](https://github.com/hayagrivai-labs/phantom/QUICKSTART.md) · [हिन्दी](https://github.com/hayagrivai-labs/phantom/hi/QUICKSTART.md) · Português (Brasil)
+
 Todos os comandos e resultados abaixo foram obtidos executando os arquivos de exemplo do repositório. Os caminhos são relativos à raiz do repositório.
 
 ## 1. Instalação
