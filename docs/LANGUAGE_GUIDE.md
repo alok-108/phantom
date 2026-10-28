@@ -24,6 +24,7 @@ The encoders and generator write newline, carriage return, and tab characters in
 | `event.declare(name)` | Declares an event | Redeclaring warns |
 | `event.on(event, handler)` | Registers `"module.function"` for a declared event | Only the three lifecycle events are ever fired |
 | `diagnostic.note(message)` | Records an `INFO` diagnostic with this line's location | Printed after the host output |
+| `diagnostic.warn(message)` | Records a `WARNING` diagnostic with this line's location | Printed after the host output |
 | `counter.create(name, limit)` | Counter at 0, bounded by `limit > 0` | Duplicate name is an error |
 | `counter.increment(name)` | Adds 1 | Needs a prior `counter.create`; past the limit it logs an error diagnostic and stays at the limit |
 | `counter.reset(name)` | Resets the counter to 0, keeping its limit | Needs a prior `counter.create` |

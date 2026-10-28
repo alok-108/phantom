@@ -11,7 +11,12 @@ import os
 import re
 import tempfile
 
-from phantom.generator.models import ComparisonResult, ComparisonVerdict
+from phantom.generator.models import (
+    CaseComparison,
+    ComparisonResult,
+    ComparisonVerdict,
+    VerificationCase,
+)
 from phantom.host import execute_host_program
 
 _SCRIPT_NAME = "program.py"
@@ -30,14 +35,25 @@ def compare_behavior(
     original: str,
     candidate: str,
     timeout: float = 30.0,
+    cases: list[VerificationCase] | tuple[VerificationCase, ...] | None = None,
 ) -> ComparisonResult:
-    """Run both sources and compare their observable behavior."""
+    """Run both sources and compare their observable behavior.
+
+    With no cases given, exactly one run is compared: no arguments and the
+    caller's stdin, as before. With cases given, each case is run once for
+    each program with that case's arguments and stdin text, and the result
+    reports every case separately. The overall verdict is DIFFERENT when
+    any case differs, INCONCLUSIVE when no case differs but some case is
+    inconclusive, and EQUIVALENT only when every case matches.
+    """
     try:
         host_ast_equal(original, candidate)
     except SyntaxError as exc:
         return ComparisonResult(
             ComparisonVerdict.VALIDATION_FAILED, notes=[f"Syntax error: {exc.msg}"]
         )
+
+    case_list = list(cases) if cases else [VerificationCase()]
 
     with tempfile.TemporaryDirectory(prefix="phantom_verify_") as tmp:
         # Same file name in two directories: output that mentions the script's own
@@ -49,44 +65,94 @@ def compare_behavior(
             with open(os.path.join(directory, _SCRIPT_NAME), "w", encoding="utf-8", newline="") as f:
                 f.write(text)
             dirs.append(directory)
-        orig = execute_host_program(os.path.join(dirs[0], _SCRIPT_NAME), timeout=timeout)
-        cand = execute_host_program(os.path.join(dirs[1], _SCRIPT_NAME), timeout=timeout)
+        case_results: list[CaseComparison] = []
+        for case in case_list:
+            orig = execute_host_program(
+                os.path.join(dirs[0], _SCRIPT_NAME),
+                args=case.args,
+                timeout=timeout,
+                stdin_text=case.stdin_text,
+            )
+            cand = execute_host_program(
+                os.path.join(dirs[1], _SCRIPT_NAME),
+                args=case.args,
+                timeout=timeout,
+                stdin_text=case.stdin_text,
+            )
+            compared = CaseComparison(
+                case=case,
+                verdict=ComparisonVerdict.EQUIVALENT,
+                original_stdout=orig.stdout,
+                candidate_stdout=cand.stdout,
+                original_stderr=orig.stderr,
+                candidate_stderr=cand.stderr,
+                original_exit_code=orig.exit_code,
+                candidate_exit_code=cand.exit_code,
+            )
+            if orig.exit_code != cand.exit_code:
+                compared.differences.append(f"exit code {orig.exit_code} != {cand.exit_code}")
+            # The temporary directories differ between the two runs, so they are
+            # masked in both streams before comparing.
+            if _mask(orig.stdout, dirs[0]) != _mask(cand.stdout, dirs[1]):
+                compared.differences.append("stdout differs")
+            if _mask_traceback(_mask(orig.stderr, dirs[0])) != _mask_traceback(
+                _mask(cand.stderr, dirs[1])
+            ):
+                compared.differences.append("stderr differs")
+            if compared.differences:
+                compared.verdict = ComparisonVerdict.DIFFERENT
+            elif orig.exception or cand.exception:
+                compared.verdict = ComparisonVerdict.INCONCLUSIVE
+                compared.notes.append("A program timed out or failed to start")
+            elif orig.exit_code != 0:
+                # Both programs fail in the same way. Typical cause: they depend
+                # on files or modules next to the original, which are not in
+                # the temporary directory.
+                compared.verdict = ComparisonVerdict.INCONCLUSIVE
+                compared.notes.append(
+                    f"Both programs exited with status {orig.exit_code} and identical output, "
+                    "so this run does not show that they behave alike. Programs that import "
+                    "sibling modules or read files next to themselves cannot be verified here."
+                )
+            case_results.append(compared)
 
-    result = ComparisonResult(
-        verdict=ComparisonVerdict.EQUIVALENT,
-        original_stdout=orig.stdout,
-        candidate_stdout=cand.stdout,
-        original_stderr=orig.stderr,
-        candidate_stderr=cand.stderr,
-        original_exit_code=orig.exit_code,
-        candidate_exit_code=cand.exit_code,
-    )
-    if orig.exit_code != cand.exit_code:
-        result.differences.append(f"exit code {orig.exit_code} != {cand.exit_code}")
-    # The temporary directories differ between the two runs, so they are masked in
-    # both streams before comparing.
-    if _mask(orig.stdout, dirs[0]) != _mask(cand.stdout, dirs[1]):
-        result.differences.append("stdout differs")
-    if _mask_traceback(_mask(orig.stderr, dirs[0])) != _mask_traceback(_mask(cand.stderr, dirs[1])):
-        result.differences.append("stderr differs")
-
-    if result.differences:
-        result.verdict = ComparisonVerdict.DIFFERENT
-    elif orig.exception or cand.exception:
-        result.verdict = ComparisonVerdict.INCONCLUSIVE
-        result.notes.append("A program timed out or failed to start")
-    elif orig.exit_code != 0:
-        # Both programs fail in the same way. Typical cause: they depend on files or
-        # modules next to the original, which are not in the temporary directory.
-        result.verdict = ComparisonVerdict.INCONCLUSIVE
-        result.notes.append(
-            f"Both programs exited with status {orig.exit_code} and identical output, "
-            "so this run does not show that they behave alike. Programs that import "
-            "sibling modules or read files next to themselves cannot be verified here."
+    if any(c.verdict == ComparisonVerdict.DIFFERENT for c in case_results):
+        overall = ComparisonVerdict.DIFFERENT
+        representative = next(c for c in case_results if c.verdict == ComparisonVerdict.DIFFERENT)
+    elif any(c.verdict == ComparisonVerdict.INCONCLUSIVE for c in case_results):
+        overall = ComparisonVerdict.INCONCLUSIVE
+        representative = next(
+            c for c in case_results if c.verdict == ComparisonVerdict.INCONCLUSIVE
         )
     else:
-        result.notes.append("Only one input (no arguments, no stdin) was exercised")
-    return result
+        overall = ComparisonVerdict.EQUIVALENT
+        representative = case_results[0]
+
+    notes: list[str] = []
+    if len(case_results) == 1 and not case_results[0].case.args and case_results[0].case.stdin_text is None:
+        if overall == ComparisonVerdict.EQUIVALENT:
+            notes.append("Only one input (no arguments, no stdin) was exercised")
+    elif overall == ComparisonVerdict.EQUIVALENT:
+        notes.append(
+            f"Exercised {len(case_results)} cases; the result covers only those cases, "
+            "not other inputs, state or environments"
+        )
+    for index, compared in enumerate(case_results, start=1):
+        for note in compared.notes:
+            notes.append(f"Case {index}: {note}" if len(case_results) > 1 else note)
+
+    return ComparisonResult(
+        verdict=overall,
+        original_stdout=representative.original_stdout,
+        candidate_stdout=representative.candidate_stdout,
+        original_stderr=representative.original_stderr,
+        candidate_stderr=representative.candidate_stderr,
+        original_exit_code=representative.original_exit_code,
+        candidate_exit_code=representative.candidate_exit_code,
+        differences=list(representative.differences),
+        notes=notes,
+        case_results=case_results,
+    )
 
 
 def _mask(text: str, directory: str) -> str:

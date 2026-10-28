@@ -102,6 +102,17 @@ INSTRUCTION_REGISTRY: dict[str, InstructionSpec] = {
         ),
         description="Attach a structured diagnostic note at this source location.",
     ),
+    "diagnostic.warn": InstructionSpec(
+        type=InstructionType.DIAGNOSTIC_WARN,
+        arguments=(
+            ArgumentSpec(
+                "message",
+                ArgumentType.STRING,
+                description="Diagnostic warning message text",
+            ),
+        ),
+        description="Attach a structured diagnostic warning at this source location.",
+    ),
     "counter.create": InstructionSpec(
         type=InstructionType.COUNTER_CREATE,
         arguments=(

@@ -311,6 +311,28 @@ def test_runtime_metadata_and_diagnostics():
     assert diags[0].message == "A test note"
 
 
+def test_runtime_diagnostic_warn_instruction():
+    loc = SourceLocation(file="test.py", line=1, column=0, encoding=EncodingMode.COMMENT)
+    instructions = [
+        PhantomInstruction(
+            type=InstructionType.DIAGNOSTIC_WARN,
+            arguments=(Argument(type=ArgumentType.STRING, value="Deprecated feature used"),),
+            source=loc,
+        ),
+    ]
+    program = PhantomProgram(instructions=instructions, source_file="test.py")
+
+    runtime = PhantomRuntime()
+    errors = runtime.initialize(program)
+    assert errors == []
+
+    diags = runtime.get_diagnostics()
+    assert len(diags) == 1
+    assert diags[0].severity == Severity.WARNING
+    assert diags[0].message == "Deprecated feature used"
+    assert str(diags[0]) == f"[WARNING] [{loc}] Deprecated feature used"
+
+
 def test_runtime_initialize_program():
     loc = SourceLocation(file="test.py", line=1, column=0, encoding=EncodingMode.COMMENT)
     instructions = [

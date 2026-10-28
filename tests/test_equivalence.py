@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from phantom.generator.diff import format_diff_colored
 from phantom.generator.equivalence import compare_behavior, host_ast_equal
-from phantom.generator.models import ComparisonVerdict
+from phantom.generator.models import ComparisonVerdict, VerificationCase
 from phantom.generator.validation import validate_candidate
 
 BASE = "print('a')\n"
@@ -138,3 +138,45 @@ class TestFormatDiffColored:
     def test_uncolored_empty_diff_stays_empty(self):
         assert format_diff_colored("", colored=False) == ""
         assert format_diff_colored("") == ""
+def test_multiple_argument_cases_all_match():
+    source = "import sys\nprint(' '.join(sys.argv[1:]))\n"
+    cases = [VerificationCase(args=["a"]), VerificationCase(args=["b", "c"])]
+    res = compare_behavior(source, source, cases=cases)
+    assert res.verdict == ComparisonVerdict.EQUIVALENT
+    assert len(res.case_results) == 2
+    assert all(c.verdict == ComparisonVerdict.EQUIVALENT for c in res.case_results)
+    assert any("2 cases" in n for n in res.notes)
+
+
+def test_difference_only_in_second_case_is_reported_per_case():
+    original = "import sys\nprint('B' if sys.argv[1] == 'b' else sys.argv[1])\n"
+    candidate = "import sys\nprint(sys.argv[1])\n"
+    cases = [VerificationCase(args=["a"]), VerificationCase(args=["b"])]
+    res = compare_behavior(original, candidate, cases=cases)
+    assert res.verdict == ComparisonVerdict.DIFFERENT
+    assert res.case_results[0].verdict == ComparisonVerdict.EQUIVALENT
+    assert res.case_results[1].verdict == ComparisonVerdict.DIFFERENT
+    assert "stdout differs" in res.case_results[1].differences
+
+
+def test_stdin_case_feeds_the_same_text_to_both_programs():
+    source = "print(input())\n"
+    cases = [VerificationCase(stdin_text="alice\n"), VerificationCase(stdin_text="bob\n")]
+    res = compare_behavior(source, source, cases=cases)
+    assert res.verdict == ComparisonVerdict.EQUIVALENT
+    assert res.case_results[0].original_stdout == "alice\n"
+    assert res.case_results[1].original_stdout == "bob\n"
+
+
+def test_match_plus_inconclusive_case_is_inconclusive_not_equivalent():
+    source = (
+        "import sys\n"
+        "if sys.argv[1] == 'boom':\n"
+        "    raise SystemExit(3)\n"
+        "print(sys.argv[1])\n"
+    )
+    cases = [VerificationCase(args=["ok"]), VerificationCase(args=["boom"])]
+    res = compare_behavior(source, source, cases=cases)
+    assert res.verdict == ComparisonVerdict.INCONCLUSIVE
+    assert res.case_results[0].verdict == ComparisonVerdict.EQUIVALENT
+    assert res.case_results[1].verdict == ComparisonVerdict.INCONCLUSIVE

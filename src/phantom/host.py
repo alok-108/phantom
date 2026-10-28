@@ -112,6 +112,7 @@ def execute_host_program(
     args: list[str] | None = None,
     timeout: float = 30.0,
     env: dict[str, str] | None = None,
+    stdin_text: str | None = None,
 ) -> HostResult:
     """Execute a Python program in a subprocess.
 
@@ -120,6 +121,8 @@ def execute_host_program(
     Applies timeout; on expiry the host *and every process it started* are killed,
     so a child that keeps the output pipes open cannot stretch the timeout.
     Never modifies the host file.
+    When stdin_text is None the program inherits the caller's stdin, as before;
+    when it is given, exactly those bytes are fed to the program instead.
     """
     if not os.path.isfile(filepath):
         return HostResult(
@@ -153,6 +156,7 @@ def execute_host_program(
         )
         proc = subprocess.Popen(
             cmd,
+            stdin=subprocess.PIPE if stdin_text is not None else None,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -164,7 +168,7 @@ def execute_host_program(
         if sys.platform == "win32":
             job = _WindowsJob(proc.pid)
         try:
-            stdout, stderr = proc.communicate(timeout=timeout)
+            stdout, stderr = proc.communicate(input=stdin_text, timeout=timeout)
         except subprocess.TimeoutExpired as exc:
             _kill_tree(proc, job)
             try:

@@ -38,6 +38,15 @@ Phantom is a pipeline of small, separately testable stages. Each stage consumes 
 | `source_map.py` | Maps lines between a source and a transformed text (used where line numbers shift). |
 | `cli.py` | `check`, `inspect`, `run`, `generate`, `diff`, `verify`. |
 
+## Public grammar helpers
+
+`phantom.grammar` exposes five lookup helpers backed by `INSTRUCTION_REGISTRY`:
+`is_known_instruction(id)` returns a boolean, `get_instruction_spec(id)` returns the
+registered `InstructionSpec` or `None`, and `get_required_arg_count(id)` and
+`get_total_arg_count(id)` return the argument counts or `-1` for an unknown identifier.
+`list_instruction_ids()` returns a new, sorted list of every registered identifier;
+changing that list does not change the registry.
+
 ## Generator (`phantom.generator`)
 
 | Module | Responsibility |

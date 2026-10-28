@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "pyproject.toml", "README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md",
     "CODE_OF_CONDUCT.md", "SECURITY.md", "VISION.md", "ROADMAP.md", "SPECIFICATION.md",
     "AUTHORS.md", ".gitignore", ".editorconfig", ".gitattributes",
+    ".pre-commit-hooks.yaml",
     "docs/INSTALLATION.md", "docs/QUICKSTART.md", "docs/LANGUAGE_GUIDE.md",
     "docs/ENCODINGS.md", "docs/RUNTIME.md", "docs/GENERATOR.md", "docs/ARCHITECTURE.md",
     "docs/COMPATIBILITY.md", "docs/TROUBLESHOOTING.md", "docs/FAQ.md",

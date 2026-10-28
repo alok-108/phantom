@@ -110,6 +110,35 @@ class ComparisonVerdict(Enum):
 
 
 @dataclass
+class VerificationCase:
+    """One run to compare: arguments plus optional stdin text.
+
+    A stdin_text of None means the case inherits the caller's stdin, exactly
+    as a single run did before multi-case support; it is not a closed stdin.
+    """
+
+    args: list[str] = field(default_factory=list)
+    stdin_text: str | None = None
+    stdin_label: str | None = None
+
+
+@dataclass
+class CaseComparison:
+    """The comparison outcome for one verification case."""
+
+    case: VerificationCase
+    verdict: ComparisonVerdict
+    original_stdout: str = ""
+    candidate_stdout: str = ""
+    original_stderr: str = ""
+    candidate_stderr: str = ""
+    original_exit_code: int = 0
+    candidate_exit_code: int = 0
+    differences: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
 class ComparisonResult:
     """Detailed result of behavior comparison."""
 
@@ -122,3 +151,4 @@ class ComparisonResult:
     candidate_exit_code: int = 0
     differences: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    case_results: list[CaseComparison] = field(default_factory=list)

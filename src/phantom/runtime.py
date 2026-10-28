@@ -179,6 +179,10 @@ class PhantomRuntime:
                     message = inst.get_string_arg(0) or ""
                     self.add_diagnostic(message, source=inst.source)
 
+                elif inst.type == InstructionType.DIAGNOSTIC_WARN:
+                    message = inst.get_string_arg(0) or ""
+                    self.add_diagnostic(message, source=inst.source, severity=Severity.WARNING)
+
                 elif inst.type == InstructionType.META_AUTHOR:
                     author = inst.get_string_arg(0) or ""
                     self.set_metadata("author", author)

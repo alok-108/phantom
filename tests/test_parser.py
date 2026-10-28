@@ -68,6 +68,13 @@ class TestParser:
         assert inst.get_int_arg(1) == 3
         assert inst.source.line == 2
 
+    def test_diagnostic_warn_instruction(self):
+        prog = parse('#: phantom:0.1.0 diagnostic.warn("deprecated API")\n')
+        assert not prog.errors
+        (inst,) = prog.instructions
+        assert inst.type == InstructionType.DIAGNOSTIC_WARN
+        assert inst.get_string_arg(0) == "deprecated API"
+
     def test_unknown_instruction_is_parse_error(self):
         prog = parse('#: phantom:0.1.0 foo.bar("x")\n')
         assert prog.has_errors and not prog.instructions
