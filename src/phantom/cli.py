@@ -127,39 +127,57 @@ def _handler_policy_from_args(args: argparse.Namespace) -> HandlerPolicy:
 
 
 def cmd_check(args: argparse.Namespace) -> int:
-    """Check and validate Phantom instructions in a file."""
-    filepath = args.file
-    if not os.path.isfile(filepath):
-        print(f"Error: File not found: '{filepath}'", file=sys.stderr)
-        return 1
-    source_text = read_source(filepath)
-    if source_text is None:
-        return 1
+    """Check and validate Phantom instructions in one or more files."""
+    filepaths = args.file
+    if isinstance(filepaths, str):
+        filepaths = [filepaths]
 
-    try:
-        program = load_and_parse(filepath)
-    except Exception as exc:
-        print(f"Error: Failed to parse '{filepath}': {exc}", file=sys.stderr)
-        return 1
+    sources: dict[str, str] = {}
+    all_diagnostics: list[Any] = []
+    # 1 when any file could not be read or parsed, like a single-file hard failure.
+    hard_failure = 0
+    for filepath in filepaths:
+        if not os.path.isfile(filepath):
+            print(f"Error: File not found: '{filepath}'", file=sys.stderr)
+            hard_failure = 1
+            continue
+        source_text = read_source(filepath)
+        if source_text is None:
+            hard_failure = 1
+            continue
 
-    val_errors = load_and_validate(program)
-    grant = _grant_from_args(args)
-    if grant is not None:
-        val_errors += check_policy(program, grant)
-    all_diagnostics: list[Any] = list(program.errors) + list(val_errors)
-    if args.strict:
-        all_diagnostics += audit_source(source_text, filepath)
+        try:
+            program = load_and_parse(filepath)
+        except Exception as exc:
+            print(f"Error: Failed to parse '{filepath}': {exc}", file=sys.stderr)
+            hard_failure = 1
+            continue
+
+        sources[filepath] = source_text
+        if program.source_file:
+            sources[program.source_file] = source_text
+
+        val_errors = load_and_validate(program)
+        grant = _grant_from_args(args)
+        if grant is not None:
+            val_errors += check_policy(program, grant)
+        all_diagnostics += list(program.errors) + list(val_errors)
+        if args.strict:
+            all_diagnostics += audit_source(source_text, filepath)
 
     error_count = sum(
         1 for d in all_diagnostics if getattr(d, "severity", None) == Severity.ERROR
     )
-    all_diagnostics.sort(
-        key=lambda d: (lambda loc: loc.line if loc else 0)(diagnostics.finding_location(d))
-    )
+
+    def _sort_key(diag: Any) -> tuple[str, int]:
+        loc = diagnostics.finding_location(diag)
+        return (loc.file, loc.line) if loc else ("", 0)
+
+    all_diagnostics.sort(key=_sort_key)
 
     if args.format == "sarif":
         print(diagnostics.to_sarif_json(all_diagnostics))
-        return 2 if error_count > 0 else 0
+        return 2 if error_count > 0 else hard_failure
 
     for diag in all_diagnostics:
         if (
@@ -167,6 +185,8 @@ def cmd_check(args: argparse.Namespace) -> int:
             and getattr(diag, "severity", None) != Severity.ERROR
         ):
             continue
+        loc = diagnostics.finding_location(diag)
+        source_text = sources.get(loc.file) if loc else None
         out = (
             sys.stderr
             if getattr(diag, "severity", None) == Severity.ERROR
@@ -179,7 +199,7 @@ def cmd_check(args: argparse.Namespace) -> int:
 
     if error_count > 0:
         return 2
-    return 0
+    return hard_failure
 
 
 def cmd_inspect(args: argparse.Namespace) -> int:
@@ -668,9 +688,9 @@ def create_parser() -> argparse.ArgumentParser:
 
     # check
     check_p = subparsers.add_parser(
-        "check", help="Check and validate Phantom instructions in a file"
+        "check", help="Check and validate Phantom instructions in one or more files"
     )
-    check_p.add_argument("file", help="Source file to check")
+    check_p.add_argument("file", nargs="+", help="Source file(s) to check")
     check_p.add_argument("-q", "--quiet", action="store_true", help="Suppress non-error output")
     check_p.add_argument(
         "--strict",

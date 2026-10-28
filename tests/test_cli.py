@@ -69,6 +69,31 @@ def test_cli_check_quiet_suppresses_summary(capsys):
     assert "0 error(s)" not in out
 
 
+def test_cli_check_multiple_files(capsys):
+    valid = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["check", str(valid), str(valid)])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    assert "0 error(s)" in out
+
+
+def test_cli_check_multiple_files_reports_errors(capsys):
+    valid = FIXTURES_DIR / "valid_comments.py"
+    invalid = FIXTURES_DIR / "invalid_instructions.py"
+    ret = main(["check", str(valid), str(invalid)])
+    assert ret == 2
+    out, err = capsys.readouterr()
+    assert "error(s)" in out + err
+
+
+def test_cli_check_multiple_files_missing_file(capsys):
+    valid = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["check", str(valid), "not_real_file.py"])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "not found" in err.lower()
+
+
 def test_cli_inspect_text(capsys):
     target = FIXTURES_DIR / "valid_comments.py"
     ret = main(["inspect", str(target)])

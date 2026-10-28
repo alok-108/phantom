@@ -5,6 +5,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 ## [Unreleased]
 
 ### Fixed
+- `phantom check` accepts one or more files so pre-commit-style invocations that pass every changed path at once no longer fail with "unrecognized arguments" (#101).
 - Property-based tests include all Unicode line separators after the lexer/decoder fixes, with explicit round-trip coverage in every encoding (#87).
 - A NUL character in a string argument no longer makes a comment encoded file invalid Python: encoders now escape every control character below U+0020 other than tab, line feed and carriage return as `\xNN`, and the parser decodes `\xNN` back to the original character, so the value round trips exactly; `SPECIFICATION.md` section 4 documents the new escape and which characters a string argument may contain (#75).
 - `check`, `inspect`, `verify`, `generate` and `diff` now read sources through one helper: a file that is not valid UTF-8 fails with `Error: '<file>' is not valid UTF-8 (byte 0x.. at position N)` and exit code 1, instead of a traceback (`verify`, `generate`) or silently replaced bytes (`check`, `inspect`, `diff`); a leading UTF-8 BOM is dropped everywhere (#54).
@@ -30,6 +31,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - Add a Spanish translation of the Quickstart guide (`docs/es/QUICKSTART.md`)[#129](https://github.com/hayagrivai-labs/phantom/pull/129).
 
 ### Added
+- `.pre-commit-hooks.yaml` defines `phantom-check` and `phantom-strict` hooks so `phantom check` runs as a [pre-commit](https://pre-commit.com/) hook (see `docs/INSTALLATION.md`) (#101).
 - `generate --placement` accepts `near:Class.method` (before the single method of the single class of that name; ambiguous or missing classes and methods are reported, never guessed) and `main-guard` (before the first top-level `if __name__ == "__main__":` guard; `before-main-guard` is accepted as an alias) (#4).
 - `phantom inspect --json` output now carries top-level `schema` (`phantom.inspect`) and `schema_version` (`1.0`) fields so consuming tools can detect format changes; existing keys are unchanged (#21).
 - `meta.tags(tags)` instruction: records keyword tags describing the probes, hooks, or diagnostics in the layer, as a single comma-separated string stored verbatim as metadata (capability `cap.metadata`); a second `meta.tags` is a validation warning, like the other `meta.*` instructions (#122).

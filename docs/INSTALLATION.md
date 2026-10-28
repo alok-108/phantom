@@ -166,6 +166,32 @@ After that, `phantom <TAB>` suggests the subcommands (`check`,
 `phantom check --<TAB>` or `phantom run --<TAB>` suggest that
 subcommand's flags.
 
+## Pre-commit Integration
+
+Phantom ships a `.pre-commit-hooks.yaml`, so it can run automatically before
+each commit via [pre-commit](https://pre-commit.com/). Add Phantom to your
+project's `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/hayagrivai-labs/phantom
+    rev: v0.1.1        # pin to a released tag
+    hooks:
+      - id: phantom-check    # validate the Phantom instruction layer
+      # - id: phantom-strict # also audit invisible/bidirectional characters
+```
+
+Then install the git hook once per clone:
+
+```bash
+pre-commit install
+```
+
+`phantom-check` runs `phantom check` on every staged Python file that is passed
+to it. `phantom-strict` adds `--strict`, which also reports invisible and
+bidirectional code points outside zero-width blocks. Both hooks read files only
+and never execute the host program.
+
 ---
 
 ## Next Steps

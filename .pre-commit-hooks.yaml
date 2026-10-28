@@ -1,0 +1,26 @@
+# Pre-commit hook definitions for Phantom (https://pre-commit.com).
+#
+# Add Phantom to a project's .pre-commit-config.yaml:
+#
+#   repos:
+#     - repo: https://github.com/hayagrivai-labs/phantom
+#       rev: v0.1.1        # pin to a released tag
+#       hooks:
+#         - id: phantom-check    # validate the Phantom instruction layer
+#         # - id: phantom-strict # also audit invisible/bidirectional characters
+#
+# `phantom check` reads files only; it never executes the host program.
+- id: phantom-check
+  name: phantom-check
+  description: Validate Phantom instruction layers in Python files
+  entry: phantom check
+  language: python
+  types: [python]
+  pass_filenames: true
+- id: phantom-strict
+  name: phantom-strict
+  description: Audit Python files for hidden characters and disallowed encodings
+  entry: phantom check --strict
+  language: python
+  types: [python]
+  pass_filenames: true
