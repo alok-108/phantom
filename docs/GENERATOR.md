@@ -12,7 +12,7 @@ program.py ──► [1 local checks] ──► [2 LLM plan] ──► [3 plan v
  candidate + diff ◄── [6 report] ◄── [5 candidate validation] ◄── [4 local transform]
 ```
 
-1. **Local checks.** The input must be valid Python and at most 100 000 characters. The placement is resolved locally (`beginning`, `end`, `line:N`, `near:NAME`). An ambiguous or missing target (`near:f` with two `f`s) is reported and the model is not called.
+1. **Local checks.** The input must be valid Python and at most 100 000 characters. The placement is resolved locally (`beginning`, `end`, `line:N`, `near:NAME`, `near:Class.method`, `main-guard`). An ambiguous or missing target (`near:f` with two `f`s, `near:A.m` with two `A`s or two `m`s) is reported and the model is not called. `main-guard` inserts before the first top-level `if __name__ == "__main__":` guard (`before-main-guard` is accepted as an alias).
 2. **Plan.** The prompt contains the real instruction registry and the numbered source. The model must return a JSON plan (summary, encoding, instructions with arguments and rationale, expected behavior, limitations). Fenced or prose-wrapped JSON is tolerated; nothing else from the model is used.
 3. **Plan validation.** Every instruction is checked against the registry: known identifier, argument count and types, supported encoding, integer line. An invented instruction is rejected. The model's own line numbers are ignored; the locally resolved line is used.
 4. **Transform.** The transformer only *inserts whole lines*. It never edits, moves or removes existing lines. It refuses insertion points inside multi-line strings, brackets or backslash continuations. Line endings (LF/CRLF) are preserved.
@@ -34,7 +34,7 @@ phantom generate program.py --intent "count requests and note startup" \
 | :--- | :--- |
 | `FILE` / `--stdin` | Program to annotate |
 | `--intent TEXT` | What Phantom should do. Prompted interactively if omitted on a terminal; required otherwise |
-| `--placement` | `beginning` (default), `end`, `line:N`, `near:NAME`. Asked interactively if omitted on a terminal |
+| `--placement` | `beginning` (default), `end`, `line:N`, `near:NAME`, `near:Class.method`, `main-guard` (alias: `before-main-guard`). Asked interactively if omitted on a terminal |
 | `--encoding` | Asked interactively if omitted on a terminal. `comment` (default; `comments` accepted), `whitespace`, `unicode`. `hybrid` is refused by the generator: it cannot be validated reliably for LLM-chosen layouts |
 | `--output PATH` | Write the candidate here. Must differ from the input |
 | `--dry-run` | Show plan and diff; write nothing |
@@ -50,6 +50,7 @@ Then compare:
 phantom diff program.py candidate.py
 phantom diff --host-only program.py candidate.py
 phantom verify program.py candidate.py     # executes BOTH files — only for code you trust
+phantom verify program.py candidate.py --args hello --args bye --stdin-file in.txt
 ```
 
 `phantom diff --host-only` excludes the Phantom instruction layer using the existing host-layer diff helper. It only reads the files; it does not execute or modify either program. An empty diff indicates unchanged host text, not verified runtime equivalence. Without the flag, `phantom diff` continues to compare the complete source files.
@@ -84,11 +85,20 @@ result.success, result.diff, result.candidate_source, result.errors
 | Result | Meaning | Exit |
 | :--- | :--- | :--- |
 | Tested equivalence for the single tested run | identical on this one run | 0 |
-| Behavior difference detected | stdout, stderr or exit code differ | 1 |
+| Tested equivalence for N cases | identical on every case given | 0 |
+| Behavior difference detected | stdout, stderr or exit code differ in at least one case | 1 |
 | Validation failed | a file is not valid Python | 2 |
-| Not verified (inconclusive) | a program timed out or failed to start, **or both programs failed with the same output** (for example because they import sibling modules or read files next to themselves, which are not in the temporary directory) | 3 |
+| Not verified (inconclusive) | no case differs, but at least one case timed out, failed to start, **or both programs failed with the same output** (for example because they import sibling modules or read files next to themselves, which are not in the temporary directory) | 3 |
 
-An "equivalent" result is **not** a proof for other inputs. It exercises one run with no arguments or stdin and does not capture return values, filesystem or network effects, timing, randomness, environment, or concurrency. The static AST check in step 5 is the stronger evidence for host preservation; `verify` complements it.
+### Multiple cases
+
+Each use of ``--args`` starts one case with those arguments, and each use of ``--stdin-file`` gives one case the contents of that file as stdin. Cases are paired by position: the first argument group goes with the first stdin file, the second with the second, and so on. A case with no partner on one side gets no arguments or no stdin file on that side. With no case option at all, `verify` runs the single default case: no arguments and the caller's stdin, exactly as before.
+
+A case with a stdin file feeds the same bytes to both programs, so that case is a genuine comparison. A case with no stdin file still inherits the caller's stdin, as before; that default behavior is a separate known issue (see #82) and is unchanged here, so a case without a stdin file is not a deterministic stdin test. An argument that starts with a dash needs the ``--args=VALUE`` form so it is not read as another option.
+
+Per case output names the case, its arguments, and its stdin file, and differences are reported per case. The overall result is a difference when any case differs, inconclusive when no case differs but some case is inconclusive, and equivalent only when every case matches.
+
+An "equivalent" result is **not** a proof for other inputs. With no case option it exercises one run with no arguments or stdin; with case options it exercises only the cases given. It does not capture return values, filesystem or network effects, timing, randomness, environment, or concurrency. The static AST check in step 5 is the stronger evidence for host preservation; `verify` complements it.
 
 `verify` executes both programs in the current environment. It is not a sandbox. Do not use it on untrusted code.
 

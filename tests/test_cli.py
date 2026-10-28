@@ -69,6 +69,31 @@ def test_cli_check_quiet_suppresses_summary(capsys):
     assert "0 error(s)" not in out
 
 
+def test_cli_check_multiple_files(capsys):
+    valid = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["check", str(valid), str(valid)])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    assert "0 error(s)" in out
+
+
+def test_cli_check_multiple_files_reports_errors(capsys):
+    valid = FIXTURES_DIR / "valid_comments.py"
+    invalid = FIXTURES_DIR / "invalid_instructions.py"
+    ret = main(["check", str(valid), str(invalid)])
+    assert ret == 2
+    out, err = capsys.readouterr()
+    assert "error(s)" in out + err
+
+
+def test_cli_check_multiple_files_missing_file(capsys):
+    valid = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["check", str(valid), "not_real_file.py"])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "not found" in err.lower()
+
+
 def test_cli_inspect_text(capsys):
     target = FIXTURES_DIR / "valid_comments.py"
     ret = main(["inspect", str(target)])
@@ -197,6 +222,16 @@ def test_cli_run_invalid(capsys):
     assert ret == 2
     _, err = capsys.readouterr()
     assert "Validation failed" in err
+
+
+def test_cli_run_invalid_utf8(capsys, tmp_path):
+    bad = tmp_path / "bad_utf8.py"
+    bad.write_bytes(b"print('hello')\n# \xff\xfe\n")
+    ret = main(["run", str(bad)])
+    assert ret == 1
+    out, err = capsys.readouterr()
+    assert out == ""
+    assert "is not valid UTF-8 (byte 0xff" in err
 
 
 def test_cli_run_timeout(capsys, tmp_path):
@@ -412,6 +447,45 @@ def test_cli_verify_mismatch(capsys, tmp_path):
     assert ret == 1
     _, err = capsys.readouterr()
     assert "stdout differs" in err
+
+
+def test_cli_verify_multiple_cases(capsys, tmp_path):
+    f1 = tmp_path / "p1.py"
+    f2 = tmp_path / "p2.py"
+    f1.write_text("import sys\nprint(' '.join(sys.argv[1:]))\n")
+    f2.write_text("import sys\nprint(' '.join(sys.argv[1:]))\n")
+    stdin = tmp_path / "in.txt"
+    stdin.write_text("alice\n")
+
+    ret = main(
+        [
+            "verify",
+            str(f1),
+            str(f2),
+            "--args",
+            "a",
+            "--args",
+            "b",
+            "--stdin-file",
+            str(stdin),
+        ]
+    )
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    assert "Case 1:" in out
+    assert "Case 2:" in out
+
+
+def test_cli_verify_missing_stdin_file_is_an_error(capsys, tmp_path):
+    f1 = tmp_path / "p1.py"
+    f2 = tmp_path / "p2.py"
+    f1.write_text("print('A')\n")
+    f2.write_text("print('A')\n")
+
+    ret = main(["verify", str(f1), str(f2), "--stdin-file", str(tmp_path / "nope.txt")])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "Stdin file not found" in err
 
 class FakeTTY(io.StringIO):
     def isatty(self):

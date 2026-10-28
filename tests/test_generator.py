@@ -161,6 +161,97 @@ class TestPlacement:
         with pytest.raises(TransformError):
             resolve_placement(PROGRAM, bad)
 
+    def test_near_class_method(self):
+        src = (
+            "class Service:\n"
+            "    def start(self):\n"
+            "        pass\n"
+            "\n"
+            "    @property\n"
+            "    def name(self):\n"
+            "        return 'x'\n"
+            "\n"
+            "class Other:\n"
+            "    def start(self):\n"
+            "        pass\n"
+        )
+        assert resolve_placement(src, "near:Service.start") == 2
+        assert resolve_placement(src, "near:Service.name") == 5
+        assert resolve_placement(src, "near:Other.start") == 10
+
+    def test_near_class_method_missing_and_ambiguous(self):
+        src = (
+            "class Service:\n"
+            "    def start(self):\n"
+            "        pass\n"
+        )
+        with pytest.raises(TransformError, match="No class named 'Missing'"):
+            resolve_placement(src, "near:Missing.start")
+        with pytest.raises(TransformError, match="No method named 'stop'"):
+            resolve_placement(src, "near:Service.stop")
+        dup_class = (
+            "class A:\n"
+            "    def m(self):\n"
+            "        pass\n"
+            "class A:\n"
+            "    def m(self):\n"
+            "        pass\n"
+        )
+        with pytest.raises(TransformError, match="ambiguous"):
+            resolve_placement(dup_class, "near:A.m")
+        dup_method = (
+            "class A:\n"
+            "    def m(self):\n"
+            "        pass\n"
+            "    def m(self):\n"
+            "        pass\n"
+        )
+        with pytest.raises(TransformError, match="ambiguous"):
+            resolve_placement(dup_method, "near:A.m")
+        with pytest.raises(TransformError):
+            resolve_placement(src, "near:Service.")
+        with pytest.raises(TransformError):
+            resolve_placement(src, "near:")
+
+    def test_near_nested_class_method(self):
+        src = (
+            "class Outer:\n"
+            "    class Inner:\n"
+            "        def run(self):\n"
+            "            pass\n"
+        )
+        assert resolve_placement(src, "near:Outer.Inner.run") == 3
+
+    def test_main_guard(self):
+        src = (
+            "def main():\n"
+            "    pass\n"
+            "\n"
+            "\n"
+            'if __name__ == "__main__":\n'
+            "    main()\n"
+        )
+        assert resolve_placement(src, "main-guard") == 5
+        assert resolve_placement(src, "before-main-guard") == 5
+        reversed_guard = 'if "__main__" == __name__:\n    main()\n'
+        assert resolve_placement(reversed_guard, "main-guard") == 1
+        two_guards = src + '\nif __name__ == "__main__":\n    main()\n'
+        assert resolve_placement(two_guards, "main-guard") == 5
+
+    def test_main_guard_missing(self):
+        with pytest.raises(TransformError, match="No main guard"):
+            resolve_placement(PROGRAM, "main-guard")
+        nested_only = (
+            "def f():\n"
+            '    if __name__ == "__main__":\n'
+            "        pass\n"
+        )
+        with pytest.raises(TransformError, match="No main guard"):
+            resolve_placement(nested_only, "main-guard")
+        not_a_guard = "if ready:\n    pass\n"
+        with pytest.raises(TransformError, match="No main guard"):
+            resolve_placement(not_a_guard, "main-guard")
+
 
 class TestWorkflow:
     def test_success(self):

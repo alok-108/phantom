@@ -46,6 +46,15 @@ def _instruction_to_text(instruction: str | PhantomInstruction) -> str:
                     .replace("\r", "\\r")
                     .replace("\t", "\\t")
                 )
+                # Every other control character below U+0020 is escaped
+                # too. A literal NUL in a comment line makes the whole
+                # host file invalid Python, and the other controls are
+                # invisible in a comment, so the text form never carries
+                # any of them literally. The parser decodes \xNN back.
+                for code in range(0x20):
+                    if code in (0x09, 0x0A, 0x0D):
+                        continue
+                    escaped = escaped.replace(chr(code), f"\\x{code:02x}")
                 args_formatted.append(f'"{escaped}"')
             else:
                 args_formatted.append(str(arg.value))

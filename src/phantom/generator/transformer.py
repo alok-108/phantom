@@ -7,6 +7,7 @@ strings, brackets, or backslash continuations.
 
 from __future__ import annotations
 
+import ast
 import io
 import tokenize
 
@@ -123,17 +124,85 @@ def apply_plan(source: str, plan: TransformationPlan) -> str:
             output.append(raw_lines[lineno - 1])
     return "".join(output)
 
+def _is_main_guard(node: ast.If) -> bool:
+    """True if `node` is a top-level `if __name__ == "__main__":` guard."""
+    test = node.test
+    if not isinstance(test, ast.Compare):
+        return False
+    if len(test.ops) != 1 or not isinstance(test.ops[0], ast.Eq):
+        return False
+    if len(test.comparators) != 1:
+        return False
+    left, right = test.left, test.comparators[0]
+
+    def is_name(side: ast.expr, name: str) -> bool:
+        return isinstance(side, ast.Name) and side.id == name
+
+    def is_const(side: ast.expr, value: str) -> bool:
+        return isinstance(side, ast.Constant) and side.value == value
+
+    return (is_name(left, "__name__") and is_const(right, "__main__")) or (
+        is_const(left, "__main__") and is_name(right, "__name__")
+    )
+
+
+def _first_line(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> int:
+    """First line of a definition, including its decorators."""
+    return min([node.lineno] + [d.lineno for d in node.decorator_list])
+
+
+def _resolve_dotted(tree: ast.Module, name: str) -> int:
+    """Resolve 'Class.method' (or deeper 'Outer.Inner.method') to a line.
+
+    Each segment but the last must name a single class in the enclosing
+    scope; the last names a single method (or nested class) of that class.
+    """
+    parts = name.split(".")
+    if any(not part for part in parts):
+        raise TransformError(f"Invalid placement name: '{name}'")
+    scope: list[ast.stmt] = list(tree.body)
+    for part in parts[:-1]:
+        classes = [
+            n for n in scope if isinstance(n, ast.ClassDef) and n.name == part
+        ]
+        if not classes:
+            raise TransformError(f"No class named '{part}' found for '{name}'")
+        if len(classes) > 1:
+            lines = ", ".join(str(n.lineno) for n in classes)
+            raise TransformError(
+                f"'{part}' is ambiguous (defined at lines {lines}); "
+                "use line:N instead"
+            )
+        scope = list(classes[0].body)
+    last = parts[-1]
+    targets = [
+        n
+        for n in scope
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+        and n.name == last
+    ]
+    if not targets:
+        raise TransformError(f"No method named '{last}' in '{'.'.join(parts[:-1])}'")
+    if len(targets) > 1:
+        lines = ", ".join(str(n.lineno) for n in targets)
+        raise TransformError(
+            f"'{name}' is ambiguous (defined at lines {lines}); use line:N instead"
+        )
+    return _first_line(targets[0])
+
+
 def resolve_placement(source: str, placement: str) -> int:
     """Resolve a placement spec to a 1-based insertion line.
 
     Accepted: 'beginning', 'end', 'line:N', 'near:NAME' (before the single
-    function or class called NAME).
+    function or class called NAME), 'near:Class.method' (before the single
+    method of the single class of that name), and 'main-guard'
+    (before the first top-level `if __name__ == "__main__":` guard;
+    'before-main-guard' is accepted as an alias).
 
     Raises:
         TransformError: If the spec is unknown or ambiguous.
     """
-    import ast
-
     total = len(split_physical_lines(source))
     spec = placement.strip()
     if spec in ("", "beginning"):
@@ -148,12 +217,27 @@ def resolve_placement(source: str, placement: str) -> int:
         if not 1 <= line <= total + 1:
             raise TransformError(f"Line {line} is outside the file (1-{total + 1})")
         return line
-    if spec.startswith("near:"):
-        name = spec[5:].strip()
+    if spec in ("main-guard", "before-main-guard"):
         try:
             tree = ast.parse(source)
         except SyntaxError as exc:
             raise TransformError(f"Cannot resolve '{spec}': {exc.msg}") from exc
+        guards = [
+            n for n in tree.body if isinstance(n, ast.If) and _is_main_guard(n)
+        ]
+        if not guards:
+            raise TransformError("No main guard (if __name__ == '__main__':) found")
+        return guards[0].lineno
+    if spec.startswith("near:"):
+        name = spec[5:].strip()
+        if not name:
+            raise TransformError("Invalid placement name: 'near:' names nothing")
+        try:
+            tree = ast.parse(source)
+        except SyntaxError as exc:
+            raise TransformError(f"Cannot resolve '{spec}': {exc.msg}") from exc
+        if "." in name:
+            return _resolve_dotted(tree, name)
         hits = [
             n for n in ast.walk(tree)
             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
@@ -166,7 +250,5 @@ def resolve_placement(source: str, placement: str) -> int:
             raise TransformError(
                 f"'{name}' is ambiguous (defined at lines {lines}); use line:N instead"
             )
-        node = hits[0]
-        first = min([node.lineno] + [d.lineno for d in node.decorator_list])
-        return first
+        return _first_line(hits[0])
     raise TransformError(f"Unknown placement '{placement}'")

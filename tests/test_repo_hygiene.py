@@ -122,3 +122,84 @@ def test_fish_completion_script_covers_cli():
                 f"fish completions miss --{flag} scoped to {subcommand}"
             )
     assert "sarif" in text, "fish completions miss the sarif output format"
+
+
+# Nano syntax highlighting for the Phantom instruction layer must exist and
+# cover the documented instruction keywords and encoding markers (#121).
+NANORC = ROOT / "scripts" / "syntax" / "phantom.nanorc"
+PHANTOM_NANO_INSTRUCTIONS = (
+    "event.declare",
+    "event.on",
+    "diagnostic.note",
+    "diagnostic.warn",
+    "counter.create",
+    "counter.increment",
+    "counter.decrement",
+    "counter.reset",
+    "meta.author",
+    "meta.version",
+    "meta.license",
+)
+PHANTOM_NANO_MARKERS = ("#:ws:begin", "#:ws:end", "#:zw:begin", "#:zw:end", "#:phantom:hybrid")
+
+
+def test_nano_syntax_highlights_phantom_instructions():
+    assert NANORC.is_file(), "scripts/syntax/phantom.nanorc is missing"
+    text = NANORC.read_text(encoding="utf-8")
+    assert 'syntax "phantom" "\\.py$"' in text, "nanorc must define the phantom syntax for *.py"
+    assert "#:[[:space:]]*phantom:[0-9]" in text, (
+        "nanorc must highlight the #: phantom:<version> prefix"
+    )
+    for instruction in PHANTOM_NANO_INSTRUCTIONS:
+        escaped = instruction.replace(".", r"\.")
+        assert escaped in text, f"nanorc does not highlight {instruction}"
+    for marker in PHANTOM_NANO_MARKERS:
+        assert marker in text, f"nanorc does not highlight the {marker} marker"
+
+
+def test_nano_syntax_prefix_is_anchored_to_phantom_comments():
+    text = NANORC.read_text(encoding="utf-8")
+    prefix_rules = [line for line in text.splitlines() if "phantom:[0-9]" in line]
+    assert prefix_rules, "nanorc has no Phantom version-prefix rule"
+    for rule in prefix_rules:
+        assert '"^[[:space:]]*#:' in rule, (
+            "the Phantom prefix rule must be anchored to a '#' comment, "
+            "otherwise ordinary text is highlighted as an instruction"
+        )
+
+
+PRE_COMMIT_HOOKS = ROOT / ".pre-commit-hooks.yaml"
+
+
+def test_pre_commit_hooks_definition_is_valid():
+    assert PRE_COMMIT_HOOKS.is_file(), ".pre-commit-hooks.yaml is missing"
+    raw = PRE_COMMIT_HOOKS.read_text(encoding="utf-8")
+
+    try:
+        import yaml
+    except ImportError:  # PyYAML is optional; fall back to a structural check.
+        pass
+    else:
+        loaded = yaml.safe_load(raw)
+        assert isinstance(loaded, list), ".pre-commit-hooks.yaml must be a list"
+        hooks = {hook["id"]: hook for hook in loaded}
+        assert set(hooks) == {"phantom-check", "phantom-strict"}
+        assert hooks["phantom-check"]["entry"] == "phantom check"
+        assert hooks["phantom-strict"]["entry"] == "phantom check --strict"
+        for hook in hooks.values():
+            assert hook["language"] == "python"
+            assert hook["types"] == ["python"]
+            assert hook["pass_filenames"] is True
+            assert hook["name"] and hook["description"]
+        return
+
+    for token in (
+        "id: phantom-check",
+        "id: phantom-strict",
+        "entry: phantom check",
+        "entry: phantom check --strict",
+        "language: python",
+        "types: [python]",
+        "pass_filenames: true",
+    ):
+        assert token in raw, f".pre-commit-hooks.yaml missing {token!r}"

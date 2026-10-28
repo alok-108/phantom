@@ -18,6 +18,7 @@ class InstructionType(Enum):
     EVENT_DECLARE = "event.declare"
     EVENT_ON = "event.on"
     DIAGNOSTIC_NOTE = "diagnostic.note"
+    DIAGNOSTIC_WARN = "diagnostic.warn"
     COUNTER_CREATE = "counter.create"
     COUNTER_INCREMENT = "counter.increment"
     COUNTER_RESET = "counter.reset"

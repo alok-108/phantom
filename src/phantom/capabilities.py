@@ -38,6 +38,7 @@ INSTRUCTION_CAPABILITIES: dict[InstructionType, frozenset[Capability]] = {
     InstructionType.EVENT_DECLARE: frozenset({Capability.EVENTS}),
     InstructionType.EVENT_ON: frozenset({Capability.EVENTS}),
     InstructionType.DIAGNOSTIC_NOTE: frozenset({Capability.DIAGNOSTICS}),
+    InstructionType.DIAGNOSTIC_WARN: frozenset({Capability.DIAGNOSTICS}),
     InstructionType.COUNTER_CREATE: frozenset({Capability.COUNTERS}),
     InstructionType.COUNTER_INCREMENT: frozenset({Capability.COUNTERS}),
     InstructionType.COUNTER_RESET: frozenset({Capability.COUNTERS}),

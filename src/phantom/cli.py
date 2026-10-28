@@ -26,6 +26,7 @@ from phantom.capabilities import (
 from phantom.generator import (
     ComparisonVerdict,
     GenerationRequest,
+    VerificationCase,
     compare_behavior,
     generate,
 )
@@ -127,39 +128,57 @@ def _handler_policy_from_args(args: argparse.Namespace) -> HandlerPolicy:
 
 
 def cmd_check(args: argparse.Namespace) -> int:
-    """Check and validate Phantom instructions in a file."""
-    filepath = args.file
-    if not os.path.isfile(filepath):
-        print(f"Error: File not found: '{filepath}'", file=sys.stderr)
-        return 1
-    source_text = read_source(filepath)
-    if source_text is None:
-        return 1
+    """Check and validate Phantom instructions in one or more files."""
+    filepaths = args.file
+    if isinstance(filepaths, str):
+        filepaths = [filepaths]
 
-    try:
-        program = load_and_parse(filepath)
-    except Exception as exc:
-        print(f"Error: Failed to parse '{filepath}': {exc}", file=sys.stderr)
-        return 1
+    sources: dict[str, str] = {}
+    all_diagnostics: list[Any] = []
+    # 1 when any file could not be read or parsed, like a single-file hard failure.
+    hard_failure = 0
+    for filepath in filepaths:
+        if not os.path.isfile(filepath):
+            print(f"Error: File not found: '{filepath}'", file=sys.stderr)
+            hard_failure = 1
+            continue
+        source_text = read_source(filepath)
+        if source_text is None:
+            hard_failure = 1
+            continue
 
-    val_errors = load_and_validate(program)
-    grant = _grant_from_args(args)
-    if grant is not None:
-        val_errors += check_policy(program, grant)
-    all_diagnostics: list[Any] = list(program.errors) + list(val_errors)
-    if args.strict:
-        all_diagnostics += audit_source(source_text, filepath)
+        try:
+            program = load_and_parse(filepath)
+        except Exception as exc:
+            print(f"Error: Failed to parse '{filepath}': {exc}", file=sys.stderr)
+            hard_failure = 1
+            continue
+
+        sources[filepath] = source_text
+        if program.source_file:
+            sources[program.source_file] = source_text
+
+        val_errors = load_and_validate(program)
+        grant = _grant_from_args(args)
+        if grant is not None:
+            val_errors += check_policy(program, grant)
+        all_diagnostics += list(program.errors) + list(val_errors)
+        if args.strict:
+            all_diagnostics += audit_source(source_text, filepath)
 
     error_count = sum(
         1 for d in all_diagnostics if getattr(d, "severity", None) == Severity.ERROR
     )
-    all_diagnostics.sort(
-        key=lambda d: (lambda loc: loc.line if loc else 0)(diagnostics.finding_location(d))
-    )
+
+    def _sort_key(diag: Any) -> tuple[str, int]:
+        loc = diagnostics.finding_location(diag)
+        return (loc.file, loc.line) if loc else ("", 0)
+
+    all_diagnostics.sort(key=_sort_key)
 
     if args.format == "sarif":
         print(diagnostics.to_sarif_json(all_diagnostics))
-        return 2 if error_count > 0 else 0
+        return 2 if error_count > 0 else hard_failure
 
     for diag in all_diagnostics:
         if (
@@ -167,6 +186,8 @@ def cmd_check(args: argparse.Namespace) -> int:
             and getattr(diag, "severity", None) != Severity.ERROR
         ):
             continue
+        loc = diagnostics.finding_location(diag)
+        source_text = sources.get(loc.file) if loc else None
         out = (
             sys.stderr
             if getattr(diag, "severity", None) == Severity.ERROR
@@ -179,7 +200,7 @@ def cmd_check(args: argparse.Namespace) -> int:
 
     if error_count > 0:
         return 2
-    return 0
+    return hard_failure
 
 
 def cmd_inspect(args: argparse.Namespace) -> int:
@@ -301,6 +322,9 @@ def cmd_run(args: argparse.Namespace) -> int:
     timeout = getattr(args, "timeout", 30.0)
     if not math.isfinite(timeout) or timeout <= 0:
         print("Error: --timeout must be positive", file=sys.stderr)
+        return 1
+
+    if read_source(filepath) is None:
         return 1
 
     # Extract extra arguments for host program
@@ -435,7 +459,7 @@ def cmd_generate(args: argparse.Namespace, provider: LLMProvider | None = None) 
         args.placement = "beginning"
         if interactive:
             args.placement = _ask(
-                "Where should Phantom be added? [beginning|end|line:N|near:NAME] (beginning) ",
+                "Where should Phantom be added? [beginning|end|line:N|near:NAME|near:Class.method|main-guard] (beginning) ",
                 "beginning",
             )
     if args.encoding is None:
@@ -595,6 +619,45 @@ _VERDICT_LABELS = {
 }
 
 
+def _build_verify_cases(args: argparse.Namespace) -> list[VerificationCase] | None:
+    """Build one case per argument group or stdin file, paired by position.
+
+    Returns None when no case option was given, which keeps the single
+    default run. A case with no partner on one side gets no arguments or
+    no stdin file on that side; a case with no stdin file inherits the
+    caller's stdin, as a single run always has.
+    """
+    arg_groups: list[list[str]] = list(getattr(args, "args", None) or [])
+    stdin_files: list[str] = list(getattr(args, "stdin_file", None) or [])
+    if not arg_groups and not stdin_files:
+        return None
+    stdin_texts: list[str | None] = []
+    for path in stdin_files:
+        if not os.path.isfile(path):
+            print(f"Error: Stdin file not found: '{path}'", file=sys.stderr)
+            return None
+        text = read_source(path)
+        if text is None:
+            return None
+        stdin_texts.append(text)
+    count = max(len(arg_groups), len(stdin_files))
+    cases = []
+    for index in range(count):
+        cases.append(
+            VerificationCase(
+                args=list(arg_groups[index]) if index < len(arg_groups) else [],
+                stdin_text=stdin_texts[index] if index < len(stdin_texts) else None,
+                stdin_label=stdin_files[index] if index < len(stdin_files) else None,
+            )
+        )
+    return cases
+
+
+def _describe_verify_case(case: VerificationCase) -> str:
+    stdin = case.stdin_label if case.stdin_label is not None else "inherited"
+    return f"args={case.args!r} stdin-file={stdin}"
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
     """Run both programs and compare stdout, stderr and exit code.
 
@@ -611,27 +674,57 @@ def cmd_verify(args: argparse.Namespace) -> int:
     if candidate is None:
         return 1
 
-    result = compare_behavior(original, candidate, timeout=args.timeout)
+    cases = _build_verify_cases(args)
+    # _build_verify_cases returns None both for "no case options" and for a
+    # failed stdin file read; the latter already printed an error, and the
+    # two are told apart by whether any case option was given.
+    if cases is None and (getattr(args, "args", None) or getattr(args, "stdin_file", None)):
+        return 1
+
+    result = compare_behavior(original, candidate, timeout=args.timeout, cases=cases)
     label, code = _VERDICT_LABELS[result.verdict]
+    if len(result.case_results) > 1 and result.verdict == ComparisonVerdict.EQUIVALENT:
+        label = f"Tested equivalence for {len(result.case_results)} cases"
     print(f"Result: {label}")
-    for d in result.differences:
-        print(f"  difference: {d}", file=sys.stderr)
+    if len(result.case_results) > 1:
+        for index, compared in enumerate(result.case_results, start=1):
+            print(f"Case {index}: {_describe_verify_case(compared.case)}")
+            for d in compared.differences:
+                print(f"  case {index} difference: {d}", file=sys.stderr)
+        for index, compared in enumerate(result.case_results, start=1):
+            if compared.differences:
+                for tag, x, y in (
+                    ("stdout", compared.original_stdout, compared.candidate_stdout),
+                    ("stderr", compared.original_stderr, compared.candidate_stderr),
+                ):
+                    if x != y:
+                        sys.stderr.writelines(
+                            difflib.unified_diff(
+                                split_physical_lines(x, keepends=True),
+                                split_physical_lines(y, keepends=True),
+                                f"case {index} original {tag}",
+                                f"case {index} candidate {tag}",
+                            )
+                        )
+    else:
+        for d in result.differences:
+            print(f"  difference: {d}", file=sys.stderr)
+        if result.differences:
+            for tag, x, y in (
+                ("stdout", result.original_stdout, result.candidate_stdout),
+                ("stderr", result.original_stderr, result.candidate_stderr),
+            ):
+                if x != y:
+                    sys.stderr.writelines(
+                        difflib.unified_diff(
+                            split_physical_lines(x, keepends=True),
+                            split_physical_lines(y, keepends=True),
+                            f"original {tag}",
+                            f"candidate {tag}",
+                        )
+                    )
     for n in result.notes:
         print(f"  note: {n}")
-    if result.differences:
-        for tag, x, y in (
-            ("stdout", result.original_stdout, result.candidate_stdout),
-            ("stderr", result.original_stderr, result.candidate_stderr),
-        ):
-            if x != y:
-                sys.stderr.writelines(
-                    difflib.unified_diff(
-                        split_physical_lines(x, keepends=True),
-                        split_physical_lines(y, keepends=True),
-                        f"original {tag}",
-                        f"candidate {tag}",
-                    )
-                )
     if result.verdict == ComparisonVerdict.EQUIVALENT:
         print("This is not a proof of equivalence for other inputs, state or environments.")
     return code
@@ -665,9 +758,9 @@ def create_parser() -> argparse.ArgumentParser:
 
     # check
     check_p = subparsers.add_parser(
-        "check", help="Check and validate Phantom instructions in a file"
+        "check", help="Check and validate Phantom instructions in one or more files"
     )
-    check_p.add_argument("file", help="Source file to check")
+    check_p.add_argument("file", nargs="+", help="Source file(s) to check")
     check_p.add_argument("-q", "--quiet", action="store_true", help="Suppress non-error output")
     check_p.add_argument(
         "--strict",
@@ -736,7 +829,7 @@ def create_parser() -> argparse.ArgumentParser:
     gen_p.add_argument(
         "--placement",
         default=None,
-        help="beginning | end | line:N | near:NAME (asked interactively if omitted on a terminal; default: beginning)",
+        help="beginning | end | line:N | near:NAME | near:Class.method | main-guard (asked interactively if omitted on a terminal; default: beginning)",
     )
     gen_p.add_argument(
         "--encoding", default=None, help="comment | whitespace | unicode (asked interactively if omitted on a terminal; default: comment)"
@@ -779,6 +872,23 @@ def create_parser() -> argparse.ArgumentParser:
     verify_p.add_argument("candidate", help="Candidate program file")
     verify_p.add_argument(
         "--timeout", type=float, default=30.0, help="Per-program timeout in seconds"
+    )
+    verify_p.add_argument(
+        "--args",
+        action="append",
+        nargs="*",
+        metavar="ARG",
+        default=None,
+        help="Arguments for one case (repeatable; each use starts a new case)",
+    )
+    verify_p.add_argument(
+        "--stdin-file",
+        action="append",
+        metavar="FILE",
+        default=None,
+        help="File whose contents are fed as stdin for one case "
+        "(repeatable; cases are paired with argument groups by position, "
+        "and a case with no stdin file inherits the caller's stdin)",
     )
 
     return parser

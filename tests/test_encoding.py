@@ -49,7 +49,20 @@ def test_comment_decoder_rejects_non_instruction():
 
 
 @pytest.mark.parametrize("mode", [EncodingMode.COMMENT, EncodingMode.WHITESPACE, EncodingMode.UNICODE])
-@pytest.mark.parametrize("message", ["a\nb", "a\rb", "a\tb", "a\r\nb\tc", r'literal \n \r \t and "quotes"', 'héllo\n"\\\t\r✓'])
+@pytest.mark.parametrize(
+    "message",
+    [
+        "a\nb",
+        "a\rb",
+        "a\tb",
+        "a\r\nb\tc",
+        r'literal \n \r \t and "quotes"',
+        'héllo\n"\\\t\r✓',
+        "a\x00b",
+        "a\x01\x1bb",
+        "a\x0bb\x0cc",
+    ],
+)
 def test_string_escapes_roundtrip_through_parser(mode, message):
     encoded = encode_instruction(_note(message), mode)
     ast.parse(encoded)
@@ -60,6 +73,16 @@ def test_string_escapes_roundtrip_through_parser(mode, message):
     assert not program.errors
     assert len(program.instructions) == 1
     assert program.instructions[0].get_string_arg(0) == message
+
+
+def test_nul_in_comment_encoding_keeps_host_file_valid_python():
+    encoded = encode_instruction(_note("a\x00b"), EncodingMode.COMMENT)
+    assert "\x00" not in encoded
+    assert encoded == '#: phantom:0.1.0 diagnostic.note("a\\x00b")'
+    ast.parse("def f():\n    return 1\n\n" + encoded + "\nf()\n")
+    program = parse(encoded + "\n")
+    assert not program.errors
+    assert program.instructions[0].get_string_arg(0) == "a\x00b"
 
 
 def test_whitespace_roundtrip_is_utf8_exact():

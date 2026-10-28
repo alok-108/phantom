@@ -9,11 +9,33 @@
 # Used by the composite GitHub Action in action.yml; also handy locally and in pre-commit.
 set -uo pipefail
 
+# Force UTF-8 encoding across Windows/Linux environments
+export PYTHONIOENCODING=utf-8
+export LC_ALL=C.UTF-8
+
 strict="${PHANTOM_STRICT:-true}"
 exclude="${PHANTOM_EXCLUDE:-}"
 extra="${PHANTOM_ARGS:-}"
 
-if [ "$#" -eq 0 ]; then
+# Parse PHANTOM_PATHS or positional arguments into raw_paths array
+raw_paths=()
+if [ "$#" -gt 0 ]; then
+  raw_paths=("$@")
+elif [ -n "${PHANTOM_PATHS:-}" ]; then
+  if [[ "$PHANTOM_PATHS" == *$'\n'* ]]; then
+    while IFS= read -r line; do
+      [ -n "$line" ] && raw_paths+=("$line")
+    done <<< "$PHANTOM_PATHS"
+  else
+    # If there are no newlines, check if the whole string exists as a single file/directory first
+    if [ -e "$PHANTOM_PATHS" ]; then
+      raw_paths+=("$PHANTOM_PATHS")
+    else
+      # Otherwise, fall back to space-separated splitting
+      read -ra raw_paths <<< "$PHANTOM_PATHS"
+    fi
+  fi
+else
   echo "usage: ci_check.sh PATH [PATH...]" >&2
   exit 2
 fi
@@ -27,8 +49,17 @@ flags+=($extra)
 
 excluded() {
   local file="$1" pattern
-  # shellcheck disable=SC2086  # intentional word splitting of the pattern list
-  for pattern in $exclude; do
+  local patterns=()
+
+  if [[ "$exclude" == *$'\n'* ]]; then
+    while IFS= read -r pattern; do
+      [ -n "$pattern" ] && patterns+=("$pattern")
+    done <<< "$exclude"
+  else
+    read -ra patterns <<< "$exclude"
+  fi
+
+  for pattern in "${patterns[@]}"; do
     # shellcheck disable=SC2053  # the pattern is meant to be a glob
     if [[ "$file" == $pattern ]]; then
       return 0
@@ -38,7 +69,7 @@ excluded() {
 }
 
 files=()
-for path in "$@"; do
+for path in "${raw_paths[@]}"; do
   if [ -d "$path" ]; then
     while IFS= read -r -d '' file; do
       files+=("$file")

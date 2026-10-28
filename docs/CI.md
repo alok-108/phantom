@@ -57,3 +57,14 @@ pytest --cov=phantom --cov-report=term-missing:skip-covered
 ```
 
 The property-based tests (`tests/test_properties.py`, [hypothesis](https://hypothesis.readthedocs.io/)) generate instructions and arbitrary text; if one fails, hypothesis prints a minimal failing example and stores it in `.hypothesis/` so the next run replays it first.
+
+### Multiline Paths
+
+If directory paths contain spaces, pass them using YAML multiline strings:
+
+```yaml
+- uses: hayagrivai-labs/phantom@main
+  with:
+    paths: |
+      my project/src
+      tests/space dir

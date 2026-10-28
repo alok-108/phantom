@@ -86,3 +86,12 @@ def test_partial_output_is_kept_on_timeout(tmp_path):
     res = execute_host_program(str(script), timeout=1.0)
     assert res.exit_code == 124
     assert "before" in res.stdout
+
+
+def test_execute_host_program_with_stdin_text(tmp_path):
+    script = tmp_path / "stdin_test.py"
+    script.write_text("print(input())\n")
+
+    res = execute_host_program(str(script), stdin_text="hello\n")
+    assert res.exit_code == 0
+    assert res.stdout.strip() == "hello"

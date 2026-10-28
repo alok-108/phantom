@@ -45,6 +45,14 @@ class TestArguments:
         (arg,) = parse_arguments(r'"say \"hi\", ok\n"')
         assert arg.value == 'say "hi", ok\n'
 
+    def test_hex_escapes_decode_control_characters(self):
+        (arg,) = parse_arguments(r'"a\x00b\x1bc"')
+        assert arg.value == "a\x00b\x1bc"
+
+    def test_hex_escape_without_two_hex_digits_keeps_old_fallback(self):
+        (arg,) = parse_arguments(r'"a\xzzb"')
+        assert arg.value == "axzzb"
+
     @pytest.mark.parametrize("bad", ['"a" "b"', '"a",', "foo", '"unterminated'])
     def test_malformed(self, bad):
         with pytest.raises(ValueError):
@@ -59,6 +67,13 @@ class TestParser:
         assert inst.type == InstructionType.COUNTER_CREATE
         assert inst.get_int_arg(1) == 3
         assert inst.source.line == 2
+
+    def test_diagnostic_warn_instruction(self):
+        prog = parse('#: phantom:0.1.0 diagnostic.warn("deprecated API")\n')
+        assert not prog.errors
+        (inst,) = prog.instructions
+        assert inst.type == InstructionType.DIAGNOSTIC_WARN
+        assert inst.get_string_arg(0) == "deprecated API"
 
     def test_unknown_instruction_is_parse_error(self):
         prog = parse('#: phantom:0.1.0 foo.bar("x")\n')

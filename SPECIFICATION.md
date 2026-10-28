@@ -39,10 +39,11 @@ name          = [a-z] [a-z0-9_]*
 arguments     = argument { ws0 "," ws0 argument }
 argument      = string | integer
 string        = '"' { char } '"'
-char          = any character except '"' and '\' | '\' ( '"' | '\' | 'n' | 't' | 'r' )
+char          = any character except '"' and '\' | '\' ( '"' | '\' | 'n' | 't' | 'r' | 'x' hex-digit hex-digit )
 integer       = [ "-" ] digit { digit }
 semver        = digit+ "." digit+ "." digit+
 digit         = [0-9]
+hex-digit     = digit | 'a' ... 'f' | 'A' ... 'F'
 ws0 = { space | tab }     ws1 = space | tab, { space | tab }
 ```
 
@@ -51,6 +52,7 @@ Rules:
 - The instruction **MUST** occupy the whole line. A trailing comment, code before `#:`, or a `#:` inside a string literal makes the line ordinary source (a trailing comment after an otherwise complete instruction is reported as a warning). A line that begins with `#: phantom:` but does not match the grammar (missing parenthesis, no argument list, ...) is a parse error, so typos are never silently ignored.
 - The space after `#:` is optional.
 - Arguments are literals only. Expressions (`1+1`, `"a"+"b"`), names, calls and nesting are a parse error.
+- A string argument may contain any character, including control characters below U+0020. Encoders escape those controls rather than emitting them literally: tab, line feed and carriage return use the named escapes `\t`, `\n` and `\r`, and every other control character below U+0020 uses the `\xNN` escape (two hex digits, for example `\x00` for NUL). The parser decodes `\xNN` back to the original character, so the value round trips exactly. This keeps a comment encoded instruction valid Python: a literal NUL in a comment line would make the whole host file fail to parse, so it never appears literally in encoded output.
 - Integer literals and version components use ASCII decimal digits (`0`–`9`) only. Unicode digits, including Arabic-Indic and fullwidth digits, are not numeric syntax; they remain allowed inside string literals. An otherwise complete comment instruction with a malformed version produces a parse error rather than being ignored.
 - *Reserved:* an unquoted identifier argument (`ArgumentType.IDENTIFIER`) exists in the IR but is not accepted by the v0.1.0 parser.
 - Ordinary comments, including ones mentioning `phantom:0.1.0`, are never instructions unless they match the whole grammar.
@@ -62,6 +64,7 @@ Rules:
 | `event.declare` | `name: string` | `cap.events` | Executable |
 | `event.on` | `event: string`, `handler: string` | `cap.events` | Executable |
 | `diagnostic.note` | `message: string` | `cap.diagnostics` | Executable |
+| `diagnostic.warn` | `message: string` | `cap.diagnostics` | Executable |
 | `counter.create` | `name: string`, `limit: integer` | `cap.counters` | Executable |
 | `counter.increment` | `name: string` | `cap.counters` | Executable |
 | `counter.reset` | `name: string` | `cap.counters` | Executable |
@@ -81,28 +84,31 @@ Registers `handler` for `event`. **Validation:** the event **MUST** have been de
 ### 5.3 `diagnostic.note(message)`
 Appends an `INFO` diagnostic carrying the message and the instruction's source location.
 
-### 5.4 `counter.create(name, limit)`
+### 5.4 `diagnostic.warn(message)`
+Appends a `WARNING` diagnostic carrying the message and the instruction's source location.
+
+### 5.5 `counter.create(name, limit)`
 Creates a counter at 0 with an upper bound. **Validation (errors):** `limit > 0`; name non-empty and not already created.
 
-### 5.5 `counter.increment(name)`
+### 5.6 `counter.increment(name)`
 Increments by one. **Validation:** the counter **MUST** have been created earlier in the file (error); more `counter.increment` instructions than the counter's limit is a *warning*. **Runtime:** incrementing past the limit records an error diagnostic and leaves the counter at its limit; it does not abort the program.
 
-### 5.6 `counter.reset(name)`
+### 5.7 `counter.reset(name)`
 Resets a previously created bounded counter to 0, keeping its limit unchanged. **Validation:** the counter **MUST** have been created earlier in the file (error); increments counted against the limit restart from the reset, so increments after a reset are warned about only if they again exceed the limit. **Runtime:** resetting a counter that does not exist raises a runtime error that is reported, not fatal.
 
-### 5.7 `meta.author(name)`
+### 5.8 `meta.author(name)`
 Record the author's name. A second instruction of the same kind is a *warning*.
 
-### 5.8 `meta.version(version)`
+### 5.9 `meta.version(version)`
 Record the version string. A second instruction of the same kind is a *warning*.
 
-### 5.9 `meta.license(spdx)`
+### 5.10 `meta.license(spdx)`
 Record the SPDX license identifier (e.g., `"MIT"`). A second instruction of the same kind is a *warning*.
 
-### 5.10 `meta.tags(tags)`
+### 5.11 `meta.tags(tags)`
 Record keyword tags describing the probes, hooks, or diagnostics in the instruction layer, as a single comma-separated string (e.g., `"telemetry,audit,compliance"`). The string is stored verbatim as metadata; it is not split into a list. A second instruction of the same kind is a *warning*.
 
-### 5.11 Built-in events
+### 5.12 Built-in events
 `phantom.pre_execute`, `phantom.post_execute`, `phantom.shutdown` exist without declaration. They are the only events the runtime fires (§9). Handlers for custom events may be registered but nothing fires them in v0.1.0.
 
 ## 6. Encodings

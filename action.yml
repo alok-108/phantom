@@ -47,5 +47,4 @@ runs:
         PHANTOM_ARGS: ${{ inputs.args }}
         PHANTOM_PATHS: ${{ inputs.paths }}
       run: |
-        # shellcheck disable=SC2086  # PHANTOM_PATHS is a space-separated list by design
-        bash "$GITHUB_ACTION_PATH/scripts/ci_check.sh" $PHANTOM_PATHS
+        bash "$GITHUB_ACTION_PATH/scripts/ci_check.sh"

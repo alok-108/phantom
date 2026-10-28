@@ -37,6 +37,7 @@ _INVISIBLE = ZW_PERMITTED_CODEPOINTS | ZW_REJECTED_CODEPOINTS
 _STRING_TOKEN =re.compile(r'"((?:[^"\\]|\\.)*)"')
 _INTEGER_TOKEN = re.compile(r"-?[0-9]+")
 _ESCAPES = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\"}
+_HEX_DIGITS = frozenset("0123456789abcdefABCDEF")
 
 
 def _unescape(raw: str) -> str:
@@ -45,8 +46,13 @@ def _unescape(raw: str) -> str:
     while i < len(raw):
         ch = raw[i]
         if ch == "\\" and i + 1 < len(raw):
-            out.append(_ESCAPES.get(raw[i + 1], raw[i + 1]))
-            i += 2
+            nxt = raw[i + 1]
+            if nxt == "x" and i + 3 < len(raw) and raw[i + 2] in _HEX_DIGITS and raw[i + 3] in _HEX_DIGITS:
+                out.append(chr(int(raw[i + 2 : i + 4], 16)))
+                i += 4
+            else:
+                out.append(_ESCAPES.get(nxt, nxt))
+                i += 2
         else:
             out.append(ch)
             i += 1

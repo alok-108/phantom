@@ -36,6 +36,7 @@ def test_instruction_capabilities_mapping():
     assert INSTRUCTION_CAPABILITIES[InstructionType.EVENT_DECLARE] == frozenset({Capability.EVENTS})
     assert INSTRUCTION_CAPABILITIES[InstructionType.EVENT_ON] == frozenset({Capability.EVENTS})
     assert INSTRUCTION_CAPABILITIES[InstructionType.DIAGNOSTIC_NOTE] == frozenset({Capability.DIAGNOSTICS})
+    assert INSTRUCTION_CAPABILITIES[InstructionType.DIAGNOSTIC_WARN] == frozenset({Capability.DIAGNOSTICS})
     assert INSTRUCTION_CAPABILITIES[InstructionType.COUNTER_CREATE] == frozenset({Capability.COUNTERS})
     assert INSTRUCTION_CAPABILITIES[InstructionType.COUNTER_INCREMENT] == frozenset({Capability.COUNTERS})
     assert INSTRUCTION_CAPABILITIES[InstructionType.META_AUTHOR] == frozenset({Capability.METADATA})

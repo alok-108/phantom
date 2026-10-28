@@ -5,6 +5,9 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 ## [Unreleased]
 
 ### Fixed
+- `phantom check` accepts one or more files so pre-commit-style invocations that pass every changed path at once no longer fail with "unrecognized arguments" (#101).
+- Property-based tests include all Unicode line separators after the lexer/decoder fixes, with explicit round-trip coverage in every encoding (#87).
+- A NUL character in a string argument no longer makes a comment encoded file invalid Python: encoders now escape every control character below U+0020 other than tab, line feed and carriage return as `\xNN`, and the parser decodes `\xNN` back to the original character, so the value round trips exactly; `SPECIFICATION.md` section 4 documents the new escape and which characters a string argument may contain (#75).
 - `check`, `inspect`, `verify`, `generate` and `diff` now read sources through one helper: a file that is not valid UTF-8 fails with `Error: '<file>' is not valid UTF-8 (byte 0x.. at position N)` and exit code 1, instead of a traceback (`verify`, `generate`) or silently replaced bytes (`check`, `inspect`, `diff`); a leading UTF-8 BOM is dropped everywhere (#54).
 - A leading UTF-8 BOM no longer silently hides the first instruction: `parse_file`, `check` and `inspect` read sources as `utf-8-sig`, so the BOM is dropped as Python does, and `check --strict` no longer reports it as U+FEFF (#44).
 - Source scanning uses Python physical line endings only (LF, CRLF, CR); strict audit flags NEL, line separator, and paragraph separator.
@@ -19,6 +22,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - `validator.py` spelled the bidirectional controls it audits as raw characters; they are now explicit code points, and a test keeps invisible/bidirectional characters out of `src/`, `scripts/` and the workflows.
 - `phantom inspect` prints parse errors in text mode (rendered like `check`) instead of hiding them, and exits 2 on parse errors in both text and `--json` mode (#80).
 - Event handlers are invoked at most once per registration when an event fires, even if they raise `TypeError` or `ValueError`; signature validation no longer retries failing handlers or replaces their original error.
+- Support space-containing paths and multiline YAML inputs in CI checks and GitHub Action (#85)
 
 ### Documentation
 - `docs/CI.md`: using Phantom in CI (the reusable GitHub Action and `scripts/ci_check.sh`) and Phantom's own quality gates.
@@ -26,13 +30,18 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 - Add a Brazilian Portuguese translation of the Quickstart guide (`docs/pt-BR/QUICKSTART.md`) ([#120](https://github.com/hayagrivai-labs/phantom/issues/120)).
 - Add a German translation of the Quickstart guide (`docs/de/QUICKSTART.md`).
+- Add a Spanish translation of the Quickstart guide (`docs/es/QUICKSTART.md`)[#129](https://github.com/hayagrivai-labs/phantom/pull/129).
 
 ### Added
+- Nano syntax highlighting for the Phantom instruction layer (`scripts/syntax/phantom.nanorc`), with install instructions in the Editor Support section of `docs/INSTALLATION.md` (#121).
+- `.pre-commit-hooks.yaml` defines `phantom-check` and `phantom-strict` hooks so `phantom check` runs as a [pre-commit](https://pre-commit.com/) hook (see `docs/INSTALLATION.md`) (#101).
+- `generate --placement` accepts `near:Class.method` (before the single method of the single class of that name; ambiguous or missing classes and methods are reported, never guessed) and `main-guard` (before the first top-level `if __name__ == "__main__":` guard; `before-main-guard` is accepted as an alias) (#4).
 - `phantom inspect --json` output now carries top-level `schema` (`phantom.inspect`) and `schema_version` (`1.0`) fields so consuming tools can detect format changes; existing keys are unchanged (#21).
 - `meta.tags(tags)` instruction: records keyword tags describing the probes, hooks, or diagnostics in the layer, as a single comma-separated string stored verbatim as metadata (capability `cap.metadata`); a second `meta.tags` is a validation warning, like the other `meta.*` instructions (#122).
 - Bash and zsh shell completion scripts (`scripts/completions/phantom.bash`, `scripts/completions/phantom.zsh`): tab-complete subcommands and flags; source them from your shell startup file (see `docs/INSTALLATION.md`) (#103).
 - `counter.reset(name)` instruction: resets a previously created bounded counter to 0 while keeping its limit; referencing a counter that was not created earlier in the file is a validation error (#105).
 - `phantom diff` colors added lines green, removed lines red, and hunk headers cyan; pass `--no-color` (globally or on `diff`) or set `NO_COLOR` to any value to get plain output with no ANSI escapes (#104).
+- `phantom verify` accepts repeatable `--args` groups and `--stdin-file` files, forming one comparison case per group or file paired by position, and reports results per case; the overall result is a difference when any case differs, inconclusive when no case differs but some case is inconclusive, and equivalent only when every case matches (#8). A case with no stdin file still inherits the caller's stdin, as before; the default stdin behavior is unchanged and remains covered by #82.
 - Reusable GitHub Action (`action.yml`) that runs `phantom check` over files and directories, plus `scripts/ci_check.sh` (#28).
 - Quality gates in CI: mypy on the Linux, Windows and macOS views, a coverage gate (90 %), and property-based tests with hypothesis (#26, #29).
 - Tests for runtime initialization errors, denied instructions, version metadata, and handler resolution diagnostics.
