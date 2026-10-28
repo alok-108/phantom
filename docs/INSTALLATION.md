@@ -166,6 +166,33 @@ After that, `phantom <TAB>` suggests the subcommands (`check`,
 `phantom check --<TAB>` or `phantom run --<TAB>` suggest that
 subcommand's flags.
 
+## Editor Support
+
+### Nano
+
+`scripts/syntax/phantom.nanorc` adds syntax highlighting for the Phantom
+instruction layer on top of the standard Python rules. It highlights the
+`#: phantom:<version>` prefix, the Phantom instruction keywords, and the
+whitespace, zero-width and hybrid encoding markers (`#:ws:begin`, `#:ws:end`, `#:zw:begin`, `#:zw:end`, `#:phantom:hybrid`).
+
+Enable it by copying the file into nano's syntax directory and including it
+from your `~/.nanorc` (create the directory if it does not exist):
+
+```bash
+mkdir -p ~/.nanorc.d
+cp scripts/syntax/phantom.nanorc ~/.nanorc.d/phantom.nanorc
+printf 'include "~/.nanorc.d/phantom.nanorc"\n' >> ~/.nanorc
+```
+
+Nano then highlights `*.py` files with the `phantom` syntax. To use the
+rules for one session only, start nano with
+`nano --rcfile=~/.nanorc.d/phantom.nanorc`.
+
+### VS Code
+
+The experimental VS Code extension in `editors/vscode` also highlights and
+decodes Phantom instructions; see its README for details.
+
 ---
 
 ## Next Steps

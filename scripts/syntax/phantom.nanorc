@@ -1,0 +1,50 @@
+## Nano syntax highlighting for Phantom dual-layer Python.
+##
+## Phantom keeps ordinary Python as the host language and puts a typed
+## instruction layer in comments. This file keeps the usual Python
+## highlighting and adds colours for that layer, for example:
+##
+##     #: phantom:0.1.0 meta.author("Payments team")
+##     #:ws:begin ... #:ws:end    (whitespace encoding)
+##     #:zw:begin ... #:zw:end    (zero-width encoding)
+##     #:phantom:hybrid           (hybrid-mode header)
+##
+## Install: copy this file into nano's syntax directory and include it from
+## your ~/.nanorc. See docs/INSTALLATION.md ("Editor Support") for details.
+
+syntax "phantom" "\.py$"
+
+## Ordinary Python highlighting, so plain .py files still look right.
+## Comments
+color blue "(^|[^\\])#.*"
+## Triple-quoted strings may span lines.
+color green start="'''" end="'''"
+color green start="\"\"\"" end="\"\"\""
+## Regular strings
+color green "\"([^\"\\]|\\.)*\""
+color green "'([^'\\]|\\.)*'"
+## Numbers
+color brightmagenta "\<([0-9]+(\.[0-9]+)?|\.[0-9]+)([eE][-+]?[0-9]+)?\>"
+color brightmagenta "\<0[xX][0-9a-fA-F]+\>"
+color brightmagenta "\<0[oO][0-7]+\>"
+color brightmagenta "\<0[bB][01]+\>"
+## Keywords
+color brightgreen "\<(False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield)\>"
+## Built-in functions and types
+color brightblue "\<(abs|all|any|bin|bool|bytearray|bytes|callable|chr|classmethod|compile|complex|delattr|dict|dir|divmod|enumerate|filter|float|format|frozenset|getattr|globals|hasattr|hash|help|hex|id|input|int|isinstance|issubclass|iter|len|list|locals|map|max|memoryview|min|next|object|oct|open|ord|pow|print|property|range|repr|reversed|round|set|setattr|slice|sorted|staticmethod|str|sum|super|tuple|type|vars|zip)\>"
+## Function and class names
+color yellow "\<(def|class)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*"
+## Decorators
+color brightmagenta "^[[:space:]]*@[A-Za-z_][A-Za-z0-9_.]*"
+
+## Phantom instruction layer (drawn on top of the Python rules above).
+## Instruction prefix: #: phantom:<version> ...
+color brightcyan "^[[:space:]]*#:[[:space:]]*phantom:[0-9]+\.[0-9]+\.[0-9]+.*$"
+## Instruction keywords
+color brightyellow "\<(event\.declare|event\.on|diagnostic\.note|diagnostic\.warn|counter\.create|counter\.increment|counter\.decrement|counter\.reset|meta\.author|meta\.version|meta\.license)\>"
+## Encoding block markers
+color magenta "^[[:space:]]*#:ws:begin.*$"
+color magenta "^[[:space:]]*#:zw:begin.*$"
+color magenta "^[[:space:]]*#:ws:end.*$"
+color magenta "^[[:space:]]*#:zw:end.*$"
+color magenta "^[[:space:]]*#:phantom:hybrid.*$"
