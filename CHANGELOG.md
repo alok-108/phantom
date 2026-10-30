@@ -5,6 +5,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 ## [Unreleased]
 
 ### Fixed
+- `decode_source` now raises `ValueError` for unterminated whitespace and zero-width blocks when decoding those modes explicitly (#168).
 - `phantom check` accepts one or more files so pre-commit-style invocations that pass every changed path at once no longer fail with "unrecognized arguments" (#101).
 - Property-based tests include all Unicode line separators after the lexer/decoder fixes, with explicit round-trip coverage in every encoding (#87).
 - A NUL character in a string argument no longer makes a comment encoded file invalid Python: encoders now escape every control character below U+0020 other than tab, line feed and carriage return as `\xNN`, and the parser decodes `\xNN` back to the original character, so the value round trips exactly; `SPECIFICATION.md` section 4 documents the new escape and which characters a string argument may contain (#75).
