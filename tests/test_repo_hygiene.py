@@ -219,6 +219,15 @@ def test_sublime_syntax_prefix_is_anchored_to_phantom_comments():
         )
 
 
+def test_sublime_syntax_prefix_matches_a_full_semver():
+    # The spec version is major.minor.patch; a two-component pattern leaves
+    # the patch segment (".0" in "0.1.0") unhighlighted.
+    text = SUBLIME_SYNTAX.read_text(encoding="utf-8")
+    assert r"#: phantom:[0-9]+\.[0-9]+\.[0-9]+" in text, (
+        "the Phantom prefix rule must match a full major.minor.patch version"
+    )
+
+
 PRE_COMMIT_HOOKS = ROOT / ".pre-commit-hooks.yaml"
 
 

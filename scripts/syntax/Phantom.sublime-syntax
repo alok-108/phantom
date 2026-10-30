@@ -11,7 +11,7 @@ contexts:
   main:
     - match: '(?:#:ws:begin|#:ws:end|#:zw:begin|#:zw:end|#:phantom:hybrid)\b'
       scope: keyword.control.phantom.marker
-    - match: '#: phantom:[0-9]+\.[0-9]+'
+    - match: '#: phantom:[0-9]+\.[0-9]+\.[0-9]+'
       scope: keyword.other.phantom.prefix
     - match: '\b(event\.declare|event\.on|diagnostic\.note|diagnostic\.warn|counter\.create|counter\.increment|counter\.decrement|counter\.reset|meta\.author|meta\.version|meta\.license|meta\.tags)\b'
       scope: keyword.other.phantom.instruction
