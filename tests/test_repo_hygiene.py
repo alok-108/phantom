@@ -1,8 +1,9 @@
+
 """Phantom's own source must not contain the characters it warns about.
 
 Invisible and bidirectional characters embedded in source are exactly the "Trojan Source"
-problem `phantom check --strict` exists to find, so the code that handles them spells them
-as explicit code points (``chr(0x202E)``) and a reviewer can read every line.
+problem `phantom check --strict` exists to find, so the code that handles them spells
+them as explicit code points (``chr(0x202E)``) and a reviewer can read every line.
 """
 
 from __future__ import annotations
@@ -34,7 +35,10 @@ def _suspicious(text: str) -> list[tuple[int, str]]:
 
 
 def test_the_scanner_itself_finds_hidden_characters():
-    assert _suspicious("a" + chr(0x200B) + "b\nc" + chr(0x202E)) == [(1, "U+200B"), (2, "U+202E")]
+    assert _suspicious("a" + chr(0x200B) + "b\nc" + chr(0x202E)) == [
+        (1, "U+200B"),
+        (2, "U+202E"),
+    ]
     assert _suspicious("plain text\twith\r\nwhitespace") == []
 
 
@@ -47,6 +51,7 @@ def test_project_source_contains_no_invisible_or_bidirectional_characters():
         if found:
             problems[str(path.relative_to(ROOT))] = found
     assert problems == {}, f"hidden characters in project files: {problems}"
+
 
 def test_py_typed_exists():
     assert (ROOT / "src" / "phantom" / "py.typed").is_file()
@@ -64,7 +69,17 @@ EXPECTED_COMPLETION_FLAGS = {
     "check": ("strict", "format", "deny", "allow-only"),
     "inspect": ("json", "strict", "deny", "allow-only"),
     "run": ("timeout", "deny", "allow-only", "handlers-from", "allow-handler"),
-    "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "plan-file", "allow-remote"),
+    "generate": (
+        "stdin",
+        "intent",
+        "placement",
+        "encoding",
+        "output",
+        "dry-run",
+        "provider",
+        "plan-file",
+        "allow-remote",
+    ),
     "diff": ("host-only", "no-color"),
     "verify": ("timeout",),
 }
@@ -141,13 +156,21 @@ PHANTOM_NANO_INSTRUCTIONS = (
     "meta.license",
     "meta.tags",
 )
-PHANTOM_NANO_MARKERS = ("#:ws:begin", "#:ws:end", "#:zw:begin", "#:zw:end", "#:phantom:hybrid")
+PHANTOM_NANO_MARKERS = (
+    "#:ws:begin",
+    "#:ws:end",
+    "#:zw:begin",
+    "#:zw:end",
+    "#:phantom:hybrid",
+)
 
 
 def test_nano_syntax_highlights_phantom_instructions():
     assert NANORC.is_file(), "scripts/syntax/phantom.nanorc is missing"
     text = NANORC.read_text(encoding="utf-8")
-    assert 'syntax "phantom" "\\.py$"' in text, "nanorc must define the phantom syntax for *.py"
+    assert 'syntax "phantom" "\\.py$"' in text, (
+        "nanorc must define the phantom syntax for *.py"
+    )
     assert "#:[[:space:]]*phantom:[0-9]" in text, (
         "nanorc must highlight the #: phantom:<version> prefix"
     )
@@ -169,9 +192,9 @@ def test_nano_syntax_prefix_is_anchored_to_phantom_comments():
         )
 
 
-# Sublime text syntax highlighting test
+# Sublime text syntax highlighting test.
 # Check that scripts/syntax/Phantom.sublime-syntax exists and
-# covers all keywords and markers (mirrored from nano test)
+# covers all keywords and markers (mirrored from nano test).
 SUBLIME_SYNTAX = ROOT / "scripts" / "syntax" / "Phantom.sublime-syntax"
 PHANTOM_SUBLIME_INSTRUCTIONS = (
     "event.declare",
@@ -229,6 +252,37 @@ def test_sublime_syntax_prefix_matches_a_full_semver():
     )
 
 
+# Vim syntax highlighting for the Phantom instruction layer (#151).
+VIM_SYNTAX = ROOT / "scripts" / "syntax" / "phantom.vim"
+PHANTOM_VIM_INSTRUCTIONS = (
+    *PHANTOM_NANO_INSTRUCTIONS,
+    "meta.tags",
+)
+PHANTOM_VIM_MARKERS = PHANTOM_NANO_MARKERS
+
+
+def test_vim_syntax_highlights_phantom_instructions():
+    assert VIM_SYNTAX.is_file(), "scripts/syntax/phantom.vim is missing"
+    text = VIM_SYNTAX.read_text(encoding="utf-8")
+
+    assert "runtime! syntax/python.vim" in text, (
+        "Vim syntax must inherit standard Python syntax"
+    )
+    assert r"phantom:\d\+\.\d\+\.\d\+" in text, (
+        "Vim syntax must highlight the Phantom version prefix"
+    )
+
+    for instruction in PHANTOM_VIM_INSTRUCTIONS:
+        escaped = instruction.replace(".", r"\.")
+        assert escaped in text, f"Vim syntax does not highlight {instruction}"
+
+    for marker in PHANTOM_VIM_MARKERS:
+        marker_body = marker[2:]
+        assert marker_body in text, (
+            f"Vim syntax does not highlight the {marker} marker"
+        )
+
+
 PRE_COMMIT_HOOKS = ROOT / ".pre-commit-hooks.yaml"
 
 
@@ -265,12 +319,23 @@ def test_pre_commit_hooks_definition_is_valid():
     ):
         assert token in raw, f".pre-commit-hooks.yaml missing {token!r}"
 
+
 POWERSHELL_COMPLETION = ROOT / "scripts" / "completions" / "phantom.ps1"
 EXPECTED_POWERSHELL_FLAGS = {
     "check": ("strict", "format", "deny", "allow-only"),
     "inspect": ("json", "strict", "deny", "allow-only"),
     "run": ("timeout", "deny", "allow-only", "handlers-from", "allow-handler"),
-    "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "plan-file", "allow-remote"),
+    "generate": (
+        "stdin",
+        "intent",
+        "placement",
+        "encoding",
+        "output",
+        "dry-run",
+        "provider",
+        "plan-file",
+        "allow-remote",
+    ),
     "diff": ("host-only", "no-color"),
     "verify": ("timeout",),
 }
