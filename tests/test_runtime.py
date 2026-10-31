@@ -158,7 +158,7 @@ def test_runtime_callback_keyword_selection():
         runtime.register_handler("phantom.pre_execute", callback)
 
     assert runtime.fire_event("phantom.pre_execute", value=42, extra=True) == [
-        "no args", (42, 7), 7, 7, {"value": 42, "extra": True}, 42, 42,
+        "no args", (42, 7), 7, 42, {"value": 42, "extra": True}, 42, 42,
     ]
     assert runtime.get_diagnostics() == []
 
@@ -175,11 +175,31 @@ def test_runtime_callback_invalid_signature_does_not_run(positional_only):
         calls.append(required)
 
     runtime.register_handler("phantom.pre_execute", positional if positional_only else named)
-    kwargs = {"required": 42} if positional_only else {"extra": True}
+    # A positional-only handler given its argument by name is valid: the
+    # value is bound positionally (see test_runtime_callback_positional_only).
+    # Only the handler missing its required argument must not run.
+    kwargs = {} if positional_only else {"extra": True}
     assert runtime.fire_event("phantom.pre_execute", **kwargs) == []
     assert calls == []
     assert len(runtime.get_diagnostics()) == 1
     assert runtime.get_diagnostics()[0].severity == Severity.ERROR
+
+
+def test_runtime_callback_positional_only_parameters_are_bound():
+    runtime = PhantomRuntime()
+
+    def required_only(host_file, /):
+        return f"Handled: {host_file}"
+
+    def mixed(host_file, /, extra=None, **kwargs):
+        return host_file, extra, kwargs
+
+    assert runtime._invoke_callback(required_only, {"host_file": "app.py"}) == "Handled: app.py"
+    assert runtime._invoke_callback(
+        mixed, {"host_file": "app.py", "extra": 1, "other": 2}
+    ) == ("app.py", 1, {"other": 2})
+    with pytest.raises(TypeError, match="missing a required argument"):
+        runtime._invoke_callback(required_only, {"other": "app.py"})
 
 
 @pytest.mark.parametrize("signature_error", [TypeError, ValueError])
