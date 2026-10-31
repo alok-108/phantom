@@ -264,3 +264,26 @@ def test_pre_commit_hooks_definition_is_valid():
         "pass_filenames: true",
     ):
         assert token in raw, f".pre-commit-hooks.yaml missing {token!r}"
+
+POWERSHELL_COMPLETION = ROOT / "scripts" / "completions" / "phantom.ps1"
+EXPECTED_POWERSHELL_FLAGS = {
+    "check": ("strict", "format", "deny", "allow-only"),
+    "inspect": ("json", "strict", "deny", "allow-only"),
+    "run": ("timeout", "deny", "allow-only", "handlers-from", "allow-handler"),
+    "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "plan-file", "allow-remote"),
+    "diff": ("host-only", "no-color"),
+    "verify": ("timeout",),
+}
+
+
+def test_powershell_completion_script_covers_cli():
+    assert POWERSHELL_COMPLETION.exists(), "scripts/completions/phantom.ps1 is missing"
+    text = POWERSHELL_COMPLETION.read_text(encoding="utf-8")
+    assert "Register-ArgumentCompleter" in text
+    for subcommand in EXPECTED_COMPLETION_SUBCOMMANDS:
+        assert subcommand in text, f"powershell completions miss subcommand {subcommand}"
+    for subcommand, flags in EXPECTED_POWERSHELL_FLAGS.items():
+        for flag in flags:
+            assert f"--{flag}" in text, f"powershell completions miss --{flag} for {subcommand}"
+    for value in EXPECTED_COMPLETION_VALUES:
+        assert value in text, f"powershell completions miss the {value} value"

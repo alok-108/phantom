@@ -4,6 +4,9 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 ## [Unreleased]
 
+### Added
+- PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
+
 ### Fixed
 - Nano syntax highlighting includes the canonical `meta.tags` instruction alongside the other metadata keywords (#170).
 - `decode_source` now raises `ValueError` for unterminated whitespace and zero-width blocks when decoding those modes explicitly (#168).
