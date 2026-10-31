@@ -113,3 +113,34 @@ def test_execute_host_program_launch_error(tmp_path, monkeypatch):
     assert "Execution error:" in res.stderr
     assert "simulated launch failure" in res.exception
     assert res.duration_ms >= 0
+
+def test_execute_host_program_truncates_output_at_cap(tmp_path):
+    script = tmp_path / "flood.py"
+    script.write_text(
+        "import sys\n"
+        "chunk = 'x' * 1023 + '\\n'\n"
+        "for _ in range(60000):\n"
+        "    sys.stdout.write(chunk)\n"
+    )
+    started = time.perf_counter()
+    res = execute_host_program(str(script), max_output_bytes=1024)
+    elapsed = time.perf_counter() - started
+    assert res.exit_code == 0
+    assert len(res.stdout.encode("utf-8")) == 1024
+    assert res.truncated is True
+    assert res.stdout_truncated is True
+    assert res.stderr_truncated is False
+    assert elapsed < 15, f"truncated run took too long: {elapsed:.1f}s"
+
+
+def test_execute_host_program_stderr_truncation_is_flagged(tmp_path):
+    script = tmp_path / "flood_err.py"
+    script.write_text(
+        "import sys\n"
+        "for _ in range(10000):\n"
+        "    sys.stderr.write('e' * 100 + '\\n')\n"
+    )
+    res = execute_host_program(str(script), max_output_bytes=512)
+    assert res.truncated is True
+    assert res.stderr_truncated is True
+    assert len(res.stderr.encode("utf-8")) == 512
