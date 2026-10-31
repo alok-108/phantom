@@ -349,8 +349,15 @@ class HybridCodec:
         """Encode multiple instructions into a single source using hybrid encoding."""
         lines: list[str] = [HYBRID_HEADER]
         for idx, inst in enumerate(instructions):
-            mode = mode_map.get(idx) if mode_map else inst.source.encoding
-            if mode == EncodingMode.HYBRID:
+            # A partial mode_map must not silently discard the instruction's
+            # own encoding: unmapped indices fall back to it, and only then
+            # (absent or HYBRID) to default_mode.
+            mode = (
+                mode_map.get(idx, inst.source.encoding)
+                if mode_map
+                else inst.source.encoding
+            )
+            if mode is None or mode == EncodingMode.HYBRID:
                 mode = default_mode
 
             if mode == EncodingMode.COMMENT:
