@@ -43,4 +43,13 @@ jobs:
           mypy --platform win32
           mypy --platform darwin
       - name: Tests with a coverage gate
-        run: python -m pytest -q --cov=phantom --cov-report=term-missing:skip-covered
+        run: python -m pytest -q --cov=phantom --cov-report=term-missing:skip-covered --cov-report=json --cov-report=xml
+      - name: Coverage map
+        run: python scripts/coverage_map.py > coverage-map.md
+      - name: Upload coverage map
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-map
+          path: |
+            coverage-map.md
+            coverage.xml
