@@ -330,6 +330,27 @@ def test_cli_run_timeout_with_host_args(capsys, tmp_path):
     assert "alpha,beta" in out
 
 
+def test_cli_subcommands_preserve_double_dash_positionals(capsys):
+    target = FIXTURES_DIR / "valid_plain.py"
+    # check -- file
+    ret = main(["check", "--", str(target)])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    assert "0 error(s)" in out
+
+    # inspect -- file
+    ret = main(["inspect", "--", str(target)])
+    assert ret == 0
+
+    # diff -- file file
+    ret = main(["diff", "--", str(target), str(target)])
+    assert ret == 0
+
+    # verify -- file file
+    ret = main(["verify", "--", str(target), str(target)])
+    assert ret == 0
+
+
 def test_cli_generate_requires_intent_noninteractive(capsys):
     target = FIXTURES_DIR / "valid_plain.py"
     ret = main(["generate", str(target)])

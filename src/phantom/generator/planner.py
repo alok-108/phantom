@@ -36,26 +36,52 @@ def parse_plan(text: str) -> TransformationPlan:
         raise ValueError("Plan must be a JSON object")
 
     default_enc = str(data.get("encoding", "comment"))
+
+    raw_instructions = data.get("instructions")
+    if raw_instructions is None:
+        instructions_list: list[Any] = []
+    elif not isinstance(raw_instructions, list):
+        raise ValueError("'instructions' must be a list of instruction objects")
+    else:
+        instructions_list = raw_instructions
+
     planned: list[PlannedInstruction] = []
-    for raw in data.get("instructions", []) or []:
+    for raw in instructions_list:
         if not isinstance(raw, dict):
             raise ValueError("Each instruction must be a JSON object")
+        raw_args = raw.get("arguments")
+        if raw_args is None:
+            arguments_list: list[Any] = []
+        elif not isinstance(raw_args, list):
+            raise ValueError("Instruction 'arguments' must be a list")
+        else:
+            arguments_list = list(raw_args)
+
         planned.append(
             PlannedInstruction(
                 instruction_type=str(raw.get("instruction_type", "")),
-                arguments=list(raw.get("arguments", []) or []),
+                arguments=arguments_list,
                 placement_line=raw.get("placement_line", 1),
                 encoding=str(raw.get("encoding", default_enc)),
                 rationale=str(raw.get("rationale", "")),
                 anchor=None if raw.get("anchor") is None else str(raw["anchor"]),
             )
         )
+
+    raw_limitations = data.get("limitations")
+    if raw_limitations is None:
+        limitations_list = []
+    elif not isinstance(raw_limitations, list):
+        raise ValueError("'limitations' must be a list of strings")
+    else:
+        limitations_list = [str(x) for x in raw_limitations]
+
     plan = TransformationPlan(
         request_summary=str(data.get("request_summary", "")),
         instructions=planned,
         encoding=default_enc,
         expected_behavior=str(data.get("expected_behavior", "")),
-        limitations=[str(x) for x in data.get("limitations", []) or []],
+        limitations=limitations_list,
     )
     validate_plan(plan)
     return plan

@@ -49,9 +49,13 @@ class TestArguments:
         (arg,) = parse_arguments(r'"a\x00b\x1bc"')
         assert arg.value == "a\x00b\x1bc"
 
-    def test_hex_escape_without_two_hex_digits_keeps_old_fallback(self):
-        (arg,) = parse_arguments(r'"a\xzzb"')
-        assert arg.value == "axzzb"
+    def test_hex_escape_without_two_hex_digits_raises_value_error(self):
+        with pytest.raises(ValueError, match=r"Invalid \\x"):
+            parse_arguments(r'"a\xzzb"')
+
+    def test_unrecognized_escape_character_raises_value_error(self):
+        with pytest.raises(ValueError, match=r"Invalid escape sequence '\\z'"):
+            parse_arguments(r'"a\zb"')
 
     @pytest.mark.parametrize("bad", ['"a" "b"', '"a",', "foo", '"unterminated'])
     def test_malformed(self, bad):
@@ -123,3 +127,13 @@ class TestParser:
     def test_unterminated_block(self):
         prog = parse("#:ws:begin\n \t \t \t \t\n")
         assert prog.has_errors
+
+    def test_invalid_string_escape_reports_parse_error(self):
+        prog = parse('#: phantom:0.1.0 diagnostic.note("test\\zval")\n')
+        assert prog.has_errors
+        assert any("Invalid escape sequence" in e.message for e in prog.errors)
+
+    def test_invalid_hex_escape_reports_parse_error(self):
+        prog = parse('#: phantom:0.1.0 diagnostic.note("test\\xzzval")\n')
+        assert prog.has_errors
+        assert any("Invalid \\x" in e.message for e in prog.errors)
