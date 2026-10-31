@@ -491,3 +491,27 @@ class TestStalePatches:
         assert cmd_generate(args, StaticProvider(mutate)) == 2
         assert not out.exists()
         assert "stale candidate" in capsys.readouterr().err
+
+
+class TestNonListPlanValidation:
+    def test_parse_plan_rejects_non_list_instructions(self):
+        with pytest.raises(ValueError, match="'instructions' must be a list"):
+            parse_plan(json.dumps({"instructions": 123}))
+
+    def test_parse_plan_rejects_non_list_limitations(self):
+        with pytest.raises(ValueError, match="'limitations' must be a list"):
+            parse_plan(json.dumps({"limitations": "not a list"}))
+
+    def test_parse_plan_rejects_non_list_instruction_arguments(self):
+        with pytest.raises(ValueError, match="Instruction 'arguments' must be a list"):
+            parse_plan(json.dumps({"instructions": [{"instruction_type": "meta.author", "arguments": 42}]}))
+
+    def test_workflow_generate_handles_non_list_instructions_without_type_error(self):
+        from phantom.generator.models import GenerationRequest
+        from phantom.generator.workflow import generate
+
+        res = generate(GenerationRequest("x = 1"), provider=StaticProvider(json.dumps({"instructions": 123})))
+        assert not res.success
+        assert len(res.errors) == 1
+        assert "Unusable model response: 'instructions' must be a list" in res.errors[0]
+
