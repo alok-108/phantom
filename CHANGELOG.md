@@ -5,6 +5,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 ## [Unreleased]
 
 ### Added
+- French quickstart guide (`docs/fr/QUICKSTART.md`) (#173).
 - Emacs major mode (`scripts/syntax/phantom-mode.el`) for syntax highlighting (#185).
 - PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
 
