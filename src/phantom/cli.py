@@ -904,13 +904,16 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
 
+    dash_args = None
     if "--" in argv:
         dash_idx = argv.index("--")
-        parse_argv = argv[:dash_idx]
-        dash_args = argv[dash_idx + 1 :]
+        if "run" in argv[:dash_idx]:
+            parse_argv = argv[:dash_idx]
+            dash_args = argv[dash_idx + 1 :]
+        else:
+            parse_argv = argv
     else:
         parse_argv = argv
-        dash_args = None
 
     try:
         args = parser.parse_args(parse_argv)
