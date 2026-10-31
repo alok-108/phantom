@@ -113,8 +113,9 @@ class ComparisonVerdict(Enum):
 class VerificationCase:
     """One run to compare: arguments plus optional stdin text.
 
-    A stdin_text of None means the case inherits the caller's stdin, exactly
-    as a single run did before multi-case support; it is not a closed stdin.
+    A stdin_text of None means the case gets an empty stdin (immediate EOF);
+    it never inherits the caller's stdin, which only one of the two programs
+    could read (#82).
     """
 
     args: list[str] = field(default_factory=list)

@@ -92,13 +92,13 @@ result.success, result.diff, result.candidate_source, result.errors
 
 ### Multiple cases
 
-Each use of ``--args`` starts one case with those arguments, and each use of ``--stdin-file`` gives one case the contents of that file as stdin. Cases are paired by position: the first argument group goes with the first stdin file, the second with the second, and so on. A case with no partner on one side gets no arguments or no stdin file on that side. With no case option at all, `verify` runs the single default case: no arguments and the caller's stdin, exactly as before.
+Each use of ``--args`` starts one case with those arguments, and each use of ``--stdin-file`` gives one case the contents of that file as stdin. Cases are paired by position: the first argument group goes with the first stdin file, the second with the second, and so on. A case with no partner on one side gets no arguments or no stdin file on that side. With no case option at all, `verify` runs the single default case: no arguments and an empty stdin.
 
-A case with a stdin file feeds the same bytes to both programs, so that case is a genuine comparison. A case with no stdin file still inherits the caller's stdin, as before; that default behavior is a separate known issue (see #82) and is unchanged here, so a case without a stdin file is not a deterministic stdin test. An argument that starts with a dash needs the ``--args=VALUE`` form so it is not read as another option.
+A case with a stdin file feeds the same bytes to both programs, so that case is a genuine comparison. A case with no stdin file gets an empty stdin (a program that reads input sees end-of-file), never Phantom's own stdin: sharing it let the first program consume piped input while the second saw EOF, so identical programs were reported as different (#82). `phantom run` still passes its stdin through, so interactive hosts keep working there. An argument that starts with a dash needs the ``--args=VALUE`` form so it is not read as another option.
 
 Per case output names the case, its arguments, and its stdin file, and differences are reported per case. The overall result is a difference when any case differs, inconclusive when no case differs but some case is inconclusive, and equivalent only when every case matches.
 
-An "equivalent" result is **not** a proof for other inputs. With no case option it exercises one run with no arguments or stdin; with case options it exercises only the cases given. It does not capture return values, filesystem or network effects, timing, randomness, environment, or concurrency. The static AST check in step 5 is the stronger evidence for host preservation; `verify` complements it.
+An "equivalent" result is **not** a proof for other inputs. With no case option it exercises one run with no arguments and an empty stdin; with case options it exercises only the cases given. It does not capture return values, filesystem or network effects, timing, randomness, environment, or concurrency. The static AST check in step 5 is the stronger evidence for host preservation; `verify` complements it.
 
 `verify` executes both programs in the current environment. It is not a sandbox. Do not use it on untrusted code.
 

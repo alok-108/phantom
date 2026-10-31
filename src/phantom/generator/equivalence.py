@@ -39,8 +39,10 @@ def compare_behavior(
 ) -> ComparisonResult:
     """Run both sources and compare their observable behavior.
 
-    With no cases given, exactly one run is compared: no arguments and the
-    caller's stdin, as before. With cases given, each case is run once for
+    With no cases given, exactly one run is compared: no arguments and an
+    empty stdin. A case without stdin text also gets an empty stdin: the
+    programs never inherit the caller's stdin, because the first program
+    would consume it and the second would see EOF (#82). With cases given, each case is run once for
     each program with that case's arguments and stdin text, and the result
     reports every case separately. The overall verdict is DIFFERENT when
     any case differs, INCONCLUSIVE when no case differs but some case is
@@ -67,17 +69,18 @@ def compare_behavior(
             dirs.append(directory)
         case_results: list[CaseComparison] = []
         for case in case_list:
+            stdin_text = case.stdin_text if case.stdin_text is not None else ""
             orig = execute_host_program(
                 os.path.join(dirs[0], _SCRIPT_NAME),
                 args=case.args,
                 timeout=timeout,
-                stdin_text=case.stdin_text,
+                stdin_text=stdin_text,
             )
             cand = execute_host_program(
                 os.path.join(dirs[1], _SCRIPT_NAME),
                 args=case.args,
                 timeout=timeout,
-                stdin_text=case.stdin_text,
+                stdin_text=stdin_text,
             )
             compared = CaseComparison(
                 case=case,
