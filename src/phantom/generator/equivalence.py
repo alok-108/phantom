@@ -36,6 +36,7 @@ def compare_behavior(
     candidate: str,
     timeout: float = 30.0,
     cases: list[VerificationCase] | tuple[VerificationCase, ...] | None = None,
+    max_output_bytes: int | None = None,
 ) -> ComparisonResult:
     """Run both sources and compare their observable behavior.
 
@@ -75,12 +76,14 @@ def compare_behavior(
                 args=case.args,
                 timeout=timeout,
                 stdin_text=stdin_text,
+                max_output_bytes=max_output_bytes,
             )
             cand = execute_host_program(
                 os.path.join(dirs[1], _SCRIPT_NAME),
                 args=case.args,
                 timeout=timeout,
                 stdin_text=stdin_text,
+                max_output_bytes=max_output_bytes,
             )
             compared = CaseComparison(
                 case=case,
@@ -104,6 +107,9 @@ def compare_behavior(
                 compared.differences.append("stderr differs")
             if compared.differences:
                 compared.verdict = ComparisonVerdict.DIFFERENT
+            elif orig.truncated or cand.truncated:
+                compared.verdict = ComparisonVerdict.INCONCLUSIVE
+                compared.notes.append("A program's output was truncated at the output cap")
             elif orig.exception or cand.exception:
                 compared.verdict = ComparisonVerdict.INCONCLUSIVE
                 compared.notes.append("A program timed out or failed to start")
