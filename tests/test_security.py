@@ -207,6 +207,24 @@ class TestStrictAudit:
         assert "Unexpected zero-width block closing marker '#:zw:end' without preceding begin marker" in findings[0].message
         assert findings[0].source.line == 2
 
+    def test_unclosed_ws_block_reported_at_eof(self):
+        from phantom.validator import audit_source
+
+        src = "#:ws:begin\nx = 1\n"
+        findings = audit_source(src, "unclosed_ws.py")
+        assert len(findings) == 1
+        assert "Unterminated whitespace block missing closing marker '#:ws:end'" in findings[0].message
+        assert findings[0].source.line == 1
+
+    def test_unexpected_closing_ws_marker_reported(self):
+        from phantom.validator import audit_source
+
+        src = "x = 1\n#:ws:end\ny = 2\n"
+        findings = audit_source(src, "stray_close_ws.py")
+        assert len(findings) == 1
+        assert "Unexpected whitespace block closing marker '#:ws:end' without preceding begin marker" in findings[0].message
+        assert findings[0].source.line == 2
+
     def test_cli_strict_exit_codes(self, tmp_path, capsys):
         bad = tmp_path / "bad.py"
         bad.write_text("x = 1  # ‮\n", encoding="utf-8")
