@@ -339,27 +339,48 @@ class PhantomRuntime:
     def _invoke_callback(
         self, fn: Callable[..., Any], kwargs: dict[str, Any]
     ) -> Any:
-        """Select matching keyword arguments, then invoke the callback exactly once."""
+        """Select matching arguments, then invoke the callback exactly once.
+
+        Positional-only parameters cannot be passed by keyword, so values
+        matched to them by name are collected as positional arguments. All
+        other matching values keep their keyword form, and extra payload
+        values are only forwarded when the callback accepts **kwargs.
+        """
         try:
             sig = inspect.signature(fn)
         except (ValueError, TypeError):
             # Some extension callables have no signature. Call once with the
             # event payload; an exception from the handler must never trigger a retry.
-            accepted = kwargs
-        else:
-            has_var_kw = any(
-                p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
-            )
-            accepted = kwargs if has_var_kw else {
-                k: v for k, v in kwargs.items()
-                if k in sig.parameters and sig.parameters[k].kind in (
+            return fn(**kwargs)
+
+        has_var_kw = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+        )
+        args: list[Any] = []
+        accepted: dict[str, Any] = {}
+        for name, param in sig.parameters.items():
+            if param.kind == inspect.Parameter.POSITIONAL_ONLY and name in kwargs:
+                args.append(kwargs[name])
+            elif (
+                param.kind
+                in (
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     inspect.Parameter.KEYWORD_ONLY,
                 )
-            }
-            sig.bind(**accepted)
+                and name in kwargs
+            ):
+                accepted[name] = kwargs[name]
+        if has_var_kw:
+            accepted.update(
+                {
+                    k: v
+                    for k, v in kwargs.items()
+                    if k not in sig.parameters
+                }
+            )
+        sig.bind(*args, **accepted)
 
-        return fn(**accepted)
+        return fn(*args, **accepted)
 
     def fire_event(self, event_name: str, **kwargs: Any) -> list[Any]:
         """Fire a declared event and execute all registered handlers in order.
