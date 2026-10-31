@@ -154,6 +154,13 @@ For zsh, copy the script to a directory on `$fpath` as `_phantom`
 (e.g. `~/.zsh/completions/_phantom`) and run
 `autoload -Uz compinit && compinit`.
 
+PowerShell users get tab completion for subcommands and flags from
+`scripts/completions/phantom.ps1`. Dot-source it from `$PROFILE`:
+
+```powershell
+. scripts/completions/phantom.ps1
+```
+
 Fish users get tab completion for subcommands and flags from
 `scripts/completions/phantom.fish`. Copy or symlink it into fish's
 completions directory, then start a new shell:
