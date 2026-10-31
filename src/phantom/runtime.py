@@ -353,15 +353,17 @@ class PhantomRuntime:
         pos_args: list[Any] = []
         kw_args: dict[str, Any] = {}
         for name, param in sig.parameters.items():
-            if param.kind == inspect.Parameter.POSITIONAL_ONLY:
-                if name in kwargs:
-                    pos_args.append(kwargs[name])
-            elif param.kind in (
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                inspect.Parameter.KEYWORD_ONLY,
+            if param.kind == inspect.Parameter.POSITIONAL_ONLY and name in kwargs:
+                pos_args.append(kwargs[name])
+            elif (
+                param.kind
+                in (
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    inspect.Parameter.KEYWORD_ONLY,
+                )
+                and name in kwargs
             ):
-                if name in kwargs:
-                    kw_args[name] = kwargs[name]
+                kw_args[name] = kwargs[name]
 
         if has_var_kw:
             for k, v in kwargs.items():
