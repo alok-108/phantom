@@ -10,6 +10,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
 
 ### Fixed
+- String literals now reject unrecognized escape characters and malformed `\x` hex escapes per Specification section 4 (#181).
 - `parse_plan` now validates that `instructions`, `limitations`, and instruction `arguments` are lists, raising `ValueError` instead of unhandled `TypeError` on invalid model output (#166).
 - Subcommands like `check`, `inspect`, `diff`, and `verify` now preserve positional arguments following `--` instead of stripping them (#165).
 - Nano syntax highlighting includes the canonical `meta.tags` instruction alongside the other metadata keywords (#170).

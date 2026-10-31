@@ -45,14 +45,25 @@ def _unescape(raw: str) -> str:
     i = 0
     while i < len(raw):
         ch = raw[i]
-        if ch == "\\" and i + 1 < len(raw):
+        if ch == "\\":
+            if i + 1 >= len(raw):
+                raise ValueError("Unterminated escape sequence in string literal")
             nxt = raw[i + 1]
-            if nxt == "x" and i + 3 < len(raw) and raw[i + 2] in _HEX_DIGITS and raw[i + 3] in _HEX_DIGITS:
-                out.append(chr(int(raw[i + 2 : i + 4], 16)))
-                i += 4
-            else:
-                out.append(_ESCAPES.get(nxt, nxt))
+            if nxt == "x":
+                if (
+                    i + 3 < len(raw)
+                    and raw[i + 2] in _HEX_DIGITS
+                    and raw[i + 3] in _HEX_DIGITS
+                ):
+                    out.append(chr(int(raw[i + 2 : i + 4], 16)))
+                    i += 4
+                else:
+                    raise ValueError(f"Invalid \\x hexadecimal escape in string literal near {raw[i : i + 4]!r}")
+            elif nxt in _ESCAPES:
+                out.append(_ESCAPES[nxt])
                 i += 2
+            else:
+                raise ValueError(f"Invalid escape sequence '\\{nxt}' in string literal")
         else:
             out.append(ch)
             i += 1
