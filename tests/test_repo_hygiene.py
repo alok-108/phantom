@@ -200,7 +200,7 @@ def test_sublime_syntax_highlights_phantom_instructions():
     assert SUBLIME_SYNTAX.is_file(), "scripts/syntax/Phantom.sublime-syntax is missing"
     text = SUBLIME_SYNTAX.read_text(encoding="utf-8")
     assert "%YAML 1.2" in text, "Phantom.sublime-syntax must use %YAML 1.2 format"
-    assert "#: phantom:[0-9]" in text, (
+    assert "#: *phantom:[0-9]" in text, (
         "Phantom.sublime-syntax must highlight the #: phantom:<version> prefix"
     )
     for instruction in PHANTOM_SUBLIME_INSTRUCTIONS:
@@ -289,7 +289,7 @@ def test_emacs_mode_highlights_phantom_instructions():
     assert "define-derived-mode phantom-mode python-mode" in text, (
         "phantom-mode.el must derive from python-mode"
     )
-    assert "#: phantom:[0-9]" in text, (
+    assert "#: *phantom:[0-9]" in text, (
         "phantom-mode.el must highlight the #: phantom:<version> prefix"
     )
     for instruction in PHANTOM_EMACS_INSTRUCTIONS:
