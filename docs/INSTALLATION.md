@@ -154,6 +154,13 @@ For zsh, copy the script to a directory on `$fpath` as `_phantom`
 (e.g. `~/.zsh/completions/_phantom`) and run
 `autoload -Uz compinit && compinit`.
 
+PowerShell users get tab completion for subcommands and flags from
+`scripts/completions/phantom.ps1`. Dot-source it from `$PROFILE`:
+
+```powershell
+. scripts/completions/phantom.ps1
+```
+
 Fish users get tab completion for subcommands and flags from
 `scripts/completions/phantom.fish`. Copy or symlink it into fish's
 completions directory, then start a new shell:
@@ -213,6 +220,20 @@ printf 'include "~/.nanorc.d/phantom.nanorc"\n' >> ~/.nanorc
 Nano then highlights `*.py` files with the `phantom` syntax. To use the
 rules for one session only, start nano with
 `nano --rcfile=~/.nanorc.d/phantom.nanorc`.
+
+### Emacs
+
+`scripts/syntax/phantom-mode.el` is a major mode derived from `python-mode`.
+It highlights the `#: phantom:<version>` prefix, the Phantom instruction
+keywords, and the whitespace, zero-width and hybrid encoding markers
+(`#:ws:begin`, `#:ws:end`, `#:zw:begin`, `#:zw:end`, `#:phantom:hybrid`).
+
+Copy the file to a directory on `load-path` and add to your init file:
+
+```elisp
+(add-to-list 'auto-mode-alist '("\\.py\\'" . phantom-mode))
+(autoload 'phantom-mode "phantom-mode" nil t)
+```
 
 ### VS Code
 
