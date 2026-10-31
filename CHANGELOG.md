@@ -10,6 +10,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
 
 ### Fixed
+- `SourceMap` no longer overwrites default line mappings with file-scoped mappings in multi-file source maps (#172).
 - `audit_source` now detects and reports stray or unclosed whitespace block markers (`#:ws:begin` / `#:ws:end`) (#183).
 - String literals now reject unrecognized escape characters and malformed `\x` hex escapes per Specification section 4 (#181).
 - `parse_plan` now validates that `instructions`, `limitations`, and instruction `arguments` are lists, raising `ValueError` instead of unhandled `TypeError` on invalid model output (#166).
