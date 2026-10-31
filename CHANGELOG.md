@@ -4,7 +4,12 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 ## [Unreleased]
 
+### Added
+- Emacs major mode (`scripts/syntax/phantom-mode.el`) for syntax highlighting (#185).
+- PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
+
 ### Fixed
+- Subcommands like `check`, `inspect`, `diff`, and `verify` now preserve positional arguments following `--` instead of stripping them (#165).
 - Nano syntax highlighting includes the canonical `meta.tags` instruction alongside the other metadata keywords (#170).
 - `decode_source` now raises `ValueError` for unterminated whitespace and zero-width blocks when decoding those modes explicitly (#168).
 - `phantom verify` no longer lets the programs share Phantom's real stdin: the original consumed piped input and the candidate got EOF, so identical programs that read stdin were reported as different (and an interactive terminal was prompted twice). The default case and any case without `--stdin-file` now get an empty stdin; `phantom run` still passes stdin through (#82).
