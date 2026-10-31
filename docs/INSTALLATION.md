@@ -214,6 +214,20 @@ Nano then highlights `*.py` files with the `phantom` syntax. To use the
 rules for one session only, start nano with
 `nano --rcfile=~/.nanorc.d/phantom.nanorc`.
 
+### Emacs
+
+`scripts/syntax/phantom-mode.el` is a major mode derived from `python-mode`.
+It highlights the `#: phantom:<version>` prefix, the Phantom instruction
+keywords, and the whitespace, zero-width and hybrid encoding markers
+(`#:ws:begin`, `#:ws:end`, `#:zw:begin`, `#:zw:end`, `#:phantom:hybrid`).
+
+Copy the file to a directory on `load-path` and add to your init file:
+
+```elisp
+(add-to-list 'auto-mode-alist '("\\.py\\'" . phantom-mode))
+(autoload 'phantom-mode "phantom-mode" nil t)
+```
+
 ### VS Code
 
 The experimental VS Code extension in `editors/vscode` also highlights and
