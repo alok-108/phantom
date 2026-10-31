@@ -264,3 +264,59 @@ def test_pre_commit_hooks_definition_is_valid():
         "pass_filenames: true",
     ):
         assert token in raw, f".pre-commit-hooks.yaml missing {token!r}"
+
+POWERSHELL_COMPLETION = ROOT / "scripts" / "completions" / "phantom.ps1"
+EXPECTED_POWERSHELL_FLAGS = {
+    "check": ("strict", "format", "deny", "allow-only"),
+    "inspect": ("json", "strict", "deny", "allow-only"),
+    "run": ("timeout", "deny", "allow-only", "handlers-from", "allow-handler"),
+    "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "plan-file", "allow-remote"),
+    "diff": ("host-only", "no-color"),
+    "verify": ("timeout",),
+}
+
+
+def test_powershell_completion_script_covers_cli():
+    assert POWERSHELL_COMPLETION.exists(), "scripts/completions/phantom.ps1 is missing"
+    text = POWERSHELL_COMPLETION.read_text(encoding="utf-8")
+    assert "Register-ArgumentCompleter" in text
+    for subcommand in EXPECTED_COMPLETION_SUBCOMMANDS:
+        assert subcommand in text, f"powershell completions miss subcommand {subcommand}"
+    for subcommand, flags in EXPECTED_POWERSHELL_FLAGS.items():
+        for flag in flags:
+            assert f"--{flag}" in text, f"powershell completions miss --{flag} for {subcommand}"
+    for value in EXPECTED_COMPLETION_VALUES:
+        assert value in text, f"powershell completions miss the {value} value"
+
+
+EMACS_MODE = ROOT / "scripts" / "syntax" / "phantom-mode.el"
+PHANTOM_EMACS_INSTRUCTIONS = (
+    "event.declare",
+    "event.on",
+    "diagnostic.note",
+    "diagnostic.warn",
+    "counter.create",
+    "counter.increment",
+    "counter.decrement",
+    "counter.reset",
+    "meta.author",
+    "meta.version",
+    "meta.license",
+    "meta.tags",
+)
+PHANTOM_EMACS_MARKERS = ("#:ws:begin", "#:ws:end", "#:zw:begin", "#:zw:end", "#:phantom:hybrid")
+
+
+def test_emacs_mode_highlights_phantom_instructions():
+    assert EMACS_MODE.is_file(), "scripts/syntax/phantom-mode.el is missing"
+    text = EMACS_MODE.read_text(encoding="utf-8")
+    assert "define-derived-mode phantom-mode python-mode" in text, (
+        "phantom-mode.el must derive from python-mode"
+    )
+    assert "#: *phantom:[0-9]" in text, (
+        "phantom-mode.el must highlight the #: phantom:<version> prefix"
+    )
+    for instruction in PHANTOM_EMACS_INSTRUCTIONS:
+        assert instruction in text, f"phantom-mode.el does not highlight {instruction}"
+    for marker in PHANTOM_EMACS_MARKERS:
+        assert marker in text, f"phantom-mode.el does not highlight the {marker} marker"

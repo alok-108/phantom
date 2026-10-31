@@ -163,6 +163,8 @@ def audit_source(source: str, filename: str = "<string>") -> list[ValidationErro
     Reads text only; never executes or rewrites it.
     """
     from phantom.grammar import (
+        WS_BEGIN_MARKER,
+        WS_END_MARKER,
         ZW_BEGIN_MARKER,
         ZW_END_MARKER,
         ZW_PERMITTED_CODEPOINTS,
@@ -173,9 +175,26 @@ def audit_source(source: str, filename: str = "<string>") -> list[ValidationErro
     findings: list[ValidationError] = []
     in_zw = False
     zw_begin_lineno: int | None = None
+    in_ws = False
+    ws_begin_lineno: int | None = None
     audited_separators = "\x85\u2028\u2029"
     for lineno, line in enumerate(split_physical_lines(source), start=1):
         stripped = line.strip()
+        if stripped == WS_BEGIN_MARKER:
+            in_ws = True
+            ws_begin_lineno = lineno
+            continue
+        if stripped == WS_END_MARKER:
+            if not in_ws:
+                findings.append(
+                    ValidationError(
+                        f"Unexpected whitespace block closing marker '{WS_END_MARKER}' without preceding begin marker",
+                        source=SourceLocation(filename, lineno, 0, EncodingMode.WHITESPACE),
+                    )
+                )
+            in_ws = False
+            ws_begin_lineno = None
+            continue
         if stripped == ZW_BEGIN_MARKER:
             in_zw = True
             zw_begin_lineno = lineno
@@ -215,6 +234,13 @@ def audit_source(source: str, filename: str = "<string>") -> list[ValidationErro
             ValidationError(
                 f"Unterminated zero-width block missing closing marker '{ZW_END_MARKER}'",
                 source=SourceLocation(filename, zw_begin_lineno or 1, 0, EncodingMode.UNICODE),
+            )
+        )
+    if in_ws:
+        findings.append(
+            ValidationError(
+                f"Unterminated whitespace block missing closing marker '{WS_END_MARKER}'",
+                source=SourceLocation(filename, ws_begin_lineno or 1, 0, EncodingMode.WHITESPACE),
             )
         )
     return findings
