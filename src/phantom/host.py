@@ -6,16 +6,24 @@ and resource management.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from typing import Any
 
 # How long to wait for the pipes to close after the process tree was killed.
 _DRAIN_SECONDS = 5.0
+
+# Default per-stream capture cap: a chatty host must not exhaust memory by
+# filling stdout/stderr without limit. Beyond the cap, bytes are drained
+# and discarded so the host is not blocked on a full pipe, the returned
+# text is truncated, and HostResult.truncated is set.
+DEFAULT_MAX_OUTPUT_BYTES = 16 * 1024 * 1024
 
 
 @dataclass
@@ -27,6 +35,41 @@ class HostResult:
     stderr: str
     duration_ms: float
     exception: str | None = None
+    truncated: bool = False
+    stdout_truncated: bool = False
+    stderr_truncated: bool = False
+
+
+class _CappedReader(threading.Thread):
+    """Drain one pipe, keeping at most ``cap`` bytes."""
+
+    def __init__(self, stream, cap: int) -> None:
+        super().__init__(daemon=True)
+        self._stream = stream
+        self._cap = cap
+        self.data = bytearray()
+        self.truncated = False
+
+    def run(self) -> None:
+        try:
+            while True:
+                chunk = self._stream.read(8192)
+                if not chunk:
+                    break
+                if len(self.data) < self._cap:
+                    keep = self._cap - len(self.data)
+                    self.data.extend(chunk[:keep])
+                    if len(chunk) > keep:
+                        self.truncated = True
+                else:
+                    self.truncated = True
+                # Continue reading (and discarding) past the cap so a
+                # chatty host is not blocked on a full pipe.
+        except (OSError, ValueError):
+            pass
+        finally:
+            with contextlib.suppress(OSError, ValueError):
+                self._stream.close()
 
 
 class _WindowsJob:
@@ -113,6 +156,7 @@ def execute_host_program(
     timeout: float = 30.0,
     env: dict[str, str] | None = None,
     stdin_text: str | None = None,
+    max_output_bytes: int | None = None,
 ) -> HostResult:
     """Execute a Python program in a subprocess.
 
@@ -121,6 +165,9 @@ def execute_host_program(
     Applies timeout; on expiry the host *and every process it started* are killed,
     so a child that keeps the output pipes open cannot stretch the timeout.
     Never modifies the host file.
+    Each of stdout and stderr is captured up to ``max_output_bytes``
+    (default 16 MiB); beyond that the stream is drained and discarded,
+    the returned text is truncated, and the result is marked truncated.
     When stdin_text is None the program inherits the caller's stdin, as before;
     when it is given, exactly those bytes are fed to the program instead.
     """
@@ -154,44 +201,79 @@ def execute_host_program(
             if sys.platform == "win32"
             else {"start_new_session": True}
         )
+        cap = DEFAULT_MAX_OUTPUT_BYTES if max_output_bytes is None else max_output_bytes
+        if cap < 0:
+            raise ValueError("max_output_bytes must not be negative")
         proc = subprocess.Popen(
             cmd,
             stdin=subprocess.PIPE if stdin_text is not None else None,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True,
             env=merged_env,
-            encoding="utf-8",
-            errors="replace",
             **group,
         )
         if sys.platform == "win32":
             job = _WindowsJob(proc.pid)
-        try:
-            stdout, stderr = proc.communicate(input=stdin_text, timeout=timeout)
-        except subprocess.TimeoutExpired as exc:
-            _kill_tree(proc, job)
+        readers = [
+            _CappedReader(proc.stdout, cap),
+            _CappedReader(proc.stderr, cap),
+        ]
+        for reader in readers:
+            reader.start()
+
+        def _feed_stdin() -> None:
             try:
-                stdout, stderr = proc.communicate(timeout=_DRAIN_SECONDS)
-            except subprocess.TimeoutExpired as drain:
-                # Something outside the tree still holds the pipes: report what we have.
-                stdout = _as_text(drain.stdout or exc.stdout)
-                stderr = _as_text(drain.stderr or exc.stderr)
+                assert proc.stdin is not None
+                proc.stdin.write(stdin_text.encode("utf-8"))
+                proc.stdin.close()
+            except (BrokenPipeError, OSError, ValueError):
+                pass
+
+        stdin_thread = None
+        if stdin_text is not None:
+            stdin_thread = threading.Thread(target=_feed_stdin, daemon=True)
+            stdin_thread.start()
+        timed_out = False
+        try:
+            remaining = timeout - (time.perf_counter() - start_time)
+            proc.wait(timeout=max(remaining, 0))
+        except subprocess.TimeoutExpired:
+            timed_out = True
+        if not timed_out:
+            # The process exited, but a descendant may still hold the
+            # pipes open; do not wait past the deadline for it.
+            remaining = timeout - (time.perf_counter() - start_time)
+            for reader in readers:
+                reader.join(timeout=max(remaining, 0))
+            if any(reader.is_alive() for reader in readers):
+                timed_out = True
+        if timed_out:
+            _kill_tree(proc, job)
+            for reader in readers:
+                reader.join(timeout=_DRAIN_SECONDS)
             duration_ms = (time.perf_counter() - start_time) * 1000.0
             timeout_msg = f"\n[HostExecution] Process timed out after {timeout} seconds."
+            stdout = _as_text(bytes(readers[0].data))
+            stderr = _as_text(bytes(readers[1].data)) + timeout_msg
             return HostResult(
                 exit_code=124,
                 stdout=stdout,
-                stderr=stderr + timeout_msg,
+                stderr=stderr,
                 duration_ms=duration_ms,
                 exception=f"TimeoutExpired: Process timed out after {timeout} seconds",
+                truncated=readers[0].truncated or readers[1].truncated,
+                stdout_truncated=readers[0].truncated,
+                stderr_truncated=readers[1].truncated,
             )
         duration_ms = (time.perf_counter() - start_time) * 1000.0
         return HostResult(
             exit_code=proc.returncode,
-            stdout=stdout,
-            stderr=stderr,
+            stdout=_as_text(bytes(readers[0].data)),
+            stderr=_as_text(bytes(readers[1].data)),
             duration_ms=duration_ms,
+            truncated=readers[0].truncated or readers[1].truncated,
+            stdout_truncated=readers[0].truncated,
+            stderr_truncated=readers[1].truncated,
         )
     except Exception as exc:
         duration_ms = (time.perf_counter() - start_time) * 1000.0
