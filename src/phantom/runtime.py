@@ -220,6 +220,7 @@ class PhantomRuntime:
         host_file: str,
         args: list[str] | None = None,
         timeout: float = 30.0,
+        max_output_bytes: int | None = None,
     ) -> HostResult:
         """Run the host Python program in a subprocess.
 
@@ -242,7 +243,7 @@ class PhantomRuntime:
             # Fire pre-execute lifecycle event
             self.fire_event("phantom.pre_execute", host_file=host_file, args=args or [])
 
-            result = execute_host_program(host_file, args=args, timeout=timeout)
+            result = execute_host_program(host_file, args=args, timeout=timeout, max_output_bytes=max_output_bytes)
 
             # Fire post-execute lifecycle event
             self.fire_event("phantom.post_execute", host_file=host_file, result=result)
