@@ -635,8 +635,31 @@ def test_runtime_handler_resolution_adds_cwd(monkeypatch, tmp_path):
     runtime.register_handler("phantom.pre_execute", f"{module_name}.handler")
 
     assert runtime.fire_event("phantom.pre_execute", value=41) == [42]
-    assert sys.path[0] == str(tmp_path)
+    # cwd was only scoped to the resolution: it still resolves the local
+    # handler, but it must not stay on sys.path (and must not be prepended,
+    # where it could shadow standard-library modules).
+    assert str(tmp_path) not in sys.path
     assert runtime.get_diagnostics() == []
+
+
+def test_runtime_handler_resolution_does_not_leave_cwd_on_sys_path(
+    monkeypatch, tmp_path
+):
+    from phantom.handler_policy import HandlerPolicy
+
+    (tmp_path / "denied_hook.py").write_text(
+        "def handler(value):\n    return value\n", encoding="utf-8"
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, "path", [entry for entry in sys.path if entry != str(tmp_path)])
+    before = list(sys.path)
+    runtime = PhantomRuntime(
+        handler_policy=HandlerPolicy.create(directories=[tmp_path / "elsewhere"])
+    )
+    runtime.register_handler("phantom.pre_execute", "denied_hook.handler")
+    assert runtime.fire_event("phantom.pre_execute", value=41) == []
+    assert sys.path == before
+    assert "not allowed" in runtime.get_diagnostics()[0].message
 
 
 def test_runtime_non_callable_handler_records_diagnostic(monkeypatch):
