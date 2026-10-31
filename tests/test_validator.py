@@ -72,6 +72,23 @@ class TestValidator:
         assert any("> 0" in m for m in messages)
         assert any("before it is created" in m for m in messages)
 
+    def test_counter_invalid_limit_does_not_cascade_before_create_error(self):
+        prog = parse(
+            '#: phantom:0.1.0 counter.create("c", 0)\n'
+            '#: phantom:0.1.0 counter.decrement("c")\n'
+            '#: phantom:0.1.0 counter.reset("c")\n'
+        )
+        messages = [e.message for e in validate(prog)]
+        assert messages == ["Counter limit must be > 0, got 0"]
+
+        # Counter is registered, so increment warns about exceeding 0 limit rather than 'before create'
+        prog_inc = parse(
+            '#: phantom:0.1.0 counter.create("c", 0)\n'
+            '#: phantom:0.1.0 counter.increment("c")\n'
+        )
+        errors = [e.message for e in validate(prog_inc) if e.severity == Severity.ERROR]
+        assert errors == ["Counter limit must be > 0, got 0"]
+
     def test_counter_overflow_is_warning(self):
         prog = parse(
             '#: phantom:0.1.0 counter.create("c", 1)\n'

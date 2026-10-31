@@ -93,8 +93,8 @@ def validate(program: PhantomProgram) -> list[ValidationError]:
                 add(f"Counter '{name}' is already created", inst)
             if limit is not None and limit <= 0:
                 add(f"Counter limit must be > 0, got {limit}", inst)
-            elif name not in counters:
-                counters[name] = limit if limit is not None else 0
+            if name.strip() and name not in counters:
+                counters[name] = limit if (limit is not None and limit > 0) else 0
 
         elif inst.type == InstructionType.COUNTER_INCREMENT:
             name = inst.get_string_arg(0) or ""
