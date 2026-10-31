@@ -182,6 +182,25 @@ def test_hybrid_precedence_dedupes_with_comment_first():
     assert decoded == ['phantom:0.1.0 diagnostic.note("same")']
 
 
+def test_hybrid_unmapped_index_falls_back_to_source_encoding():
+    unicode_note = PhantomInstruction(
+        InstructionType.DIAGNOSTIC_NOTE,
+        (Argument(ArgumentType.STRING, "test"),),
+        SourceLocation("<test>", 1, 0, EncodingMode.UNICODE),
+    )
+    # mode_map only covers index 1; index 0 must keep its UNICODE encoding
+    # instead of silently falling back to a comment.
+    src = HybridCodec.encode_instructions(
+        [unicode_note],
+        mode_map={1: EncodingMode.WHITESPACE},
+        default_mode=EncodingMode.WHITESPACE,
+    )
+    assert "#:zw:begin" in src
+    assert HybridCodec.decode_instructions(src) == [
+        'phantom:0.1.0 diagnostic.note("test")'
+    ]
+
+
 def test_hybrid_preserves_repeated_instructions_in_same_layer():
     inst = '#: phantom:0.1.0 counter.increment("calls")'
     source = f"{inst}\n{inst}\n"
