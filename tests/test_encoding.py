@@ -157,6 +157,21 @@ def test_decode_source_by_mode():
     assert len(decode_source(src)) == 3
 
 
+@pytest.mark.parametrize(
+    ("mode", "end_marker", "message"),
+    [
+        (EncodingMode.WHITESPACE, "#:ws:end", "Unterminated whitespace block"),
+        (EncodingMode.UNICODE, "#:zw:end", "Unterminated zero-width block"),
+    ],
+)
+def test_decode_source_rejects_unterminated_blocks(mode, end_marker, message):
+    block = encode_instruction(_note("a"), mode)
+    unterminated = "\n".join(line for line in block.splitlines() if line.strip() != end_marker)
+
+    with pytest.raises(ValueError, match=message):
+        decode_source(unterminated, mode)
+
+
 def test_hybrid_precedence_dedupes_with_comment_first():
     same = _note("same")
     src = HybridCodec.encode_instructions(

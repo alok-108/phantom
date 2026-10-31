@@ -624,8 +624,8 @@ def _build_verify_cases(args: argparse.Namespace) -> list[VerificationCase] | No
 
     Returns None when no case option was given, which keeps the single
     default run. A case with no partner on one side gets no arguments or
-    no stdin file on that side; a case with no stdin file inherits the
-    caller's stdin, as a single run always has.
+    no stdin file on that side; a case with no stdin file gets an empty
+    stdin (never the caller's, see #82).
     """
     arg_groups: list[list[str]] = list(getattr(args, "args", None) or [])
     stdin_files: list[str] = list(getattr(args, "stdin_file", None) or [])
@@ -654,7 +654,7 @@ def _build_verify_cases(args: argparse.Namespace) -> list[VerificationCase] | No
 
 
 def _describe_verify_case(case: VerificationCase) -> str:
-    stdin = case.stdin_label if case.stdin_label is not None else "inherited"
+    stdin = case.stdin_label if case.stdin_label is not None else "empty"
     return f"args={case.args!r} stdin-file={stdin}"
 
 
@@ -888,7 +888,7 @@ def create_parser() -> argparse.ArgumentParser:
         default=None,
         help="File whose contents are fed as stdin for one case "
         "(repeatable; cases are paired with argument groups by position, "
-        "and a case with no stdin file inherits the caller's stdin)",
+        "and a case with no stdin file gets an empty stdin)",
     )
 
     return parser

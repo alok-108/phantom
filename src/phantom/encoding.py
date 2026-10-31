@@ -524,6 +524,8 @@ def decode_source(
                 continue
             if in_ws and all(c in " \t" for c in line):
                 ws_lines.append(line)
+        if in_ws:
+            raise ValueError("Unterminated whitespace block: missing end marker")
         return results
 
     if mode == EncodingMode.UNICODE:
@@ -552,6 +554,8 @@ def decode_source(
                 for c in line:
                     if c in ZW_PERMITTED_CODEPOINTS or c in ZW_REJECTED_CODEPOINTS:
                         zw_chars.append(c)
+        if in_zw:
+            raise ValueError("Unterminated zero-width block: missing end marker")
         return results
 
     raise ValueError(f"Unsupported encoding mode: {mode}")
