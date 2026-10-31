@@ -323,6 +323,10 @@ def cmd_run(args: argparse.Namespace) -> int:
     if not math.isfinite(timeout) or timeout <= 0:
         print("Error: --timeout must be positive", file=sys.stderr)
         return 1
+    max_output = getattr(args, "max_output", None)
+    if max_output is not None and max_output <= 0:
+        print("Error: --max-output must be positive", file=sys.stderr)
+        return 1
 
     if read_source(filepath) is None:
         return 1
@@ -384,7 +388,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             print(f"[RuntimeWarning] {r_err}", file=sys.stderr)
 
     # Execute host program
-    host_res = runtime.execute_host(filepath, args=host_args, timeout=timeout)
+    host_res = runtime.execute_host(filepath, args=host_args, timeout=timeout, max_output_bytes=max_output)
 
     # Shutdown runtime
     runtime.shutdown()
@@ -398,6 +402,16 @@ def cmd_run(args: argparse.Namespace) -> int:
         sys.stderr.write(host_res.stderr)
         if not host_res.stderr.endswith("\n"):
             sys.stderr.write("\n")
+    if host_res.truncated:
+        streams = []
+        if host_res.stdout_truncated:
+            streams.append("stdout")
+        if host_res.stderr_truncated:
+            streams.append("stderr")
+        print(
+            f"[HostExecution] {' and '.join(streams)} truncated at the output cap",
+            file=sys.stderr,
+        )
 
     # Diagnostics output
     records = runtime.get_diagnostics()
@@ -681,7 +695,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
     if cases is None and (getattr(args, "args", None) or getattr(args, "stdin_file", None)):
         return 1
 
-    result = compare_behavior(original, candidate, timeout=args.timeout, cases=cases)
+    result = compare_behavior(original, candidate, timeout=args.timeout, cases=cases, max_output_bytes=getattr(args, "max_output", None))
     label, code = _VERDICT_LABELS[result.verdict]
     if len(result.case_results) > 1 and result.verdict == ComparisonVerdict.EQUIVALENT:
         label = f"Tested equivalence for {len(result.case_results)} cases"
@@ -799,6 +813,13 @@ def create_parser() -> argparse.ArgumentParser:
         default=30.0,
         help="Host program timeout in seconds (default: 30.0)",
     )
+    run_p.add_argument(
+        "--max-output",
+        type=int,
+        default=None,
+        metavar="BYTES",
+        help="Per-stream host output cap in bytes (default: 16777216)",
+    )
     _add_policy_args(run_p)
     run_p.add_argument(
         "--handlers-from",
@@ -872,6 +893,13 @@ def create_parser() -> argparse.ArgumentParser:
     verify_p.add_argument("candidate", help="Candidate program file")
     verify_p.add_argument(
         "--timeout", type=float, default=30.0, help="Per-program timeout in seconds"
+    )
+    verify_p.add_argument(
+        "--max-output",
+        type=int,
+        default=None,
+        metavar="BYTES",
+        help="Per-stream host output cap in bytes (default: 16777216)",
     )
     verify_p.add_argument(
         "--args",
