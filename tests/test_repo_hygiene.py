@@ -264,3 +264,35 @@ def test_pre_commit_hooks_definition_is_valid():
         "pass_filenames: true",
     ):
         assert token in raw, f".pre-commit-hooks.yaml missing {token!r}"
+
+EMACS_MODE = ROOT / "scripts" / "syntax" / "phantom-mode.el"
+PHANTOM_EMACS_INSTRUCTIONS = (
+    "event.declare",
+    "event.on",
+    "diagnostic.note",
+    "diagnostic.warn",
+    "counter.create",
+    "counter.increment",
+    "counter.decrement",
+    "counter.reset",
+    "meta.author",
+    "meta.version",
+    "meta.license",
+    "meta.tags",
+)
+PHANTOM_EMACS_MARKERS = ("#:ws:begin", "#:ws:end", "#:zw:begin", "#:zw:end", "#:phantom:hybrid")
+
+
+def test_emacs_mode_highlights_phantom_instructions():
+    assert EMACS_MODE.is_file(), "scripts/syntax/phantom-mode.el is missing"
+    text = EMACS_MODE.read_text(encoding="utf-8")
+    assert "define-derived-mode phantom-mode python-mode" in text, (
+        "phantom-mode.el must derive from python-mode"
+    )
+    assert "#: phantom:[0-9]" in text, (
+        "phantom-mode.el must highlight the #: phantom:<version> prefix"
+    )
+    for instruction in PHANTOM_EMACS_INSTRUCTIONS:
+        assert instruction in text, f"phantom-mode.el does not highlight {instruction}"
+    for marker in PHANTOM_EMACS_MARKERS:
+        assert marker in text, f"phantom-mode.el does not highlight the {marker} marker"
