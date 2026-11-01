@@ -47,7 +47,7 @@ jobs:
       - name: Coverage map
         run: python scripts/coverage_map.py > coverage-map.md
       - name: Upload coverage map
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-map
           path: |
