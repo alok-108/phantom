@@ -64,3 +64,28 @@ def test_hybrid_header():
 def test_crlf_line_endings():
     toks = tokenize('x = 1\r\n#: phantom:0.1.0 meta.author("A")\r\n')
     assert [t.type for t in toks[:2]] == [TokenType.SOURCE_LINE, TokenType.COMMENT_INSTRUCTION]
+
+def test_instruction_inside_docstring_is_source():
+    src = (
+        'def f():\n'
+        '    """Docs.\n'
+        '\n'
+        '    Example:\n'
+        '\n'
+        '#: phantom:0.1.0 counter.create("hits", 3)\n'
+        '    """\n'
+        '#: phantom:0.1.0 counter.create("real", 1)\n'
+    )
+    types = _types(src)
+    assert types[4] == TokenType.SOURCE_LINE
+    assert types[-2] == TokenType.COMMENT_INSTRUCTION
+
+
+def test_ws_marker_inside_multiline_string_is_source():
+    src = 's = """\n#:ws:begin\n \t\n#:ws:end\n"""\n'
+    assert TokenType.WS_BEGIN not in _types(src)
+
+
+def test_instruction_in_untokenizable_file_falls_back_to_line_based():
+    src = 'def f(:\n#: phantom:0.1.0 counter.create("broken", 1)\n'
+    assert _types(src)[1] == TokenType.COMMENT_INSTRUCTION

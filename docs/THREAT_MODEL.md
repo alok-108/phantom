@@ -31,6 +31,7 @@ Trust boundaries: (1) file contents → parser; (2) instruction data → runtime
 | T14 | **Unsafe execution of user-supplied programs** | **Out of scope** | `phantom run` and `phantom verify` execute the program with the user's privileges. No sandbox, no resource limits beyond the timeout. Use a container/VM for untrusted code. |
 | T15 | **Silent source rewriting** | Addressed | Parsing, `check`, `inspect`, `diff` never write; `generate` writes only `--output`, refuses when it equals the input. Byte-comparison tests. |
 | T16 | **Global interpreter modification** | Addressed | No import hooks, `sitecustomize`, `.pth` files or environment changes. A test asserts `sys.meta_path`/`sys.path_hooks` are unchanged by parsing. Installation runs no custom code (hatchling wheel). |
+| T18 | **Visible text that is silently active** (instruction-looking lines inside docstrings or multi-line strings) | Addressed | The lexer uses Python tokenization to find lines inside string literals and treats them as ordinary source, so a docstring that documents the syntax is not executed; a file that cannot be tokenized falls back to line-based lexing. Tests in `test_lexer.py`. |
 | T17 | **Using the format to conceal activity from owners/monitors** | Out of scope / not supported | Not a goal. All encodings are fully decodable by `phantom inspect`. See [research/PHANTOM_C.md](research/PHANTOM_C.md). |
 
 ## Residual risks to state plainly

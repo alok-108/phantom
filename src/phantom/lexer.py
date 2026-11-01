@@ -7,6 +7,8 @@ whitespace blocks, zero-width Unicode blocks, and hybrid headers.
 
 from __future__ import annotations
 
+import io
+import tokenize as _py_tokenize
 from collections.abc import Iterator
 from dataclasses import dataclass
 from enum import Enum
@@ -84,14 +86,32 @@ class PhantomLexer:
         return list(self.iter_tokens())
 
     def iter_tokens(self) -> Iterator[Token]:
-        """Yield tokens line by line from source, followed by EOF."""
+        """Yield tokens line by line from source, followed by EOF.
+
+        Lines that Python's tokenizer places inside a string literal are
+        ordinary source, even if they start with an instruction-looking
+        marker: a docstring that merely documents the syntax must not
+        become executable. If the source cannot be tokenized (for example
+        a syntax error), fall back to the previous line-based behaviour
+        so a broken file is still reported the same way as before.
+        """
         lines = split_physical_lines(self.source)
+        string_lines = _string_literal_lines(self.source)
         state = LexerState.NORMAL
 
         for line_idx, raw_line in enumerate(lines):
             lineno = line_idx + 1
             line = raw_line.rstrip("\r")
             stripped = line.strip()
+
+            if string_lines is not None and lineno in string_lines:
+                # Inside a string literal: never start an instruction block,
+                # and never treat the line as block payload either.
+                if state == LexerState.NORMAL:
+                    yield Token(TokenType.SOURCE_LINE, line, lineno, 0)
+                else:
+                    yield Token(TokenType.SOURCE_LINE, line, lineno, 0)
+                continue
 
             if state == LexerState.NORMAL:
                 if stripped == HYBRID_HEADER:
@@ -143,6 +163,29 @@ class PhantomLexer:
         # Emit EOF token at the end
         eof_line = len(lines) + 1
         yield Token(TokenType.EOF, "", eof_line, 0)
+
+
+def _string_literal_lines(source: str) -> set[int] | None:
+    """Return line numbers covered by string literals, or None on failure.
+
+    A line that also carries a real COMMENT token is not treated as a
+    string line, so ``x = "hi"  #: phantom:...`` still works: the
+    instruction is in the comment after the string, not inside it.
+    """
+    try:
+        tokens = list(
+            _py_tokenize.generate_tokens(io.StringIO(source).readline)
+        )
+    except (_py_tokenize.TokenError, IndentationError, SyntaxError):
+        return None
+    comment_lines = {
+        tok.start[0] for tok in tokens if tok.type == _py_tokenize.COMMENT
+    }
+    string_lines: set[int] = set()
+    for tok in tokens:
+        if tok.type == _py_tokenize.STRING:
+            string_lines.update(range(tok.start[0], tok.end[0] + 1))
+    return string_lines - comment_lines
 
 
 def tokenize(source: str, filename: str = "<string>") -> list[Token]:
