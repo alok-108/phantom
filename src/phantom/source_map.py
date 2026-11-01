@@ -34,8 +34,9 @@ class SourceMap:
         if m.file:
             self._orig_to_trans[(m.file, m.original_line)] = m.transformed_line
             self._trans_to_orig[(m.file, m.transformed_line)] = m.original_line
-        self._default_orig_to_trans[m.original_line] = m.transformed_line
-        self._default_trans_to_orig[m.transformed_line] = m.original_line
+        else:
+            self._default_orig_to_trans[m.original_line] = m.transformed_line
+            self._default_trans_to_orig[m.transformed_line] = m.original_line
 
     def add_mapping(
         self, original_line: int, transformed_line: int, file: str = ""
