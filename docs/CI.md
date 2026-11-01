@@ -71,7 +71,7 @@ phantom check --format sarif path/to/file.py > phantom.sarif
 
 ## Running Phantom's own quality gates
 
-The `tests` workflow runs `ruff`, the test suite on Python 3.10 to 3.13 on Linux and Windows, **mypy on three platform views** (`mypy --platform linux|win32|darwin`, because process handling branches on the platform), and a coverage gate (`fail_under = 90` in `pyproject.toml`). Locally:
+The `tests` workflow runs `ruff`, the test suite on Python 3.10 to 3.13 on Linux and Windows, **mypy on three platform views** (`mypy --platform linux|win32|darwin`, because process handling branches on the platform), and a coverage gate (`fail_under = 90` in `pyproject.toml`). The `quality` job also renders a coverage map with `scripts/coverage_map.py` (lowest-coverage files first, with missing line ranges) and uploads it as a `coverage-map` artifact, so the biggest untested areas are visible without raising the gate. Locally:
 
 ```bash
 ruff check src tests scripts

@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -87,3 +88,50 @@ def test_sarif_check_still_writes_sarif_on_findings(tmp_path):
     assert result.returncode == 2
     data = json.loads(out.read_text(encoding="utf-8"))
     assert len(data["runs"][0]["results"]) >= 1
+
+
+def test_coverage_map_sorts_lowest_first(tmp_path):
+    import json
+
+    report = tmp_path / "coverage.json"
+    report.write_text(
+        json.dumps(
+            {
+                "files": {
+                    "src/phantom/a.py": {
+                        "summary": {
+                            "percent_covered": 50.0,
+                            "num_statements": 10,
+                            "missing_lines": [1, 2, 3, 5],
+                            "excluded_lines": [],
+                        }
+                    },
+                    "src/phantom/b.py": {
+                        "summary": {
+                            "percent_covered": 100.0,
+                            "num_statements": 4,
+                            "missing_lines": [],
+                            "excluded_lines": [],
+                        }
+                    },
+                },
+                "totals": {
+                    "percent_covered": 75.0,
+                    "covered_lines": 12,
+                    "num_statements": 14,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [sys.executable, "scripts/coverage_map.py", str(report)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert result.returncode == 0, result.stderr
+    assert "a.py" in result.stdout.split("b.py")[0]
+    assert "1-3, 5" in result.stdout
+
