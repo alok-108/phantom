@@ -320,3 +320,22 @@ def test_emacs_mode_highlights_phantom_instructions():
         assert instruction in text, f"phantom-mode.el does not highlight {instruction}"
     for marker in PHANTOM_EMACS_MARKERS:
         assert marker in text, f"phantom-mode.el does not highlight the {marker} marker"
+
+
+# Micro editor syntax definition must cover the instruction layer (#210).
+MICRO_SYNTAX = ROOT / "scripts" / "syntax" / "phantom.yaml"
+
+
+def test_micro_syntax_highlights_phantom_instructions():
+    assert MICRO_SYNTAX.is_file(), "scripts/syntax/phantom.yaml is missing"
+    text = MICRO_SYNTAX.read_text(encoding="utf-8")
+    assert "filetype: phantom" in text, "phantom.yaml must define the phantom filetype"
+    assert r"filename: '\.py$'" in text, "phantom.yaml must detect *.py files"
+    assert r"#:\s*phantom:[0-9]" in text, (
+        "phantom.yaml must highlight the #: phantom:<version> prefix"
+    )
+    for instruction in PHANTOM_NANO_INSTRUCTIONS:
+        escaped = instruction.replace(".", r"\.")
+        assert escaped in text, f"phantom.yaml does not highlight {instruction}"
+    for marker in PHANTOM_NANO_MARKERS:
+        assert marker in text, f"phantom.yaml does not highlight the {marker} marker"

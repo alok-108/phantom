@@ -248,6 +248,15 @@ Copy the syntax definition file into your local Sublime Text user packages direc
 cp scripts/syntax/Phantom.sublime-syntax ~/.config/sublime-text/Packages/User/
 ```
 
+### Micro
+
+Copy the syntax definition file into Micro's syntax directory:
+
+```bash
+mkdir -p ~/.config/micro/syntax
+cp scripts/syntax/phantom.yaml ~/.config/micro/syntax/
+```
+
 ---
 
 ## Next Steps
