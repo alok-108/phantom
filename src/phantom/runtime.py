@@ -6,6 +6,7 @@ structured diagnostics, and host program execution.
 
 from __future__ import annotations
 
+import contextlib
 import importlib
 import inspect
 import sys
@@ -306,35 +307,49 @@ class PhantomRuntime:
                 f"Invalid handler path '{handler_ref}': must contain at least 'module.function'"
             )
 
-        # Ensure cwd is in sys.path for local module resolution
+        # Scope cwd to this resolution only, and append rather than
+        # prepend it: a file in the working directory must not shadow a
+        # standard-library or installed module, and a denied or failed
+        # resolution must not leave cwd on sys.path for the rest of the
+        # process. The policy check still runs while cwd is present, so a
+        # module that only exists in cwd is still checked against it.
         import os
+
         cwd = os.getcwd()
-        if cwd not in sys.path:
-            sys.path.insert(0, cwd)
+        added_cwd = cwd not in sys.path
+        if added_cwd:
+            sys.path.append(cwd)
+        try:
+            # Decide before importing anything (importing runs the module's
+            # top-level code). This must come after sys.path is final, or
+            # find_spec would not see local modules.
+            denial = self._handler_policy.denial(handler_ref)
+            if denial is not None:
+                raise PermissionError(denial)
 
-        # Decide before importing anything (importing runs the module's top-level code).
-        # This must come after sys.path is final, or find_spec would not see local modules.
-        denial = self._handler_policy.denial(handler_ref)
-        if denial is not None:
-            raise PermissionError(denial)
+            last_error: Exception | None = None
+            for i in range(len(parts) - 1, 0, -1):
+                mod_name = ".".join(parts[:i])
+                attr_chain = parts[i:]
+                try:
+                    mod = sys.modules.get(mod_name) or importlib.import_module(mod_name)
+                    obj: Any = mod
+                    for attr in attr_chain:
+                        obj = getattr(obj, attr)
+                    if not callable(obj):
+                        raise TypeError(
+                            f"Resolved attribute '{handler_ref}' is not callable"
+                        )
+                    return obj
+                except (ImportError, AttributeError) as exc:
+                    last_error = exc
+                    continue
 
-        last_error: Exception | None = None
-        for i in range(len(parts) - 1, 0, -1):
-            mod_name = ".".join(parts[:i])
-            attr_chain = parts[i:]
-            try:
-                mod = sys.modules.get(mod_name) or importlib.import_module(mod_name)
-                obj: Any = mod
-                for attr in attr_chain:
-                    obj = getattr(obj, attr)
-                if not callable(obj):
-                    raise TypeError(f"Resolved attribute '{handler_ref}' is not callable")
-                return obj
-            except (ImportError, AttributeError) as exc:
-                last_error = exc
-                continue
-
-        raise ImportError(f"Could not resolve handler '{handler_ref}': {last_error}")
+            raise ImportError(f"Could not resolve handler '{handler_ref}': {last_error}")
+        finally:
+            if added_cwd:
+                with contextlib.suppress(ValueError):
+                    sys.path.remove(cwd)
 
     def _invoke_callback(
         self, fn: Callable[..., Any], kwargs: dict[str, Any]
