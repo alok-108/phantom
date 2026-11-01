@@ -46,3 +46,44 @@ def test_ci_check_with_spaces_in_path():
     stderr = result.stderr.replace("\r", "")
 
     assert result.returncode == 0, f"Script failed with stderr:\n{stderr}\nstdout:\n{stdout}"
+
+
+def test_sarif_check_writes_valid_sarif(tmp_path):
+    import json
+
+    script = tmp_path / "good.py"
+    script.write_text('#: phantom:0.1.0 counter.create("n", 3)\n')
+    out = tmp_path / "out.sarif"
+    env = {**os.environ, "PHANTOM_PATHS": str(script)}
+    result = subprocess.run(
+        [BASH_PATH, "scripts/sarif_check.sh", str(out)] if BASH_PATH else ["bash", "scripts/sarif_check.sh", str(out)],
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert result.returncode == 0, result.stderr
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["version"] == "2.1.0"
+    assert data["runs"][0]["tool"]["driver"]["name"] == "phantom"
+
+
+def test_sarif_check_still_writes_sarif_on_findings(tmp_path):
+    import json
+
+    script = tmp_path / "bad.py"
+    script.write_text('#: phantom:0.1.0 counter.create("n", 0)\n')
+    out = tmp_path / "out.sarif"
+    env = {**os.environ, "PHANTOM_PATHS": str(script)}
+    result = subprocess.run(
+        [BASH_PATH, "scripts/sarif_check.sh", str(out)] if BASH_PATH else ["bash", "scripts/sarif_check.sh", str(out)],
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert result.returncode == 2
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert len(data["runs"][0]["results"]) >= 1
