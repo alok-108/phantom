@@ -46,7 +46,6 @@ def test_source_map_file_scoped_mappings_do_not_overwrite_default():
     sm.add_mapping(1, 10, file="a.py")
     sm.add_mapping(1, 99, file="b.py")
     sm.add_mapping(1, 50)  # default mapping
-
     assert sm.original_to_transformed(1, file="a.py") == 10
     assert sm.original_to_transformed(1, file="b.py") == 99
     assert sm.original_to_transformed(1) == 50
@@ -58,6 +57,24 @@ def test_source_map_default_lookup():
     assert sm.original_to_transformed(10) == 20
     assert sm.transformed_to_original(20) == 10
     assert sm.original_to_transformed(99) is None
+
+
+def test_source_map_empty_file_treated_as_default():
+    # Regression for #207: file="" is the default value, and _index_mapping
+    # stores such mappings in the default dicts, so lookups with file=""
+    # must hit those dicts instead of the per-file dicts.
+    sm = SourceMap()
+    sm.add_mapping(1, 10, file="")
+
+    assert sm.original_to_transformed(1, file="") == 10
+    assert sm.transformed_to_original(10, file="") == 1
+    assert sm.original_to_transformed(1) == 10
+    assert sm.transformed_to_original(10) == 1
+
+    # Constructor path with an explicit empty file behaves the same.
+    sm2 = SourceMap([SourceMapping(2, 20, file="")])
+    assert sm2.original_to_transformed(2, file="") == 20
+    assert sm2.transformed_to_original(20, file="") == 2
 
 
 def test_source_map_identity_map():

@@ -54,7 +54,9 @@ class SourceMap:
         self, line: int, file: str | None = None
     ) -> int | None:
         """Convert an original line number to a transformed line number."""
-        if file is not None:
+        # Treat "" like None: _index_mapping only indexes a per-file
+        # mapping when file is truthy, so "" lives in the default dicts.
+        if file:
             return self._orig_to_trans.get((file, line))
         return self._default_orig_to_trans.get(line)
 
@@ -62,7 +64,8 @@ class SourceMap:
         self, line: int, file: str | None = None
     ) -> int | None:
         """Convert a transformed line number to an original line number."""
-        if file is not None:
+        # Treat "" like None, matching _index_mapping (see above).
+        if file:
             return self._trans_to_orig.get((file, line))
         return self._default_trans_to_orig.get(line)
 
