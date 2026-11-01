@@ -34,9 +34,8 @@ class SourceMap:
         if m.file:
             self._orig_to_trans[(m.file, m.original_line)] = m.transformed_line
             self._trans_to_orig[(m.file, m.transformed_line)] = m.original_line
-        else:
-            self._default_orig_to_trans[m.original_line] = m.transformed_line
-            self._default_trans_to_orig[m.transformed_line] = m.original_line
+        self._default_orig_to_trans[m.original_line] = m.transformed_line
+        self._default_trans_to_orig[m.transformed_line] = m.original_line
 
     def add_mapping(
         self, original_line: int, transformed_line: int, file: str = ""
@@ -54,7 +53,9 @@ class SourceMap:
         self, line: int, file: str | None = None
     ) -> int | None:
         """Convert an original line number to a transformed line number."""
-        if file is not None:
+        # Treat "" like None: _index_mapping only indexes a per-file
+        # mapping when file is truthy, so "" lives in the default dicts.
+        if file:
             return self._orig_to_trans.get((file, line))
         return self._default_orig_to_trans.get(line)
 
@@ -62,7 +63,8 @@ class SourceMap:
         self, line: int, file: str | None = None
     ) -> int | None:
         """Convert a transformed line number to an original line number."""
-        if file is not None:
+        # Treat "" like None, matching _index_mapping (see above).
+        if file:
             return self._trans_to_orig.get((file, line))
         return self._default_trans_to_orig.get(line)
 
