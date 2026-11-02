@@ -695,3 +695,17 @@ def test_cli_default_diff_keeps_instruction_changes(capsys, tmp_path):
     assert err == ""
     assert '-#: phantom:0.1.0 meta.author("original")' in out
     assert '+#: phantom:0.1.0 meta.author("candidate")' in out
+
+def test_verify_invalid_timeout(capsys):
+    # Test negative timeout returns exit code 1 and error message
+    exit_code = main(["verify", "file1.py", "file2.py", "--timeout", "-5"])
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Error: --timeout must be positive" in captured.err
+
+def test_verify_invalid_max_output(capsys):
+    # Test negative max-output returns exit code 1 and error message
+    exit_code = main(["verify", "file1.py", "file2.py", "--max-output", "-1"])
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Error: --max-output must be positive" in captured.err
