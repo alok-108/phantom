@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import textwrap
 
 import pytest
 
@@ -15,6 +16,7 @@ from phantom.encoding import (
     WhitespaceEncoder,
     decode_source,
     encode_instruction,
+    inspect_encoding,
 )
 from phantom.ir import (
     Argument,
@@ -214,3 +216,17 @@ def test_hybrid_preserves_repeated_instructions_in_same_layer():
 
 def test_trailing_whitespace_on_source_does_not_create_instructions():
     assert decode_source("x = 1   \n\t\n   \n") == []
+
+def test_inspect_encoding_ignores_markers_in_docstring():
+    source = textwrap.dedent('''\
+    """
+    Example usage:
+    #:ws:begin
+
+    #:ws:end
+    print("Hello")
+    """
+    '''
+    )
+    res = inspect_encoding(source)
+    assert res["encodings_detected"] == []
