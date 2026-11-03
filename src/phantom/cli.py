@@ -195,7 +195,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         )
         print(diagnostics.render(diag, source_text), file=out)
 
-    if not getattr(args, "quiet", False):
+    if not getattr(args, "quiet", False) and (not hard_failure or all_diagnostics):
         print(diagnostics.summary(all_diagnostics))
 
     if error_count > 0:
