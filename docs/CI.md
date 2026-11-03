@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: hayagrivai-labs/phantom@main        # pin a tag or a commit SHA for stability
+      - uses: alok-108/phantom@main        # pin a tag or a commit SHA for stability
         with:
           paths: src tests                         # files or directories, space separated
           strict: "true"                           # also audit for hidden / bidirectional characters
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: hayagrivai-labs/phantom@main
+      - uses: alok-108/phantom@main
         with:
           paths: src
           sarif: "true"
@@ -60,7 +60,7 @@ jobs:
 ## Without the action
 
 ```bash
-pip install git+https://github.com/hayagrivai-labs/phantom.git
+pip install git+https://github.com/alok-108/phantom.git
 bash scripts/ci_check.sh src tests         # from a checkout of this repository
 # or, per file:
 phantom check --strict path/to/file.py
@@ -86,7 +86,7 @@ The property-based tests (`tests/test_properties.py`, [hypothesis](https://hypot
 If directory paths contain spaces, pass them using YAML multiline strings:
 
 ```yaml
-- uses: hayagrivai-labs/phantom@main
+- uses: alok-108/phantom@main
   with:
     paths: |
       my project/src
