@@ -235,6 +235,31 @@ Copy the file to a directory on `load-path` and add to your init file:
 (autoload 'phantom-mode "phantom-mode" nil t)
 ```
 
+### Vim / Neovim
+
+The `scripts/syntax/phantom.vim` syntax file extends standard Python highlighting with Phantom instruction keywords and encoding markers.
+
+For Vim, copy the syntax file into Vim's syntax directory:
+
+```bash
+mkdir -p ~/.vim/syntax
+cp scripts/syntax/phantom.vim ~/.vim/syntax/phantom.vim
+```
+
+For Neovim, use its configuration directory:
+
+```bash
+mkdir -p ~/.config/nvim/syntax
+cp scripts/syntax/phantom.vim ~/.config/nvim/syntax/phantom.vim
+```
+
+Add the following filetype detection to your `~/.vimrc` or `~/.config/nvim/init.vim`:
+
+```vim
+au BufRead,BufNewFile *.py setfiletype phantom
+```
+
+Restart Vim or Neovim to load the configuration.
 ### VS Code
 
 The experimental VS Code extension in `editors/vscode` also highlights and
