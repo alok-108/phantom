@@ -677,6 +677,14 @@ def cmd_verify(args: argparse.Namespace) -> int:
 
     This executes both files. Only verify programs you trust.
     """
+    timeout = getattr(args, "timeout", 30.0)
+    if not math.isfinite(timeout) or timeout <= 0:
+        print("Error: --timeout must be positive", file=sys.stderr)
+        return 1
+    max_output = getattr(args, "max_output", None)
+    if max_output is not None and max_output <= 0:
+        print("Error: --max-output must be positive", file=sys.stderr)
+        return 1
     for label, path in (("Original", args.original), ("Candidate", args.candidate)):
         if not os.path.isfile(path):
             print(f"Error: {label} file not found: '{path}'", file=sys.stderr)
