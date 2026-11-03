@@ -58,7 +58,7 @@ python -m venv .venv
 ### Option 1: Standard Installation from Source
 To install Phantom into your active Python environment:
 ```bash
-# from the repository root (https://github.com/hayagrivai-labs/phantom); no package is published on PyPI
+# from the repository root (https://github.com/alok-108/phantom); no package is published on PyPI
 pip install .
 ```
 
@@ -181,7 +181,7 @@ project's `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
-  - repo: https://github.com/hayagrivai-labs/phantom
+  - repo: https://github.com/alok-108/phantom
     rev: v0.1.1        # pin to a released tag
     hooks:
       - id: phantom-check    # validate the Phantom instruction layer
