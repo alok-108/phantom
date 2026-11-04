@@ -14,6 +14,10 @@ ROOT = Path(__file__).parent.parent
 SCANNED = [
     *sorted((ROOT / "src").rglob("*.py")),
     *sorted((ROOT / "scripts").rglob("*.py")),
+    *[
+    p for p in sorted((ROOT / "tests").rglob("*.py"))
+    if "fixtures" not in p.parts
+    ],
     *sorted((ROOT / ".github").rglob("*.yml")),
     ROOT / "action.yml",
     ROOT / "pyproject.toml",
