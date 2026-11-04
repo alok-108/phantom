@@ -5,8 +5,8 @@ How a Phantom release is made. Maintainers only.
 ## Where releases live today
 
 Releases are GitHub releases with a wheel and an sdist attached (for example
-[v0.1.0](https://github.com/hayagrivai-labs/phantom/releases/tag/v0.1.0)). Phantom is installable with
-`pip install git+https://github.com/hayagrivai-labs/phantom.git` or from a downloaded wheel.
+[v0.1.0](https://github.com/alok-108/phantom/releases/tag/v0.1.0)). Phantom is installable with
+`pip install git+https://github.com/alok-108/phantom.git` or from a downloaded wheel.
 
 **It is not on PyPI, and the name `phantom-lang` cannot be used there.** On 2026-10-21 that name
 was already taken by an unrelated project ("Phantom ML compiler", versions 0.1.0 and 0.2.0). Before

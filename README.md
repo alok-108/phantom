@@ -2,18 +2,18 @@
 
 🌐 **Translations:** [हिन्दी](docs/hi/README.md) · [Deutsch](docs/de/QUICKSTART.md) · [Español](docs/es/QUICKSTART.md) · [Português (Brasil)](docs/pt-BR/QUICKSTART.md) · [Français](docs/fr/QUICKSTART.md)
 
-[![tests](https://github.com/hayagrivai-labs/phantom/actions/workflows/tests.yml/badge.svg)](https://github.com/hayagrivai-labs/phantom/actions/workflows/tests.yml)
-[![release](https://img.shields.io/github/v/release/hayagrivai-labs/phantom)](https://github.com/hayagrivai-labs/phantom/releases)
-[![license: MIT](https://img.shields.io/github/license/hayagrivai-labs/phantom)](LICENSE)
+[![tests](https://github.com/alok-108/phantom/actions/workflows/tests.yml/badge.svg)](https://github.com/alok-108/phantom/actions/workflows/tests.yml)
+[![release](https://img.shields.io/github/v/release/alok-108/phantom)](https://github.com/alok-108/phantom/releases)
+[![license: MIT](https://img.shields.io/github/license/alok-108/phantom)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue)](docs/COMPATIBILITY.md)
-[![good first issues](https://img.shields.io/github/issues/hayagrivai-labs/phantom/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-[![first timers only](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22first-timers-only%22)
+[![good first issues](https://img.shields.io/github/issues/alok-108/phantom/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/alok-108/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+[![first timers only](https://img.shields.io/badge/first--timers--only-friendly-blue.svg)](https://github.com/alok-108/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22first-timers-only%22)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![discussions](https://img.shields.io/github/discussions/hayagrivai-labs/phantom)](https://github.com/hayagrivai-labs/phantom/discussions)
-[![GitHub stars](https://img.shields.io/github/stars/hayagrivai-labs/phantom?style=social)](https://github.com/hayagrivai-labs/phantom/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/hayagrivai-labs/phantom?style=social)](https://github.com/hayagrivai-labs/phantom/network/members)
+[![discussions](https://img.shields.io/github/discussions/alok-108/phantom)](https://github.com/alok-108/phantom/discussions)
+[![GitHub stars](https://img.shields.io/github/stars/alok-108/phantom?style=social)](https://github.com/alok-108/phantom/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/alok-108/phantom?style=social)](https://github.com/alok-108/phantom/network/members)
 
-> **Contributors welcome.** New here? Pick a [good first issue](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22), read the [Contributor Guide](docs/CONTRIBUTOR_GUIDE.md), and say hello in [Discussions](https://github.com/hayagrivai-labs/phantom/discussions). Adding a new instruction takes four code edits. Issues labelled `mentor available` come with maintainer help. [Open in a Codespace](https://codespaces.new/hayagrivai-labs/phantom) for a ready-to-go environment.
+> **Contributors welcome.** New here? Pick a [good first issue](https://github.com/alok-108/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22), read the [Contributor Guide](docs/CONTRIBUTOR_GUIDE.md), and say hello in [Discussions](https://github.com/alok-108/phantom/discussions). Adding a new instruction takes four code edits. Issues labelled `mentor available` come with maintainer help. [Open in a Codespace](https://codespaces.new/alok-108/phantom) for a ready-to-go environment.
 
 **Phantom** is a dual-layer programming concept: ordinary Python source plus a second, structured *instruction layer* embedded in comments (or in whitespace / zero-width blocks), with no Phantom imports, decorators or wrappers in your code.
 
@@ -35,14 +35,14 @@ Real Python code gets cluttered with scaffolding that isn't the business logic: 
 ## Try it in 30 seconds
 
 ```bash
-pip install "git+https://github.com/hayagrivai-labs/phantom.git"
+pip install "git+https://github.com/alok-108/phantom.git"
 printf 'print("Hello")\n#: phantom:0.1.0 diagnostic.note("it works")\n' > hello.py
 phantom run hello.py
 ```
 
 You should see `Hello` followed by a Phantom diagnostic `it works`. (Not on PyPI yet; see [docs/RELEASING.md](docs/RELEASING.md).)
 
-If Phantom looks useful or interesting, a star helps other people find it. If you want to shape it, the [good first issues](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are the best way in.
+If Phantom looks useful or interesting, a star helps other people find it. If you want to shape it, the [good first issues](https://github.com/alok-108/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are the best way in.
 
 ## What it is
 
@@ -161,17 +161,17 @@ python scripts/verify_release.py         # release consistency gates
 
 ## Contributing
 
-Contributions of every size are welcome: bug fixes, tests, docs, new instructions, encodings, LLM providers and research experiments. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the step-by-step [Contributor Guide](docs/CONTRIBUTOR_GUIDE.md) (adding an instruction takes four code edits). Ideas are tracked as GitHub issues labelled `good first issue`, `help wanted`, `mentor available` and `needs design`. Before a pull request run `ruff check src tests scripts`, `pytest` and `python scripts/verify_release.py`. Questions and ideas are welcome in [Discussions](https://github.com/hayagrivai-labs/phantom/discussions); maintainers are listed in [MAINTAINERS.md](MAINTAINERS.md) and design decisions in [docs/adr/](docs/adr/).
+Contributions of every size are welcome: bug fixes, tests, docs, new instructions, encodings, LLM providers and research experiments. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the step-by-step [Contributor Guide](docs/CONTRIBUTOR_GUIDE.md) (adding an instruction takes four code edits). Ideas are tracked as GitHub issues labelled `good first issue`, `help wanted`, `mentor available` and `needs design`. Before a pull request run `ruff check src tests scripts`, `pytest` and `python scripts/verify_release.py`. Questions and ideas are welcome in [Discussions](https://github.com/alok-108/phantom/discussions); maintainers are listed in [MAINTAINERS.md](MAINTAINERS.md) and design decisions in [docs/adr/](docs/adr/).
 
 ### Contributors
 
-<a href="https://github.com/hayagrivai-labs/phantom/graphs/contributors"><img src="https://contrib.rocks/image?repo=hayagrivai-labs/phantom" alt="Contributors"></a>
+<a href="https://github.com/alok-108/phantom/graphs/contributors"><img src="https://contrib.rocks/image?repo=alok-108/phantom" alt="Contributors"></a>
 
 Everyone who has a pull request merged is thanked in the release notes.
 
 ### Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=hayagrivai-labs/phantom&type=Date)](https://star-history.com/#hayagrivai-labs/phantom&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=alok-108/phantom&type=Date)](https://star-history.com/#alok-108/phantom&Date)
 
 ---
 

@@ -7,20 +7,20 @@ Thanks for wanting to help. Phantom is an early-stage open-source language proje
 ## Quick start
 
 ```bash
-git clone https://github.com/hayagrivai-labs/phantom.git      # or your fork
+git clone https://github.com/alok-108/phantom.git      # or your fork
 cd phantom
 python -m venv .venv
 source .venv/bin/activate                              # Windows: .venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
 ```
 
-Or open a ready-made environment with one click: [GitHub Codespaces](https://codespaces.new/hayagrivai-labs/phantom) (uses `.devcontainer/devcontainer.json`; it installs the dev extras and runs the tests).
+Or open a ready-made environment with one click: [GitHub Codespaces](https://codespaces.new/alok-108/phantom) (uses `.devcontainer/devcontainer.json`; it installs the dev extras and runs the tests).
 
 Optional, for the LLM generator: `pip install -e ".[all]"` (needs Python ≥ 3.10).
 
 ## Your first pull request in about 10 minutes
 
-1. Pick an issue labelled [`good first issue`](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and comment `/take` on it: you are assigned automatically (up to two open issues at a time). Changed your mind? Comment `/release`. Claims with no activity for about three weeks are released automatically.
+1. Pick an issue labelled [`good first issue`](https://github.com/alok-108/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and comment `/take` on it: you are assigned automatically (up to two open issues at a time). Changed your mind? Comment `/release`. Claims with no activity for about three weeks are released automatically.
 2. Fork the repo on GitHub, then:
    ```bash
    git clone https://github.com/<you>/phantom.git && cd phantom

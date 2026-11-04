@@ -3,7 +3,7 @@
 # Add Phantom to a project's .pre-commit-config.yaml:
 #
 #   repos:
-#     - repo: https://github.com/hayagrivai-labs/phantom
+#     - repo: https://github.com/alok-108/phantom
 #       rev: v0.1.1        # pin to a released tag
 #       hooks:
 #         - id: phantom-check    # validate the Phantom instruction layer

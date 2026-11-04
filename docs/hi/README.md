@@ -2,14 +2,14 @@
 
 🌐 **भाषाएँ:** [English](../../README.md) · हिन्दी
 
-[![tests](https://github.com/hayagrivai-labs/phantom/actions/workflows/tests.yml/badge.svg)](https://github.com/hayagrivai-labs/phantom/actions/workflows/tests.yml)
-[![release](https://img.shields.io/github/v/release/hayagrivai-labs/phantom)](https://github.com/hayagrivai-labs/phantom/releases)
-[![license: MIT](https://img.shields.io/github/license/hayagrivai-labs/phantom)](../../LICENSE)
+[![tests](https://github.com/alok-108/phantom/actions/workflows/tests.yml/badge.svg)](https://github.com/alok-108/phantom/actions/workflows/tests.yml)
+[![release](https://img.shields.io/github/v/release/alok-108/phantom)](https://github.com/alok-108/phantom/releases)
+[![license: MIT](https://img.shields.io/github/license/alok-108/phantom)](../../LICENSE)
 [![python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue)](../COMPATIBILITY.md)
-[![good first issues](https://img.shields.io/github/issues/hayagrivai-labs/phantom/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-[![discussions](https://img.shields.io/github/discussions/hayagrivai-labs/phantom)](https://github.com/hayagrivai-labs/phantom/discussions)
+[![good first issues](https://img.shields.io/github/issues/alok-108/phantom/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/alok-108/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+[![discussions](https://img.shields.io/github/discussions/alok-108/phantom)](https://github.com/alok-108/phantom/discussions)
 
-> **योगदानकर्ताओं का स्वागत है।** पहली बार आए हैं? [अच्छे शुरुआती मुद्दों](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) में से चुनें, [योगदानकर्ता मार्गदर्शिका](../CONTRIBUTOR_GUIDE.md) पढ़ें और [Discussions](https://github.com/hayagrivai-labs/phantom/discussions) में परिचय दें। नया instruction जोड़ने के लिए चार कोड बदलाव करने होते हैं। `mentor available` लेबल वाले मुद्दों पर मेंटेनर मदद उपलब्ध है। तैयार वातावरण के लिए [Codespace खोलें](https://codespaces.new/hayagrivai-labs/phantom)।
+> **योगदानकर्ताओं का स्वागत है।** पहली बार आए हैं? [अच्छे शुरुआती मुद्दों](https://github.com/alok-108/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) में से चुनें, [योगदानकर्ता मार्गदर्शिका](../CONTRIBUTOR_GUIDE.md) पढ़ें और [Discussions](https://github.com/alok-108/phantom/discussions) में परिचय दें। नया instruction जोड़ने के लिए चार कोड बदलाव करने होते हैं। `mentor available` लेबल वाले मुद्दों पर मेंटेनर मदद उपलब्ध है। तैयार वातावरण के लिए [Codespace खोलें](https://codespaces.new/alok-108/phantom)।
 
 **Phantom** एक दो-स्तरीय प्रोग्रामिंग अवधारणा है: सामान्य Python स्रोत कोड के साथ comments (या whitespace / zero-width blocks) में एम्बेड की गई दूसरी, संरचित *instruction layer*। आपके कोड में Phantom imports, decorators या wrappers की आवश्यकता नहीं है।
 
@@ -31,14 +31,14 @@
 ## 30 सेकंड में आज़माएँ
 
 ```bash
-pip install "git+https://github.com/hayagrivai-labs/phantom.git"
+pip install "git+https://github.com/alok-108/phantom.git"
 printf 'print("Hello")\n#: phantom:0.1.0 diagnostic.note("it works")\n' > hello.py
 phantom run hello.py
 ```
 
 आपको पहले `Hello`, फिर Phantom diagnostic `it works` दिखना चाहिए। (अभी PyPI पर उपलब्ध नहीं है; [docs/RELEASING.md](../../docs/RELEASING.md) देखें।)
 
-अगर Phantom उपयोगी या दिलचस्प लगे, तो star देने से दूसरों को इसे खोजने में मदद मिलेगी। योगदान देना चाहते हैं, तो [अच्छे शुरुआती मुद्दे](https://github.com/hayagrivai-labs/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) सबसे अच्छा शुरुआती रास्ता हैं।
+अगर Phantom उपयोगी या दिलचस्प लगे, तो star देने से दूसरों को इसे खोजने में मदद मिलेगी। योगदान देना चाहते हैं, तो [अच्छे शुरुआती मुद्दे](https://github.com/alok-108/phantom/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) सबसे अच्छा शुरुआती रास्ता हैं।
 
 ## यह क्या है?
 
@@ -157,11 +157,11 @@ python scripts/verify_release.py         # release consistency gates
 
 ## योगदान करें
 
-हर आकार के योगदान का स्वागत है: bug fixes, tests, docs, नए instructions, encodings, LLM providers और research experiments। [CONTRIBUTING.md](../../CONTRIBUTING.md) और चरण-दर-चरण [Contributor Guide](../CONTRIBUTOR_GUIDE.md) से शुरुआत करें (एक instruction जोड़ने के लिए चार code edits चाहिए)। विचारों को `good first issue`, `help wanted`, `mentor available` और `needs design` labels वाले GitHub issues में track किया जाता है। Pull request से पहले `ruff check src tests scripts`, `pytest` और `python scripts/verify_release.py` चलाएँ। प्रश्न और सुझाव [Discussions](https://github.com/hayagrivai-labs/phantom/discussions) में साझा करें; maintainers [MAINTAINERS.md](../../MAINTAINERS.md) में और design decisions [docs/adr/](../../docs/adr/) में हैं।
+हर आकार के योगदान का स्वागत है: bug fixes, tests, docs, नए instructions, encodings, LLM providers और research experiments। [CONTRIBUTING.md](../../CONTRIBUTING.md) और चरण-दर-चरण [Contributor Guide](../CONTRIBUTOR_GUIDE.md) से शुरुआत करें (एक instruction जोड़ने के लिए चार code edits चाहिए)। विचारों को `good first issue`, `help wanted`, `mentor available` और `needs design` labels वाले GitHub issues में track किया जाता है। Pull request से पहले `ruff check src tests scripts`, `pytest` और `python scripts/verify_release.py` चलाएँ। प्रश्न और सुझाव [Discussions](https://github.com/alok-108/phantom/discussions) में साझा करें; maintainers [MAINTAINERS.md](../../MAINTAINERS.md) में और design decisions [docs/adr/](../../docs/adr/) में हैं।
 
 ### योगदानकर्ता
 
-<a href="https://github.com/hayagrivai-labs/phantom/graphs/contributors"><img src="https://contrib.rocks/image?repo=hayagrivai-labs/phantom" alt="योगदानकर्ता"></a>
+<a href="https://github.com/alok-108/phantom/graphs/contributors"><img src="https://contrib.rocks/image?repo=alok-108/phantom" alt="योगदानकर्ता"></a>
 
 जिनके pull request merge होते हैं, उन्हें release notes में धन्यवाद दिया जाता है।
 
