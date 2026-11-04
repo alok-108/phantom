@@ -48,6 +48,19 @@ def test_examples_check_clean_even_in_strict_mode(name):
     assert "0 error(s), 0 warning(s)" in result.stdout
 
 
+@pytest.mark.parametrize("invalid_utf8", [False, True])
+def test_check_load_failure_omits_empty_summary(tmp_path, invalid_utf8):
+    target = tmp_path / "example.py"
+    if invalid_utf8:
+        target.write_bytes(b"\xff")
+
+    result = _phantom("check", str(target))
+
+    assert result.returncode == 1
+    assert ("not valid UTF-8" if invalid_utf8 else "File not found") in result.stderr
+    assert result.stdout == ""
+
+
 def test_comments_run_output():
     result = _phantom("run", "docs/examples/comments.py")
     assert result.returncode == 0

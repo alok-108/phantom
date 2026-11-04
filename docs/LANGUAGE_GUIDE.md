@@ -105,6 +105,8 @@ error: Counter limit must be > 0, got 0
      | ^
 ```
 
+If a file fails to load and there are no instruction diagnostics, the command prints the load error and omits the diagnostic summary.
+
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for the full list.
 
 ## Limitations
