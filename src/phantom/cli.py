@@ -53,7 +53,7 @@ def read_source(path: str) -> str | None:
     """Read a source file as UTF-8 (a leading BOM is dropped) with universal newlines.
 
     On undecodable bytes, print one clear error and return ``None`` so every command
-    fails the same way (exit code 1) instead of crashing or silently replacing bytes.
+    fails instead of crashing or silently replacing bytes. Callers choose the exit code.
     """
     with open(path, "rb") as f:
         data = f.read()
@@ -583,45 +583,40 @@ def cmd_diff(args: argparse.Namespace) -> int:
     """Unified diff between two source files."""
     orig_path = args.original
     cand_path = args.candidate
+    error_code = 2 if args.exit_code else 1
 
     if not os.path.isfile(orig_path):
         print(f"Error: Original file not found: '{orig_path}'", file=sys.stderr)
-        return 1
+        return error_code
     if not os.path.isfile(cand_path):
         print(f"Error: Candidate file not found: '{cand_path}'", file=sys.stderr)
-        return 1
+        return error_code
 
     try:
         orig_text = read_source(orig_path)
         cand_text = read_source(cand_path)
     except OSError as exc:
         print(f"Error reading files: {exc}", file=sys.stderr)
-        return 1
+        return error_code
     if orig_text is None or cand_text is None:
-        return 1
+        return error_code
     orig_lines = split_physical_lines(orig_text, keepends=True)
     cand_lines = split_physical_lines(cand_text, keepends=True)
 
     if args.host_only:
-        sys.stdout.write(
-            format_diff_colored(
-                host_layer_diff("".join(orig_lines), "".join(cand_lines)),
-                colored=_colors_enabled(args),
+        diff = host_layer_diff("".join(orig_lines), "".join(cand_lines))
+    else:
+        diff = "".join(
+            difflib.unified_diff(
+                orig_lines,
+                cand_lines,
+                fromfile=orig_path,
+                tofile=cand_path,
             )
         )
-        return 0
-
-    diff = list(
-        difflib.unified_diff(
-            orig_lines,
-            cand_lines,
-            fromfile=orig_path,
-            tofile=cand_path,
-        )
-    )
     if diff:
-        sys.stdout.write(format_diff_colored("".join(diff), colored=_colors_enabled(args)))
-    return 0
+        sys.stdout.write(format_diff_colored(diff, colored=_colors_enabled(args)))
+    return int(args.exit_code and bool(diff))
 
 
 _VERDICT_LABELS = {
@@ -885,6 +880,10 @@ def create_parser() -> argparse.ArgumentParser:
     diff_p.add_argument(
         "--host-only", action="store_true",
         help="Compare only the Python host layer, excluding Phantom instructions",
+    )
+    diff_p.add_argument(
+        "--exit-code", action="store_true",
+        help="Exit with 0 if equal, 1 if different, and 2 on usage or file errors",
     )
     diff_p.add_argument(
         "--no-color",

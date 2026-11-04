@@ -53,6 +53,7 @@ complete -c phantom -n "__fish_seen_subcommand_from generate" -l allow-remote -d
 
 # diff
 complete -c phantom -n "__fish_seen_subcommand_from diff" -l host-only -d "Compare only the Python host layer"
+complete -c phantom -n "__fish_seen_subcommand_from diff" -l exit-code -d "Exit with 1 if different, 2 on usage or file errors"
 complete -c phantom -n "__fish_seen_subcommand_from diff" -l no-color -d "Omit ANSI color escapes from the diff"
 
 # verify

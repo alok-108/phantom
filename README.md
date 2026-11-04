@@ -110,7 +110,7 @@ Walkthrough: [docs/QUICKSTART.md](docs/QUICKSTART.md).
 | `phantom inspect FILE [--json] [--strict] [--deny CAP] [--allow-only CAP]` | Show recognised instructions, locations, capabilities (and which a policy blocks) and any parse errors; exit 2 on parse errors or `--strict` findings | No |
 | `phantom run FILE [--timeout SEC] [--deny CAP] [--allow-only CAP] [--handlers-from DIR] [--allow-handler PATTERN] [-- ARGS]` | Validate, apply, run the host; exits with the host's status | **Yes** |
 | `phantom generate FILE --intent TEXT [--placement …] [--encoding …] [--output …] [--dry-run] [--allow-remote]` | Propose a candidate with Phantom instructions | No (sends source to the provider) |
-| `phantom diff ORIGINAL CANDIDATE` | Unified diff | No |
+| `phantom diff ORIGINAL CANDIDATE [--host-only] [--exit-code]` | Unified diff; opt in to exit 1 on differences, 2 on errors | No |
 | `phantom verify ORIGINAL CANDIDATE` | Run both and compare stdout/stderr/exit code | **Yes** (both) |
 
 `python -m phantom …` is equivalent to `phantom …`.
