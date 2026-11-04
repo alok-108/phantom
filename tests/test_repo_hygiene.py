@@ -339,3 +339,30 @@ def test_micro_syntax_highlights_phantom_instructions():
         assert escaped in text, f"phantom.yaml does not highlight {instruction}"
     for marker in PHANTOM_NANO_MARKERS:
         assert marker in text, f"phantom.yaml does not highlight the {marker} marker"
+
+# Vim syntax highlighting for the Phantom instruction layer (#151).
+VIM_SYNTAX = ROOT / "scripts" / "syntax" / "phantom.vim"
+PHANTOM_VIM_INSTRUCTIONS = PHANTOM_NANO_INSTRUCTIONS
+PHANTOM_VIM_MARKERS = PHANTOM_NANO_MARKERS
+
+
+def test_vim_syntax_highlights_phantom_instructions():
+    assert VIM_SYNTAX.is_file(), "scripts/syntax/phantom.vim is missing"
+    text = VIM_SYNTAX.read_text(encoding="utf-8")
+
+    assert "runtime! syntax/python.vim" in text, (
+        "Vim syntax must inherit standard Python syntax"
+    )
+    assert r"phantom:\d\+\.\d\+\.\d\+" in text, (
+        "Vim syntax must highlight the Phantom version prefix"
+    )
+
+    for instruction in PHANTOM_VIM_INSTRUCTIONS:
+        escaped = instruction.replace(".", r"\.")
+        assert escaped in text, f"Vim syntax does not highlight {instruction}"
+
+    for marker in PHANTOM_VIM_MARKERS:
+        marker_body = marker[2:]
+        assert marker_body in text, (
+            f"Vim syntax does not highlight the {marker} marker"
+        )

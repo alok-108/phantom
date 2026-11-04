@@ -49,6 +49,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 ### Added
 - Nano syntax highlighting for the Phantom instruction layer (`scripts/syntax/phantom.nanorc`), with install instructions in the Editor Support section of `docs/INSTALLATION.md` (#121).
+- Vim / Neovim syntax highlighting for the Phantom instruction layer (`scripts/syntax/phantom.vim`), inheriting Python syntax and highlighting Phantom instructions and encoding markers, with installation instructions in the Editor Support section of `docs/INSTALLATION.md` (#151).
 - `.pre-commit-hooks.yaml` defines `phantom-check` and `phantom-strict` hooks so `phantom check` runs as a [pre-commit](https://pre-commit.com/) hook (see `docs/INSTALLATION.md`) (#101).
 - `generate --placement` accepts `near:Class.method` (before the single method of the single class of that name; ambiguous or missing classes and methods are reported, never guessed) and `main-guard` (before the first top-level `if __name__ == "__main__":` guard; `before-main-guard` is accepted as an alias) (#4).
 - `phantom inspect --json` output now carries top-level `schema` (`phantom.inspect`) and `schema_version` (`1.0`) fields so consuming tools can detect format changes; existing keys are unchanged (#21).
