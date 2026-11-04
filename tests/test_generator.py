@@ -462,6 +462,39 @@ class TestStalePatches:
         with pytest.raises(TransformError, match="Stale or mismatched"):
             apply_plan(PROGRAM, plan)
 
+    def test_anchor_at_end_matches_last_line(self):
+        src = "x = 1\nprint('done')\n"
+        plan = parse_plan(_plan(("meta.author", "A")))
+        plan.instructions[0].placement_line = 3
+        plan.instructions[0].anchor = "print('done')"
+        assert apply_plan(src, plan) == (
+            "x = 1\nprint('done')\n#: phantom:0.1.0 meta.author(\"A\")\n"
+        )
+
+    def test_anchor_at_end_matches_last_non_empty_line(self):
+        src = "x = 1\nprint('done')\n\n"
+        plan = parse_plan(_plan(("meta.author", "A")))
+        plan.instructions[0].placement_line = 4
+        plan.instructions[0].anchor = "print('done')"
+        assert apply_plan(src, plan) == (
+            "x = 1\nprint('done')\n\n#: phantom:0.1.0 meta.author(\"A\")\n"
+        )
+
+    def test_anchor_mismatch_at_end_is_rejected(self):
+        src = "x = 1\nprint('done')\n"
+        plan = parse_plan(_plan(("meta.author", "A")))
+        plan.instructions[0].placement_line = 3
+        plan.instructions[0].anchor = "x = 2"
+        with pytest.raises(TransformError, match="Stale or mismatched"):
+            apply_plan(src, plan)
+
+    def test_anchor_at_end_of_empty_file_is_rejected(self):
+        plan = parse_plan(_plan(("meta.author", "A")))
+        plan.instructions[0].placement_line = 1
+        plan.instructions[0].anchor = "x = 1"
+        with pytest.raises(TransformError, match="Stale or mismatched"):
+            apply_plan("", plan)
+
     def test_anchor_from_model_response_is_enforced_by_workflow(self):
         data = json.loads(_plan(("meta.author", "A")))
         data["instructions"][0]["anchor"] = "def not_here():"

@@ -72,6 +72,19 @@ def _to_instruction(planned: PlannedInstruction) -> PhantomInstruction:
     )
 
 
+def _last_non_empty_line(lines: list[str]) -> str:
+    """Last line carrying non-whitespace text, or "" if there is none.
+
+    Used as the anchor line when inserting past the end of the file:
+    line total + 1 does not exist, so an anchor names the last
+    non-empty line, which the new content follows.
+    """
+    for line in reversed(lines):
+        if line.strip():
+            return line
+    return ""
+
+
 def apply_plan(source: str, plan: TransformationPlan) -> str:
     """Return `source` with the plan's instructions inserted."""
     if not plan.valid:
@@ -90,7 +103,7 @@ def apply_plan(source: str, plan: TransformationPlan) -> str:
                 "instructions cannot be inserted there"
             )
         if planned.anchor is not None:
-            actual = lines[at - 1] if at <= total else ""
+            actual = lines[at - 1] if at <= total else _last_non_empty_line(lines)
             if actual.strip() != planned.anchor.strip():
                 raise TransformError(
                     f"Stale or mismatched patch: line {at} is {actual.strip()!r}, "
