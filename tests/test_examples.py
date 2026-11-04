@@ -33,14 +33,14 @@ def _python(path: Path) -> subprocess.CompletedProcess:
     )
 
 
-@pytest.mark.parametrize("name", ["hello", "comments", "whitespace", "unicode", "hybrid", "events", "policy"])
+@pytest.mark.parametrize("name", ["hello", "comments", "whitespace", "unicode", "hybrid", "events", "policy", "hooks"])
 def test_plain_python_runs_every_example(name):
     result = _python(EXAMPLES / f"{name}.py")
     assert result.returncode == 0, result.stderr
 
 
 @pytest.mark.parametrize(
-    "name", ["hello", "comments", "whitespace", "unicode", "hybrid", "events", "policy"]
+    "name", ["hello", "comments", "whitespace", "unicode", "hybrid", "events", "policy", "hooks"]
 )
 def test_examples_check_clean_even_in_strict_mode(name):
     result = _phantom("check", "--strict", f"docs/examples/{name}.py")
