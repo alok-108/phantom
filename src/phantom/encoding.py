@@ -377,12 +377,18 @@ class HybridCodec:
         return "\n".join(lines)
 
     @staticmethod
-    def decode_instructions(source_text: str) -> list[str]:
+    def decode_instructions(
+        source_text: str,
+        string_lines: set[int] | None = None,
+    ) -> list[str]:
         """Decode all instructions in source text, respecting precedence.
 
         Precedence: comment > whitespace > Unicode.
         Duplicate instructions from lower-precedence encodings are filtered out.
         """
+        if string_lines is None:
+            string_lines = _string_literal_lines(source_text) or set()
+
         comment_instructions: list[str] = []
         ws_instructions: list[str] = []
         zw_instructions: list[str] = []
@@ -393,7 +399,11 @@ class HybridCodec:
         in_zw = False
         zw_chars: list[str] = []
 
-        for raw_line in lines:
+        for line_idx, raw_line in enumerate(lines):
+            lineno = line_idx + 1
+            if lineno in string_lines:
+                continue
+
             line = raw_line.rstrip("\r")
             stripped = line.strip()
 
@@ -494,10 +504,11 @@ def decode_source(
     mode: EncodingMode | None = None,
 ) -> list[str]:
     """Decode instructions from source text."""
-    if mode is None or mode == EncodingMode.HYBRID:
-        return HybridCodec.decode_instructions(source_text)
 
     string_lines = _string_literal_lines(source_text) or set()
+
+    if mode is None or mode == EncodingMode.HYBRID:
+        return HybridCodec.decode_instructions(source_text, string_lines=string_lines)
 
     if mode == EncodingMode.COMMENT:
         results: list[str] = []
@@ -582,7 +593,12 @@ def inspect_encoding(source_text: str) -> dict[str, Any]:
     """Inspect source text to detect which Phantom encoding modes are present."""
     string_lines = _string_literal_lines(source_text) or set()
 
-    has_hybrid_header = HYBRID_HEADER in source_text
+    # Only flag header if it's on a real code line, NOT in a docstring/string
+    has_hybrid_header = any(
+    HYBRID_HEADER in line
+    for line_idx, line in enumerate(split_physical_lines(source_text))
+    if (line_idx + 1) not in string_lines
+    )
 
     comment_count = 0
     ws_block_count = 0

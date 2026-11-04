@@ -230,3 +230,14 @@ def test_inspect_encoding_ignores_markers_in_docstring():
     )
     res = inspect_encoding(source)
     assert res["encodings_detected"] == []
+
+def test_decode_source_default_mode_ignores_docstring():
+    source = '"""\n#: phantom:0.1.0 meta.author("Alice")\n"""\n'
+    assert decode_source(source) == []
+
+
+def test_inspect_encoding_ignores_hybrid_header_in_docstring():
+    source = '"""\n#:phantom:hybrid\n"""\nx = 1\n'
+    info = inspect_encoding(source)
+    assert info["has_hybrid_header"] is False
+    assert info["detected_mode"] is None
