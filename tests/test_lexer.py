@@ -45,7 +45,7 @@ def test_ws_block_tokens():
 
 
 def test_zw_block_tokens():
-    src = f"#:zw:begin\n#{ZWSP}{ZWNJ}#\n#:zw:end\n"
+    src = f"#:zw:begin\n# {ZWSP}{ZWNJ}\n#:zw:end\n"
     assert _types(src) == [
         TokenType.ZW_BEGIN,
         TokenType.ZW_DATA_LINE,

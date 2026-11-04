@@ -123,13 +123,13 @@ def test_whitespace_decode_block_unterminated_raises():
 def test_unicode_roundtrip_and_alphabet():
     encoded = UnicodeEncoder.encode(TEXT)
     assert len(encoded) == 4 * len(TEXT.encode("utf-8"))
-    assert set(encoded) <= {ZWSP, ZWNJ, ZWJ, WJ, BOM}
+    assert set(encoded) <= {ZWSP, ZWNJ, ZWJ, BOM}
     assert UnicodeDecoder.decode(encoded, strict=True) == TEXT
 
 
 def test_unicode_strict_rejects_foreign_invisible():
     with pytest.raises(ValueError):
-        UnicodeDecoder.decode(UnicodeEncoder.encode(TEXT) + BOM, strict=True)
+        UnicodeDecoder.decode(UnicodeEncoder.encode(TEXT) + WJ, strict=True)
 
 
 def test_unicode_block_is_valid_python_comment():

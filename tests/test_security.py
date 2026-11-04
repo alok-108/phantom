@@ -191,7 +191,7 @@ class TestStrictAudit:
     def test_rejected_character_inside_block_flagged(self):
         from phantom.validator import audit_source
 
-        src = f"#:zw:begin\nn#{WJ}n#:zw:end\n"
+        src = f"#:zw:begin\n# {WJ}\n#:zw:end\n"
         assert [f.message for f in audit_source(src)][0].startswith("Unexpected invisible code point U+2060")
 
     def test_unclosed_zw_block_reported_at_eof(self):
