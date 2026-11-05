@@ -394,14 +394,14 @@ def cmd_run(args: argparse.Namespace) -> int:
     runtime.shutdown()
 
     # Host program output
-    if host_res.stdout:
-        sys.stdout.write(host_res.stdout)
-        if not host_res.stdout.endswith("\n"):
-            sys.stdout.write("\n")
-    if host_res.stderr:
-        sys.stderr.write(host_res.stderr)
-        if not host_res.stderr.endswith("\n"):
-            sys.stderr.write("\n")
+    for output, stream in ((host_res.stdout, sys.stdout), (host_res.stderr, sys.stderr)):
+        if output:
+            # Windows text streams translate LF to CRLF when writing.
+            if sys.platform == "win32":
+                output = output.replace("\r\n", "\n")
+            stream.write(output)
+            if not output.endswith("\n"):
+                stream.write("\n")
     if host_res.truncated:
         streams = []
         if host_res.stdout_truncated:
