@@ -31,6 +31,8 @@ from phantom.grammar import (
 from phantom.ir import ArgumentType, EncodingMode, PhantomInstruction
 from phantom.lines import split_physical_lines
 
+from .lexer import _string_literal_lines
+
 
 def _instruction_to_text(instruction: str | PhantomInstruction) -> str:
     """Format a PhantomInstruction or string into standard instruction text."""
@@ -375,12 +377,18 @@ class HybridCodec:
         return "\n".join(lines)
 
     @staticmethod
-    def decode_instructions(source_text: str) -> list[str]:
+    def decode_instructions(
+        source_text: str,
+        string_lines: set[int] | None = None,
+    ) -> list[str]:
         """Decode all instructions in source text, respecting precedence.
 
         Precedence: comment > whitespace > Unicode.
         Duplicate instructions from lower-precedence encodings are filtered out.
         """
+        if string_lines is None:
+            string_lines = _string_literal_lines(source_text) or set()
+
         comment_instructions: list[str] = []
         ws_instructions: list[str] = []
         zw_instructions: list[str] = []
@@ -391,7 +399,11 @@ class HybridCodec:
         in_zw = False
         zw_chars: list[str] = []
 
-        for raw_line in lines:
+        for line_idx, raw_line in enumerate(lines):
+            lineno = line_idx + 1
+            if lineno in string_lines:
+                continue
+
             line = raw_line.rstrip("\r")
             stripped = line.strip()
 
@@ -491,17 +503,18 @@ def decode_source(
     source_text: str,
     mode: EncodingMode | None = None,
 ) -> list[str]:
-    """Decode instructions from source text.
+    """Decode instructions from source text."""
 
-    If mode is None or HYBRID, decodes across all formats according to hybrid precedence.
-    If a specific mode is provided, decodes only that format.
-    """
+    string_lines = _string_literal_lines(source_text) or set()
+
     if mode is None or mode == EncodingMode.HYBRID:
-        return HybridCodec.decode_instructions(source_text)
+        return HybridCodec.decode_instructions(source_text, string_lines=string_lines)
 
     if mode == EncodingMode.COMMENT:
         results: list[str] = []
-        for line in split_physical_lines(source_text):
+        for line_idx, line in enumerate(split_physical_lines(source_text)):
+            if (line_idx + 1) in string_lines:
+                continue
             match = COMMENT_LINE_PATTERN.match(line)
             if match:
                 results.append(CommentDecoder.decode(line))
@@ -512,7 +525,11 @@ def decode_source(
         lines = split_physical_lines(source_text)
         in_ws = False
         ws_lines: list[str] = []
-        for raw_line in lines:
+        for line_idx, raw_line in enumerate(lines):
+            lineno = line_idx + 1
+            if lineno in string_lines:
+                continue
+
             line = raw_line.rstrip("\r")
             stripped = line.strip()
             if stripped == WS_BEGIN_MARKER:
@@ -540,7 +557,11 @@ def decode_source(
         lines = split_physical_lines(source_text)
         in_zw = False
         zw_chars: list[str] = []
-        for raw_line in lines:
+        for line_idx, raw_line in enumerate(lines):
+            lineno = line_idx + 1
+            if lineno in string_lines:
+                continue
+
             line = raw_line.rstrip("\r")
             stripped = line.strip()
             if stripped == ZW_BEGIN_MARKER:
@@ -570,15 +591,36 @@ def decode_source(
 
 def inspect_encoding(source_text: str) -> dict[str, Any]:
     """Inspect source text to detect which Phantom encoding modes are present."""
-    has_hybrid_header = HYBRID_HEADER in source_text
+    string_lines = _string_literal_lines(source_text) or set()
+
+    # Only flag header if it's on a real code line, NOT in a docstring/string
+    has_hybrid_header = any(
+    HYBRID_HEADER in line
+    for line_idx, line in enumerate(split_physical_lines(source_text))
+    if (line_idx + 1) not in string_lines
+    )
 
     comment_count = 0
-    for line in split_physical_lines(source_text):
+    ws_block_count = 0
+    zw_block_count = 0
+
+    lines = split_physical_lines(source_text)
+    for line_idx, raw_line in enumerate(lines):
+        lineno = line_idx + 1
+
+        # Skip lines inside docstrings / string literals
+        if lineno in string_lines:
+            continue
+
+        line = raw_line.rstrip("\r")
+        stripped = line.strip()
+
         if COMMENT_LINE_PATTERN.match(line):
             comment_count += 1
-
-    ws_block_count = source_text.count(WS_BEGIN_MARKER)
-    zw_block_count = source_text.count(ZW_BEGIN_MARKER)
+        if stripped == WS_BEGIN_MARKER:
+            ws_block_count += 1
+        if stripped == ZW_BEGIN_MARKER:
+            zw_block_count += 1
 
     has_comment = comment_count > 0
     has_ws = ws_block_count > 0
