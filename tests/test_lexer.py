@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from phantom.lexer import TokenType, tokenize
 
+ZWSP = chr(0x200B)
+ZWNJ = chr(0x200C)
 
 def _types(source):
     return [t.type for t in tokenize(source)]
@@ -43,7 +45,7 @@ def test_ws_block_tokens():
 
 
 def test_zw_block_tokens():
-    src = "#:zw:begin\n# ​‌\n#:zw:end\n"
+    src = f"#:zw:begin\n# {ZWSP}{ZWNJ}\n#:zw:end\n"
     assert _types(src) == [
         TokenType.ZW_BEGIN,
         TokenType.ZW_DATA_LINE,

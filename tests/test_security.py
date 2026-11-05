@@ -20,6 +20,11 @@ from phantom.ir import (
 from phantom.parser import parse, parse_file
 from phantom.validator import validate
 
+ZWSP = chr(0x200B)
+WJ = chr(0x2060)
+RLO = chr(0x202E)
+LTI = chr(0x2066)
+
 
 def _trap_source(marker):
     return (
@@ -78,7 +83,7 @@ def test_rejected_invisible_codepoint_is_error_in_unicode_block():
         (Argument(ArgumentType.STRING, "A"),),
         SourceLocation("t", 1),
     )
-    block = encode_instruction(inst, EncodingMode.UNICODE).replace("# ", "# ⁠", 1)
+    block = encode_instruction(inst, EncodingMode.UNICODE).replace("# ", f"#{WJ}", 1)
     prog = parse(block + "\n")
     assert prog.has_errors
 
@@ -175,7 +180,7 @@ class TestStrictAudit:
         )
         assert audit_source(encode_instruction(inst, EncodingMode.UNICODE) + "\n") == []
 
-    @pytest.mark.parametrize("ch", ["​", "⁠", "‮", "⁦"])
+    @pytest.mark.parametrize("ch", [ZWSP, WJ, RLO, LTI])
     def test_hidden_characters_outside_block_flagged(self, ch):
         from phantom.validator import audit_source
 
@@ -186,7 +191,7 @@ class TestStrictAudit:
     def test_rejected_character_inside_block_flagged(self):
         from phantom.validator import audit_source
 
-        src = "#:zw:begin\n# ​⁠\n#:zw:end\n"
+        src = f"#:zw:begin\n# {WJ}\n#:zw:end\n"
         assert [f.message for f in audit_source(src)][0].startswith("Unexpected invisible code point U+2060")
 
     def test_unclosed_zw_block_reported_at_eof(self):
@@ -227,7 +232,7 @@ class TestStrictAudit:
 
     def test_cli_strict_exit_codes(self, tmp_path, capsys):
         bad = tmp_path / "bad.py"
-        bad.write_text("x = 1  # ‮\n", encoding="utf-8")
+        bad.write_text(f"x = 1 # {RLO}\n", encoding="utf-8")
         assert main(["check", "--strict", str(bad)]) == 2
         assert main(["check", str(bad)]) == 0
         assert main(["inspect", "--strict", str(bad)]) == 2
