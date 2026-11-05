@@ -176,7 +176,7 @@ def _string_literal_lines(source: str) -> set[int] | None:
         tokens = list(
             _py_tokenize.generate_tokens(io.StringIO(source).readline)
         )
-    except (_py_tokenize.TokenError, IndentationError, SyntaxError):
+    except (_py_tokenize.TokenError, IndentationError, SyntaxError, UnicodeDecodeError):
         return None
     comment_lines = {
         tok.start[0] for tok in tokens if tok.type == _py_tokenize.COMMENT
