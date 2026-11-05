@@ -65,6 +65,16 @@ def test_crlf_line_endings():
     toks = tokenize('x = 1\r\n#: phantom:0.1.0 meta.author("A")\r\n')
     assert [t.type for t in toks[:2]] == [TokenType.SOURCE_LINE, TokenType.COMMENT_INSTRUCTION]
 
+
+def test_carriage_return_before_non_ascii_source_still_reaches_eof():
+    tokens = tokenize("\r\x80")
+    assert [(token.type, token.line) for token in tokens] == [
+        (TokenType.SOURCE_LINE, 1),
+        (TokenType.SOURCE_LINE, 2),
+        (TokenType.EOF, 3),
+    ]
+
+
 def test_instruction_inside_docstring_is_source():
     src = (
         'def f():\n'
