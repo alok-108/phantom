@@ -67,7 +67,7 @@ _phantom() {
             ;;
         # diff
         diff)
-            COMPREPLY=( $(compgen -W "-h --help --host-only --no-color" -- "$cur") )
+            COMPREPLY=( $(compgen -W "-h --help --host-only --exit-code --no-color" -- "$cur") )
             ;;
         # verify
         verify)

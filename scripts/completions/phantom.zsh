@@ -87,6 +87,7 @@ _phantom() {
                     _arguments \
                         '(-h --help)'{-h,--help}'[show help]' \
                         '--host-only[compare only the Python host layer]' \
+                        '--exit-code[exit with 1 if different, 2 on usage or file errors]' \
                         '--no-color[omit ANSI color escapes from the diff]' \
                         '1:original:_files' \
                         '2:candidate:_files'

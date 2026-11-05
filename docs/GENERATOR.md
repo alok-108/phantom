@@ -57,6 +57,8 @@ phantom verify program.py candidate.py --args hello --args bye --stdin-file in.t
 
 `phantom diff` colors added lines green, removed lines red, and hunk headers cyan. Pass `--no-color` (before or after `diff`, e.g. `phantom diff --no-color program.py candidate.py`) or set the `NO_COLOR` environment variable to any value (per https://no-color.org) to get plain diff output with no ANSI escapes.
 
+For CI and pre-commit checks, use `phantom diff --exit-code program.py candidate.py`, or `phantom diff --host-only --exit-code program.py candidate.py` to check only host text. With `--exit-code`, the command returns `0` when the compared layers are identical, `1` when differences exist, and `2` on usage or file errors (including missing, unreadable, or non-UTF-8 files). The diff output is unchanged. Without `--exit-code`, a successful comparison returns `0` even when differences exist, and file errors still return `1`; argument parsing errors return `2` in either mode.
+
 
 Running the candidate is a separate, explicit step by you (`phantom run candidate.py`).
 

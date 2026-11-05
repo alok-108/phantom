@@ -389,6 +389,88 @@ def _diff_pair(tmp_path):
     return f1, f2
 
 
+@pytest.mark.parametrize("host_only", [False, True])
+@pytest.mark.parametrize("change", ["none", "instruction", "host"])
+@pytest.mark.parametrize("exit_code", [False, True])
+def test_cli_diff_exit_code(capsys, tmp_path, host_only, change, exit_code):
+    original = tmp_path / "original.py"
+    candidate = tmp_path / "candidate.py"
+    first = '#: phantom:0.1.0 meta.author("original")\nprint(1)\n'
+    second = first
+    if change == "instruction":
+        second = first.replace('"original"', '"candidate"')
+    elif change == "host":
+        second = first.replace("print(1)", "print(2)")
+    original.write_text(first, encoding="utf-8")
+    candidate.write_text(second, encoding="utf-8")
+    flags = (["--host-only"] if host_only else []) + (["--exit-code"] if exit_code else [])
+    args = ["diff", *flags, str(original), str(candidate)]
+    changed = change == "host" or (change == "instruction" and not host_only)
+
+    assert main(args) == int(exit_code and changed)
+    out, err = capsys.readouterr()
+    assert err == ""
+    assert bool(out) == changed
+    # Status selection must not change the diff or its color handling.
+    assert main([*args, "--no-color"]) == int(exit_code and changed)
+    plain, err = capsys.readouterr()
+    assert err == ""
+    assert "\x1b[" not in plain
+    assert bool(plain) == changed
+    if changed:
+        assert "--- " in plain and "+++ " in plain and "@@ " in plain
+    assert original.read_text(encoding="utf-8") == first
+    assert candidate.read_text(encoding="utf-8") == second
+
+
+@pytest.mark.parametrize("host_only", [False, True])
+@pytest.mark.parametrize("exit_code", [False, True])
+@pytest.mark.parametrize("bad_file", ["original", "candidate"])
+@pytest.mark.parametrize("failure", ["missing", "directory", "utf8", "read"])
+def test_cli_diff_file_error_exit_code(
+    capsys, tmp_path, monkeypatch, host_only, exit_code, bad_file, failure,
+):
+    paths = {name: tmp_path / f"{name}.py" for name in ("original", "candidate")}
+    for path in paths.values():
+        path.write_text("print(1)\n", encoding="utf-8")
+    target = paths[bad_file]
+    if failure in ("missing", "directory"):
+        target.unlink()
+        if failure == "directory":
+            target.mkdir()
+        message = f"{bad_file.title()} file not found"
+    elif failure == "utf8":
+        target.write_bytes(b"\xff")
+        message = "not valid UTF-8"
+    else:
+        # A deterministic read failure, including on Windows or under root.
+        from phantom.cli import read_source
+
+        def fail_read(path):
+            if path == str(target):
+                raise PermissionError("read denied")
+            return read_source(path)
+
+        monkeypatch.setattr("phantom.cli.read_source", fail_read)
+        message = "Error reading files: read denied"
+    flags = (["--host-only"] if host_only else []) + (["--exit-code"] if exit_code else [])
+
+    assert main(["diff", *flags, str(paths["original"]), str(paths["candidate"])]) == (
+        2 if exit_code else 1
+    )
+    out, err = capsys.readouterr()
+    assert out == ""
+    assert message in err
+
+
+@pytest.mark.parametrize("args", [[], ["one.py"], ["one.py", "two.py", "--unknown"]])
+def test_cli_diff_exit_code_usage_error(capsys, args):
+    assert main(["diff", "--exit-code", *args]) == 2
+    out, err = capsys.readouterr()
+    assert out == ""
+    assert "error:" in err
+
+
 def test_cli_diff_is_colored_by_default(capsys, tmp_path, monkeypatch):
     monkeypatch.delenv("NO_COLOR", raising=False)
     f1, f2 = _diff_pair(tmp_path)

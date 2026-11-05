@@ -48,7 +48,7 @@ Register-ArgumentCompleter -CommandName 'phantom' -ScriptBlock {
     }
     # diff
     elseif ($subcommand -eq 'diff') {
-        $flags = @('-h', '--help', '--host-only', '--no-color')
+        $flags = @('-h', '--help', '--host-only', '--exit-code', '--no-color')
         $candidates = $flags
     }
     # verify

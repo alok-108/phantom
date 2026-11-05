@@ -61,6 +61,35 @@ def test_check_load_failure_omits_empty_summary(tmp_path, invalid_utf8):
     assert result.stdout == ""
 
 
+@pytest.mark.parametrize("host_only", [False, True])
+def test_diff_exit_code_documented_usage(tmp_path, host_only):
+    original = tmp_path / "program.py"
+    candidate = tmp_path / "candidate.py"
+    source = '#: phantom:0.1.0 meta.author("original")\nprint(1)\n'
+    original.write_text(source, encoding="utf-8")
+    candidate.write_text(source.replace('"original"', '"candidate"'), encoding="utf-8")
+    flags = ["--host-only"] if host_only else []
+    args = ("diff", *flags, "--no-color", str(original), str(candidate))
+    normal = _phantom(*args)
+    checked = _phantom(*args, "--exit-code")
+    assert normal.returncode == 0
+    assert checked.returncode == (0 if host_only else 1)
+    assert checked.stdout == normal.stdout
+    assert checked.stderr == normal.stderr == ""
+
+    candidate.write_text(source.replace("print(1)", "print(2)"), encoding="utf-8")
+    changed = _phantom(*args, "--exit-code")
+    assert changed.returncode == 1
+    assert "-print(1)" in changed.stdout and "+print(2)" in changed.stdout
+    assert changed.stderr == ""
+
+    original.unlink()
+    missing = _phantom(*args, "--exit-code")
+    assert missing.returncode == 2
+    assert missing.stdout == ""
+    assert "Original file not found" in missing.stderr
+
+
 def test_comments_run_output():
     result = _phantom("run", "docs/examples/comments.py")
     assert result.returncode == 0
