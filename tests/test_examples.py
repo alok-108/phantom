@@ -85,6 +85,19 @@ def test_events_run_output():
     ]
 
 
+def test_run_forwards_stdout_and_stderr_without_extra_blank_lines(tmp_path):
+    target = tmp_path / "streams.py"
+    target.write_text(
+        'import sys\nprint("output")\nprint("warning", file=sys.stderr)\n', encoding="utf-8"
+    )
+
+    result = _phantom("run", "--quiet", str(target))
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == "output\n"
+    assert result.stderr == "warning\n"
+
+
 @pytest.mark.parametrize(
     "name,encoding,message",
     [
