@@ -10,6 +10,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
 
 ### Fixed
+- `apply_plan` no longer rejects a plan that inserts at the end of the file when its anchor names the last non-empty line: the anchor is now checked against that line instead of the non-existent line `total + 1`, so `--placement end` plans with an anchor are accepted while a mismatched anchor is still rejected (#137).
 - `phantom check` omits the empty diagnostic summary when a file fails to load (#224).
 - Validator no longer cascades spurious "before it is created" errors when `counter.create` has an invalid limit (#182).
 - `SourceMap` no longer overwrites default line mappings with file-scoped mappings in multi-file source maps (#172).
