@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from phantom.generator.diff import format_diff_colored
 from phantom.generator.equivalence import compare_behavior, host_ast_equal
 from phantom.generator.models import ComparisonVerdict, VerificationCase
@@ -172,8 +174,8 @@ def test_stdin_case_feeds_the_same_text_to_both_programs():
     cases = [VerificationCase(stdin_text="alice\n"), VerificationCase(stdin_text="bob\n")]
     res = compare_behavior(source, source, cases=cases)
     assert res.verdict == ComparisonVerdict.EQUIVALENT
-    assert res.case_results[0].original_stdout == "alice\n"
-    assert res.case_results[1].original_stdout == "bob\n"
+    assert res.case_results[0].original_stdout == f"alice{os.linesep}"
+    assert res.case_results[1].original_stdout == f"bob{os.linesep}"
 
 
 def test_match_plus_inconclusive_case_is_inconclusive_not_equivalent():
