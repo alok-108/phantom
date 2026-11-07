@@ -5,6 +5,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 ## [Unreleased]
 
 ### Added
+- Simplified Chinese quickstart guide (`docs/zh-CN/QUICKSTART.md`) (#153).
 - `phantom diff --exit-code` returns `1` when differences exist and `2` on usage or file errors, including with `--host-only`; comparisons without the flag keep their existing exit codes (#229).
 - French quickstart guide (`docs/fr/QUICKSTART.md`) (#173).
 - Emacs major mode (`scripts/syntax/phantom-mode.el`) for syntax highlighting (#185).

@@ -1,6 +1,6 @@
 # Phantom
 
-🌐 **Translations:** [हिन्दी](docs/hi/README.md) · [Deutsch](docs/de/QUICKSTART.md) · [Español](docs/es/QUICKSTART.md) · [Português (Brasil)](docs/pt-BR/QUICKSTART.md) · [Français](docs/fr/QUICKSTART.md)
+🌐 **Translations:** [हिन्दी](docs/hi/README.md) · [Deutsch](docs/de/QUICKSTART.md) · [Español](docs/es/QUICKSTART.md) · [Português (Brasil)](docs/pt-BR/QUICKSTART.md) · [Français](docs/fr/QUICKSTART.md) · [简体中文](docs/zh-CN/QUICKSTART.md) 
 
 [![tests](https://github.com/alok-108/phantom/actions/workflows/tests.yml/badge.svg)](https://github.com/alok-108/phantom/actions/workflows/tests.yml)
 [![release](https://img.shields.io/github/v/release/alok-108/phantom)](https://github.com/alok-108/phantom/releases)
