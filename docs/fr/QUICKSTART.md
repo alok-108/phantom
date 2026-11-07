@@ -1,6 +1,6 @@
 # Démarrage rapide
 
-🌐 **Langues :** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · [Deutsch](../de/QUICKSTART.md) · [Español](../es/QUICKSTART.md) · [Português (Brasil)](../pt-BR/QUICKSTART.md) · French
+🌐 **Langues :** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · [Deutsch](../de/QUICKSTART.md) · [Español](../es/QUICKSTART.md) · [Português (Brasil)](../pt-BR/QUICKSTART.md) · French · [简体中文](../zh-CN/QUICKSTART.md)
 
 Chaque commande et chaque sortie ci-dessous a été produite en exécutant les fichiers d'exemple du dépôt. Les chemins sont relatifs à la racine du dépôt.
 

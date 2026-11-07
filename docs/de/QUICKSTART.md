@@ -1,6 +1,6 @@
 # Schnellstart
 
-🌐 **Sprachen:** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · Deutsch
+🌐 **Sprachen:** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · Deutsch · [Español](../es/QUICKSTART.md) · [Português (Brasil)](../pt-BR/QUICKSTART.md) · [Français](../fr/QUICKSTART.md) · [简体中文](../zh-CN/QUICKSTART.md)
 
 Jeder Befehl und jede Ausgabe unten stammt aus den Beispiel-Dateien des
 Repositories. Pfade sind relativ zum Repository-Root.
