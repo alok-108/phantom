@@ -1,6 +1,6 @@
 # 简体中文版
 
-🌐 **语言:** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · [Deutsch](../de/QUICKSTART.md) · [Español](../es/QUICKSTART.md) · [Português (Brasil)](../pt-BR/QUICKSTART.md) · 简体中文
+🌐 **语言:** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · [Deutsch](../de/QUICKSTART.md) · [Español](../es/QUICKSTART.md) · [Português (Brasil)](../pt-BR/QUICKSTART.md) · [Français](../fr/QUICKSTART.md) · 简体中文
 
 以下的每条命令与输出均通过本仓库中示例代码构建。其路径均相对于仓库根目录。
 
@@ -20,7 +20,7 @@ phantom 0.1.1
 
 ## 2. Look at a file
 
-[docs/examples/comments.py](examples/comments.py)是原始的Python代码，其后是注释中的Phantom指令。
+[docs/examples/comments.py](../examples/comments.py)是原始的Python代码，其后是注释中的Phantom指令。
 
 ```python
 #: phantom:0.1.0 meta.author("Ada Lovelace")
@@ -52,7 +52,7 @@ phantom check docs/examples/comments.py
 0 error(s), 0 warning(s)
 ```
 
-损坏的文件([docs/examples/invalid.py](examples/invalid.py))将会被拒绝执行，并给出错误位置与插入符，按行顺序显示，且退出状态为 2：
+损坏的文件([docs/examples/invalid.py](../examples/invalid.py))将会被拒绝执行，并给出错误位置与插入符，按行顺序显示，且退出状态为 2：
 
 ```bash
 phantom check docs/examples/invalid.py
@@ -113,11 +113,11 @@ Hello, World!
 [INFO] [docs/examples/comments.py:18:0 [comment]] Greeting counter initialised
 ```
 
-`phantom run`将校验文件，应用其指令层，并将宿主作为子进程运行，随后先输出宿主输出，再输出诊断信息。其退出状态即为宿主的退出状态。有关完整生命周期以及指令的作用范围与边界，请参见 [RUNTIME.md](RUNTIME.md)。
+`phantom run`将校验文件，应用其指令层，并将宿主作为子进程运行，随后先输出宿主输出，再输出诊断信息。其退出状态即为宿主的退出状态。有关完整生命周期以及指令的作用范围与边界，请参见 [RUNTIME.md](../RUNTIME.md)。
 
 ## 7. Hooks
 
-[docs/examples/events.py](examples/events.py) 为内置生命周期事件注册了普通函数：
+[docs/examples/events.py](../examples/events.py) 为内置生命周期事件注册了普通函数：
 
 ```bash
 phantom run docs/examples/events.py
@@ -133,7 +133,7 @@ Doing the work.
 
 ## 8. Other encodings
 
-[whitespace.py](examples/whitespace.py)、[unicode.py](examples/unicode.py) 和 [hybrid.py](examples/hybrid.py) 以不可见形式承载其指令。它们既可在普通 Python 下运行，也可在 Phantom 下运行：
+[whitespace.py](../examples/whitespace.py)、[unicode.py](../examples/unicode.py) 和 [hybrid.py](../examples/hybrid.py) 以不可见形式承载其指令。它们既可在普通 Python 下运行，也可在 Phantom 下运行：
 
 ```bash
 phantom run docs/examples/whitespace.py
@@ -148,7 +148,7 @@ Executing core Python logic!
 [INFO] [docs/examples/whitespace.py:11:0 [whitespace]] hidden in whitespace
 ```
 
-请在将他们应用到实际工作前，阅读[ENCODINGS.md](ENCODINGS.md) 。
+请在将他们应用到实际工作前，阅读[ENCODINGS.md](../ENCODINGS.md) 。
 
 ## 9. Generate (optional, remote)
 
@@ -157,7 +157,7 @@ phantom generate docs/examples/hello.py --intent "note the program start" \
     --allow-remote --dry-run
 ```
 
-这将发送文件到配置好的服务提供商(需要`pip install "phantom-lang[llm]"`并且配置`GEMINI_API_KEY`)。 参见 [GENERATOR.md](GENERATOR.md)。
+这将发送文件到配置好的服务提供商(需要`pip install "phantom-lang[llm]"`并且配置`GEMINI_API_KEY`)。 参见 [GENERATOR.md](../GENERATOR.md)。
 
 ## 10. Locking things down
 你可以借助`--deny`限制运行时能力，或借助`--handlers-from`限定程序允许的处理目录。
@@ -242,4 +242,4 @@ Running host program under policy rules.
 
 ## Next
 
-[LANGUAGE_GUIDE.md](LANGUAGE_GUIDE.md) · [ENCODINGS.md](ENCODINGS.md) · [RUNTIME.md](RUNTIME.md) · [GENERATOR.md](GENERATOR.md)
+[LANGUAGE_GUIDE.md](../LANGUAGE_GUIDE.md) · [ENCODINGS.md](../ENCODINGS.md) · [RUNTIME.md](../RUNTIME.md) · [GENERATOR.md](../GENERATOR.md)
