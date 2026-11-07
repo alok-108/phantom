@@ -1,5 +1,7 @@
 # त्वरित शुरुआत
 
+🌐 **भाषाएँ:** [English](../QUICKSTART.md) · हिन्दी · [Deutsch](../de/QUICKSTART.md) · [Español](../es/QUICKSTART.md) · [Português (Brasil)](../pt-BR/QUICKSTART.md) · [Français](../fr/QUICKSTART.md) · [简体中文](../zh-CN/QUICKSTART.md)
+
 नीचे दिए गए प्रत्येक command और output को repository की example files चलाकर प्राप्त किया गया है। Paths repository root के सापेक्ष हैं।
 
 ## 1. इंस्टॉल करें
