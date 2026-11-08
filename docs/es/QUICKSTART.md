@@ -1,6 +1,6 @@
 # Inicio Rápido
 
-🌐 **Idiomas:** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · [Deutsch](../de/QUICKSTART.md) · Spanish
+🌐 **Idiomas:** [English](../QUICKSTART.md) · [हिन्दी](../hi/QUICKSTART.md) · [Deutsch](../de/QUICKSTART.md) · Spanish · [Português (Brasil)](../pt-BR/QUICKSTART.md) · [Français](../fr/QUICKSTART.md) · [简体中文](../zh-CN/QUICKSTART.md)
 
 Todos los comandos y resultados que aparecen a continuación se obtuvieron ejecutando los archivos de ejemplo del repositorio. Las rutas son relativas a la raíz del repositorio.
 
