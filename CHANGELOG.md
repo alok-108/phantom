@@ -12,6 +12,11 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
 
 ### Fixed
+- `_invoke_callback` aligns positional-only arguments when earlier positional parameters with default values are omitted from the event payload (#248).
+- `increment_counter` and `decrement_counter` check whether `cap.diagnostics` is granted before recording boundary diagnostics, preventing unhandled `CapabilityError` when diagnostics capability is denied (#249).
+- `PhantomRuntime.execute_host` appends the host directory to `sys.path` rather than prepending it, preventing local scripts from shadowing standard-library modules during lifecycle hooks (#216).
+- `CapabilityGrant` implements `__eq__` and `__hash__`, so grants with identical capability sets compare equal (#227).
+- `execute_host_program` validates that `timeout` is a positive and finite number, raising `ValueError` on non-positive or non-finite values (#241).
 - `phantom run` preserves Windows line endings in host output without adding blank lines (#238).
 - The lexer falls back to scanning lines when Python's tokenizer raises a Unicode decoding error (#237).
 - `apply_plan` no longer rejects a plan that inserts at the end of the file when its anchor names the last non-empty line: the anchor is now checked against that line instead of the non-existent line `total + 1`, so `--placement end` plans with an anchor are accepted while a mismatched anchor is still rejected (#137).

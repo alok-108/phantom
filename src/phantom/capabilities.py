@@ -121,6 +121,14 @@ class CapabilityGrant:
         caps = ", ".join(sorted(c.name for c in self.granted))
         return f"CapabilityGrant({caps})"
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CapabilityGrant):
+            return NotImplemented
+        return self.granted == other.granted
+
+    def __hash__(self) -> int:
+        return hash(self.granted)
+
 
 def parse_capability(name: str) -> Capability:
     """Parse ``cap.events`` or just ``events`` into a Capability.

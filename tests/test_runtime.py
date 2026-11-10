@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 import pytest
 
@@ -746,3 +747,53 @@ def test_runtime_execute_host_restores_sys_path(tmp_path):
     assert res.exit_code == 0
     assert str(sub) not in sys.path
     assert sys.path == orig_path
+
+
+def test_runtime_execute_host_appends_to_sys_path(tmp_path):
+    sub = tmp_path / "custom_host_dir"
+    sub.mkdir()
+    script = sub / "test_prog.py"
+    script.write_text("print('hello')\n")
+    runtime = PhantomRuntime()
+
+    seen_sys_path: list[str] = []
+
+    def pre_hook(**kw):
+        seen_sys_path.extend(sys.path)
+
+    runtime.register_handler("phantom.pre_execute", pre_hook)
+    res = runtime.execute_host(str(script))
+    assert res.exit_code == 0
+    assert str(sub) in seen_sys_path
+    assert seen_sys_path[-1] == str(sub)
+    assert seen_sys_path[0] != str(sub)
+
+
+def test_invoke_callback_positional_only_with_omitted_default():
+    rt = PhantomRuntime()
+    captured: dict[str, Any] = {}
+
+    def hook(x=10, host_file="default", /):
+        captured["x"] = x
+        captured["host_file"] = host_file
+        return (x, host_file)
+
+    rt.declare_event("test")
+    rt.register_handler("test", hook)
+    results = rt.fire_event("test", host_file="my_program.py")
+    assert results == [(10, "my_program.py")]
+    assert captured == {"x": 10, "host_file": "my_program.py"}
+
+
+def test_counter_boundary_when_diagnostics_denied():
+    grant = CapabilityGrant([Capability.COUNTERS])  # cap.diagnostics denied
+    rt = PhantomRuntime(capabilities=grant)
+    rt.create_counter("c", 1)
+    assert rt.increment_counter("c") == 1
+    # Exceeding limit should not raise CapabilityError even though cap.diagnostics is denied
+    assert rt.increment_counter("c") == 1
+
+    # Decrementing below 0 should also not raise CapabilityError
+    assert rt.decrement_counter("c") == 0
+    assert rt.decrement_counter("c") == 0
+
