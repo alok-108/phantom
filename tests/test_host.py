@@ -5,6 +5,8 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
+import pytest
+
 from phantom.host import HostResult, execute_host_program
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
@@ -144,3 +146,12 @@ def test_execute_host_program_stderr_truncation_is_flagged(tmp_path):
     assert res.truncated is True
     assert res.stderr_truncated is True
     assert len(res.stderr.encode("utf-8")) == 512
+
+
+@pytest.mark.parametrize("invalid_timeout", [0, -1, -0.5, float("nan"), float("inf"), float("-inf")])
+def test_execute_host_program_invalid_timeout(tmp_path, invalid_timeout):
+    script = tmp_path / "hello.py"
+    script.write_text("print('hello')\n")
+    with pytest.raises(ValueError, match="timeout must be positive and finite"):
+        execute_host_program(str(script), timeout=invalid_timeout)
+

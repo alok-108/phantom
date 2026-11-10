@@ -237,7 +237,7 @@ class PhantomRuntime:
         orig_sys_path = list(sys.path)
         inserted = False
         if host_dir not in sys.path:
-            sys.path.insert(0, host_dir)
+            sys.path.append(host_dir)
             inserted = True
 
         try:
@@ -369,8 +369,11 @@ class PhantomRuntime:
         pos_args: list[Any] = []
         kw_args: dict[str, Any] = {}
         for name, param in sig.parameters.items():
-            if param.kind == inspect.Parameter.POSITIONAL_ONLY and name in kwargs:
-                pos_args.append(kwargs[name])
+            if param.kind == inspect.Parameter.POSITIONAL_ONLY:
+                if name in kwargs:
+                    pos_args.append(kwargs[name])
+                elif param.default is not inspect.Parameter.empty:
+                    pos_args.append(param.default)
             elif (
                 param.kind
                 in (
@@ -450,8 +453,9 @@ class PhantomRuntime:
 
         current, limit = self._counters[name]
         if current >= limit:
-            msg = f"RuntimeError: Counter '{name}' exceeded limit ({limit})"
-            self.add_diagnostic(msg, severity=Severity.ERROR)
+            if self._capabilities.check(Capability.DIAGNOSTICS):
+                msg = f"RuntimeError: Counter '{name}' exceeded limit ({limit})"
+                self.add_diagnostic(msg, severity=Severity.ERROR)
             return limit
 
         new_val = current + 1
@@ -470,8 +474,9 @@ class PhantomRuntime:
 
         current, limit = self._counters[name]
         if current <= 0:
-            msg = f"RuntimeError: Counter '{name}' decremented below 0"
-            self.add_diagnostic(msg, severity=Severity.WARNING)
+            if self._capabilities.check(Capability.DIAGNOSTICS):
+                msg = f"RuntimeError: Counter '{name}' decremented below 0"
+                self.add_diagnostic(msg, severity=Severity.WARNING)
             return 0
 
         new_val = current - 1

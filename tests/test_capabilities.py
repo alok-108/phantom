@@ -11,6 +11,7 @@ from phantom.capabilities import (
     CapabilityError,
     CapabilityGrant,
     PhantomError,
+    build_policy,
 )
 from phantom.ir import InstructionType
 
@@ -72,3 +73,24 @@ def test_capability_grant_instruction():
     grant.require_instruction(InstructionType.EVENT_DECLARE)
     with pytest.raises(CapabilityError):
         grant.require_instruction(InstructionType.COUNTER_CREATE)
+
+
+def test_capability_grant_equality_and_hash():
+    g1 = CapabilityGrant()
+    g2 = CapabilityGrant()
+    assert g1 == g2
+    assert hash(g1) == hash(g2)
+    assert g1 != "not_a_grant"
+
+    g3 = CapabilityGrant([Capability.EVENTS, Capability.COUNTERS])
+    g4 = CapabilityGrant([Capability.COUNTERS, Capability.EVENTS])
+    g5 = CapabilityGrant([Capability.EVENTS])
+    assert g3 == g4
+    assert hash(g3) == hash(g4)
+    assert g3 != g5
+
+    p1 = build_policy(deny=[])
+    p2 = build_policy(deny=[])
+    assert p1 == p2
+    assert hash(p1) == hash(p2)
+

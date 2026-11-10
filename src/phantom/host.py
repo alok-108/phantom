@@ -7,6 +7,7 @@ and resource management.
 from __future__ import annotations
 
 import contextlib
+import math
 import os
 import signal
 import subprocess
@@ -171,6 +172,9 @@ def execute_host_program(
     When stdin_text is None the program inherits the caller's stdin, as before;
     when it is given, exactly those bytes are fed to the program instead.
     """
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("timeout must be positive and finite")
+
     if not os.path.isfile(filepath):
         return HostResult(
             exit_code=1,
