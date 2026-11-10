@@ -246,3 +246,14 @@ def test_inspect_encoding_ignores_hybrid_header_in_docstring():
     info = inspect_encoding(source)
     assert info["has_hybrid_header"] is False
     assert info["detected_mode"] is None
+
+
+def test_inspect_encoding_ignores_hybrid_header_substring_in_comments():
+    source = (
+        '# Learn more at #:phantom:hybrid\n'
+        '#: phantom:0.1.0 diagnostic.note("test")\n'
+    )
+    res = inspect_encoding(source)
+    assert res["has_hybrid_header"] is False
+    assert res["detected_mode"] == EncodingMode.COMMENT
+

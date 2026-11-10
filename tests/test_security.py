@@ -230,6 +230,20 @@ class TestStrictAudit:
         assert "Unexpected whitespace block closing marker '#:ws:end' without preceding begin marker" in findings[0].message
         assert findings[0].source.line == 2
 
+    def test_nested_or_duplicate_ws_begin_reported(self):
+        from phantom.validator import audit_source
+
+        src = "#:ws:begin\n#:ws:begin\n#:ws:end\n"
+        findings = audit_source(src, "dup_ws.py")
+        assert any("Nested or duplicate whitespace block begin marker" in f.message for f in findings)
+
+    def test_nested_or_duplicate_zw_begin_reported(self):
+        from phantom.validator import audit_source
+
+        src = "#:zw:begin\n#:zw:begin\n#:zw:end\n"
+        findings = audit_source(src, "dup_zw.py")
+        assert any("Nested or duplicate zero-width block begin marker" in f.message for f in findings)
+
     def test_cli_strict_exit_codes(self, tmp_path, capsys):
         bad = tmp_path / "bad.py"
         bad.write_text(f"x = 1 # {RLO}\n", encoding="utf-8")

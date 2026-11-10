@@ -181,6 +181,13 @@ def audit_source(source: str, filename: str = "<string>") -> list[ValidationErro
     for lineno, line in enumerate(split_physical_lines(source), start=1):
         stripped = line.strip()
         if stripped == WS_BEGIN_MARKER:
+            if in_ws:
+                findings.append(
+                    ValidationError(
+                        f"Nested or duplicate whitespace block begin marker '{WS_BEGIN_MARKER}'",
+                        source=SourceLocation(filename, lineno, 0, EncodingMode.WHITESPACE),
+                    )
+                )
             in_ws = True
             ws_begin_lineno = lineno
             continue
@@ -196,6 +203,13 @@ def audit_source(source: str, filename: str = "<string>") -> list[ValidationErro
             ws_begin_lineno = None
             continue
         if stripped == ZW_BEGIN_MARKER:
+            if in_zw:
+                findings.append(
+                    ValidationError(
+                        f"Nested or duplicate zero-width block begin marker '{ZW_BEGIN_MARKER}'",
+                        source=SourceLocation(filename, lineno, 0, EncodingMode.UNICODE),
+                    )
+                )
             in_zw = True
             zw_begin_lineno = lineno
             continue

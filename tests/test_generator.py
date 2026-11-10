@@ -441,6 +441,17 @@ class TestGeminiWiring:
         with pytest.raises(ProviderError, match="google-genai is not installed"):
             GeminiProvider(api_key="k").complete("x")
 
+    def test_blocked_response_raises_provider_error(self, monkeypatch):
+        class BlockedResponse:
+            @property
+            def text(self):
+                raise ValueError("response.text quick accessor requires the response to contain a valid Part")
+
+        self._install_fake(monkeypatch, lambda: BlockedResponse())
+        with pytest.raises(ProviderError) as info:
+            GeminiProvider(api_key="secret-key-123456").complete("x")
+        assert "response.text quick accessor" in str(info.value)
+
 
 def types_ns(**kw):
     import types
@@ -500,6 +511,23 @@ class TestStalePatches:
         data["instructions"][0]["anchor"] = "def not_here():"
         res = generate(_request(placement="near:greet"), StaticProvider(json.dumps(data)))
         assert not res.success and "Stale or mismatched" in res.errors[0]
+
+    def test_anchor_cleared_when_matching_model_placement_overridden(self):
+        source = "def foo():\n    return 42\n"
+        data = {
+            "instructions": [
+                {
+                    "instruction_type": "meta.author",
+                    "arguments": [{"type": "string", "value": "Alice"}],
+                    "placement_line": 2,
+                    "anchor": "    return 42",
+                }
+            ]
+        }
+        res = generate(GenerationRequest(source_code=source, intent="Add author"), StaticProvider(json.dumps(data)))
+        assert res.success, f"Expected generation to succeed, got errors: {res.errors}"
+        assert 'meta.author("Alice")' in res.candidate_source
+
 
     def test_result_records_source_digest(self):
         from phantom.generator.workflow import source_digest
