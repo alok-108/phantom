@@ -12,6 +12,7 @@ from phantom.generator.prompts import build_prompt
 from phantom.generator.provider import LLMProvider, ProviderError
 from phantom.generator.transformer import TransformError, apply_plan, resolve_placement
 from phantom.generator.validation import validate_candidate
+from phantom.lines import split_physical_lines
 
 MAX_SOURCE_CHARS = 100_000
 
@@ -54,7 +55,16 @@ def generate(request: GenerationRequest, provider: LLMProvider) -> GenerationRes
         result.errors.append(f"Unusable model response: {exc}")
         return result
     # Placement is decided locally; the model's line numbers are not trusted.
+    source_lines = split_physical_lines(request.source_code)
     for planned in plan.instructions:
+        if planned.anchor is not None:
+            model_line = planned.placement_line
+            if (
+                1 <= model_line <= len(source_lines)
+                and source_lines[model_line - 1].strip() == planned.anchor.strip()
+                and model_line != target_line
+            ):
+                planned.anchor = None
         planned.placement_line = target_line
     result.plan = plan
     if not plan.valid:

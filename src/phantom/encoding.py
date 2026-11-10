@@ -595,9 +595,9 @@ def inspect_encoding(source_text: str) -> dict[str, Any]:
 
     # Only flag header if it's on a real code line, NOT in a docstring/string
     has_hybrid_header = any(
-    HYBRID_HEADER in line
-    for line_idx, line in enumerate(split_physical_lines(source_text))
-    if (line_idx + 1) not in string_lines
+        line.strip() == HYBRID_HEADER
+        for line_idx, line in enumerate(split_physical_lines(source_text))
+        if (line_idx + 1) not in string_lines
     )
 
     comment_count = 0

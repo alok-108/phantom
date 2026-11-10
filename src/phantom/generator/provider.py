@@ -79,11 +79,11 @@ class GeminiProvider(LLMProvider):
                 http_options=types.HttpOptions(timeout=int(self.timeout * 1000)),
             )
             response = client.models.generate_content(model=self.model, contents=prompt)
+            return response.text or ""
         except Exception as exc:
             raise ProviderError(
                 f"Gemini request failed: {redact(str(exc), (self.api_key,))}"
             ) from None
-        return response.text or ""
 
 
 class StaticProvider(LLMProvider):

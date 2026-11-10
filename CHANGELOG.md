@@ -12,6 +12,10 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
 
 ### Fixed
+- `audit_source` detects and reports nested or duplicate whitespace and zero-width block begin markers (`#:ws:begin` and `#:zw:begin`) (#239).
+- Generation workflow clears stale model-provided anchors when overriding `placement_line` to local target placement, preventing false patch mismatch errors (#226).
+- `GeminiProvider.complete` accesses `response.text` inside the error-handling block, properly catching and redacting `ValueError` from blocked or empty model responses (#222).
+- `inspect_encoding` matches `#:phantom:hybrid` on whole physical lines only, preventing spurious hybrid mode detection when mentioned in comments or documentation (#221).
 - `_invoke_callback` aligns positional-only arguments when earlier positional parameters with default values are omitted from the event payload (#248).
 - `increment_counter` and `decrement_counter` check whether `cap.diagnostics` is granted before recording boundary diagnostics, preventing unhandled `CapabilityError` when diagnostics capability is denied (#249).
 - `PhantomRuntime.execute_host` appends the host directory to `sys.path` rather than prepending it, preventing local scripts from shadowing standard-library modules during lifecycle hooks (#216).
