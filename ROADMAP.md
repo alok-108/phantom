@@ -9,9 +9,9 @@ This document outlines the development trajectory of the Phantom dual-layer prog
 ```
   v0.1.0 (Current)             v0.2.0 (Planned)             v0.3.0 (Planned)             Future / Long-Term
 ┌────────────────────┐       ┌────────────────────┐       ┌────────────────────┐       ┌────────────────────┐
-│ • 7 Instructions   │       │ • Extended Grammar │       │ • Repo-Wide Graphs │       │ • Phantom C research│
+│ • 12 Instructions  │       │ • Extended Grammar │       │ • Repo-Wide Graphs │       │ • Phantom C research│
 │ • 4 Encodings      │  ───> │ • Language Server  │  ───> │ • Async Dispatch   │  ───> │ • Observer studies │
-│ • CLI Suite        │       │ • Rich Diagnostics │       │ • State Invariants │       │ • Method + results │
+│ • CLI Suite        │       │ • CLI Color        │       │ • State Invariants │       │ • Method + results │
 │ • Gemini Generator │       │ • AST Integration  │       │ • CI/CD Verifier   │       │ • Formal invariants│
 └────────────────────┘       └────────────────────┘       └────────────────────┘       └────────────────────┘
 ```
@@ -22,7 +22,7 @@ This document outlines the development trajectory of the Phantom dual-layer prog
 
 ### v0.1.x — Initial Release (Current)
 *Status: Released on GitHub (v0.1.1). Not on PyPI (see `docs/RELEASING.md`).*
-- **Instruction Registry:** Implementation of 7 core instructions (`event.declare`, `event.on`, `diagnostic.note`, `counter.create`, `counter.increment`, `meta.author`, `meta.version`).
+- **Instruction Registry (Implemented):** 12 instructions: `event.declare`, `event.on`, `diagnostic.note`, `diagnostic.warn`, `counter.create`, `counter.increment`, `counter.decrement`, `counter.reset`, `meta.author`, `meta.version`, `meta.license`, and `meta.tags` ([registry](src/phantom/grammar.py), [tests](tests/test_grammar.py)).
 - **Encodings:** 4 fully functional encoding modes (Comment, Whitespace 8-bit, Zero-Width Unicode 2-bit, and Hybrid).
 - **Core Architecture:**
   - Lexical scanner and multi-encoding parser.
@@ -30,8 +30,9 @@ This document outlines the development trajectory of the Phantom dual-layer prog
   - Static validator checking argument counts, types, and strict Unicode policies.
   - 9-step runtime execution engine.
 - **Command-Line Interface:** `phantom check`, `inspect`, `run`, `generate`, `diff`, `verify`; strict invisible-character audit; SARIF export for `check`.
+- **Diagnostics (Implemented):** `check` renders source context and caret markers and can export SARIF; the rendering API supports ANSI color, but the CLI currently calls it without color ([implementation](src/phantom/diagnostics.py), [CLI](src/phantom/cli.py), [tests](tests/test_ir.py)). A [GitHub Action](action.yml) can upload SARIF.
 - **LLM Integration:** Provider-independent generator pipeline (Gemini provider included, untested against the live API) with plan validation, an insert-only transformer, and AST-based host-preservation checking.
-- **Known gaps carried forward:** firing custom events from host code, restricted-capability CLI mode, handler allow-lists, sandboxed comparison.
+- **Implemented controls and limits:** `run` supports capability restrictions and handler allow-lists; the runtime API can fire custom events ([policy tests](tests/test_policy.py), [runtime tests](tests/test_runtime.py)). Sandboxed comparison remains a gap.
 
 ---
 
@@ -46,8 +47,7 @@ This document outlines the development trajectory of the Phantom dual-layer prog
   - Visual decoders and hover cards for whitespace and zero-width Unicode blocks in VS Code and Neovim.
   - Autocompletion for instruction identifiers and event names.
 - **Enhanced Diagnostics & Error Reporting:**
-  - Rich ANSI/colorized terminal diagnostics showing source line context with caret markers.
-  - Structured SARIF (Static Analysis Results Interchange Format) export for CI/CD runners.
+  - **Proposed:** Enable ANSI/colorized diagnostics in the CLI; source context, caret markers and SARIF export are already implemented as described above.
 - **Host AST Awareness:**
   - Correlating Phantom instruction line positions with host Python AST nodes (e.g., associating an instruction with the immediately following function or class definition).
 
@@ -56,14 +56,14 @@ This document outlines the development trajectory of the Phantom dual-layer prog
 ### v0.3.0 — Distributed Coordination & Advanced Events (Target: Q4 2027)
 *Status: Proposed*
 - **Repository-Wide Dual-Layer Analysis:**
-  - Project-level instruction graph indexing (`phantom check src/`).
+  - Project-level instruction graph indexing (directory checks exist; graph indexing is proposed).
   - Cross-module event resolution (listening in `module_b.py` to events declared in `module_a.py`).
   - Detection of dangling event handlers and cyclic dependencies across packages.
 - **Asynchronous & Thread-Safe Dispatch:**
   - Support for `asyncio` event handlers.
   - Thread-safe atomic counter increments in multi-threaded host environments.
 - **CI/CD Guardrails & Automated Regressions:**
-  - GitHub Actions and GitLab CI integrations to enforce encoding consistency and behavioral preservation on pull requests.
+  - Extend CI integrations to enforce encoding consistency and behavioral preservation on pull requests; the existing GitHub Action checks files and can upload SARIF, while the broader guardrails and GitLab integration are proposed.
   - Differential behavioral testing with automated fuzz inputs.
 
 ---
