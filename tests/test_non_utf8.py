@@ -27,6 +27,7 @@ def files(tmp_path):
         ["check", "{bad}", "--format", "sarif"],
         ["inspect", "{bad}"],
         ["inspect", "{bad}", "--json"],
+        ["run", "{bad}"],
         ["verify", "{bad}", "{ok}"],
         ["verify", "{ok}", "{bad}"],
         ["generate", "{bad}", "--intent", "x", "--dry-run"],
