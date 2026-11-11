@@ -5,6 +5,8 @@ import io
 import tokenize
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from phantom.generator.models import PlannedInstruction, TransformationPlan
 from phantom.generator.prompts import _numbered
@@ -34,6 +36,16 @@ def test_split_physical_lines(source: str, without_endings: list[str], with_endi
 
     assert split_physical_lines(source) == without_endings
     assert split_physical_lines(source, keepends=True) == with_endings
+
+
+class TestSplitPhysicalLinesProperties:
+    @given(st.text())
+    def test_roundtrip_and_line_boundaries(self, text: str) -> None:
+        from phantom.lines import split_physical_lines
+
+        assert split_physical_lines("") == []
+        assert "".join(split_physical_lines(text, keepends=True)) == text
+        assert all("\r" not in line and "\n" not in line for line in split_physical_lines(text, keepends=False))
 
 
 @pytest.mark.parametrize("separator", NON_PYTHON_SEPARATORS)
