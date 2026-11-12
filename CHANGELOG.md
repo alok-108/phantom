@@ -54,6 +54,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - Support space-containing paths and multiline YAML inputs in CI checks and GitHub Action (#85)
 
 ### Documentation
+- Add a Japanese translation of the Quickstart guide (docs/ja/QUICKSTART.md).
 - `docs/CI.md`: using Phantom in CI (the reusable GitHub Action and `scripts/ci_check.sh`) and Phantom's own quality gates.
 - Add Hindi translations of the README and Quickstart guide.
 
