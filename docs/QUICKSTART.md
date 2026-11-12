@@ -93,6 +93,7 @@ Instructions:
       Source:       docs/examples/comments.py:14:0
       Encoding:     comment
       Capabilities: cap.metadata
+      Kind:         metadata-only
   ...
 ```
 
@@ -181,18 +182,21 @@ Instructions:
       Source:       docs/examples/policy.py:10:0
       Encoding:     comment
       Capabilities: cap.counters
+      Kind:         executable
       Policy:       BLOCKED (denied: cap.counters)
   [2] counter.increment
       Arguments:    string='cap.counters'
       Source:       docs/examples/policy.py:11:0
       Encoding:     comment
       Capabilities: cap.counters
+      Kind:         executable
       Policy:       BLOCKED (denied: cap.counters)
   [3] event.on
       Arguments:    string='phantom.pre_execute', string='hooks.on_start'
       Source:       docs/examples/policy.py:12:0
       Encoding:     comment
       Capabilities: cap.events
+      Kind:         executable
 ```
 
 Attempting to execute the file with denied capabilities will halt execution before the host starts (exit code 2):

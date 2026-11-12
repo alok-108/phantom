@@ -15,6 +15,7 @@ We welcome contributions from anyone interested in dual-layer programming, sourc
 - [@bfs2021](https://github.com/bfs2021)
 - [@bh-official](https://github.com/bh-official)
 - Dikshant Neupane ([@Dikshant-Neupane](https://github.com/Dikshant-Neupane))
+- David Oprea ([@DavidOprea](https://github.com/DavidOprea))
 - [@Kakacat-dot](https://github.com/Kakacat-dot)
 - Naman Rai ([@namanraii](https://github.com/namanraii))
 - Sahil Dhonde ([@SahilDhonde-9](https://github.com/SahilDhonde-9))

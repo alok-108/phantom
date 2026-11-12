@@ -21,6 +21,13 @@ class Capability(Enum):
     COUNTERS = "cap.counters"  # Counter operations
     METADATA = "cap.metadata"  # Metadata declarations
 
+class InstructionKind(str, Enum):
+    """Describes whether an instruction is executable or metadata-only."""
+
+    EXECUTABLE = "executable"
+    METADATA_ONLY = "metadata-only"
+    UNSUPPORTED = "unsupported"
+
 
 DEFAULT_CAPABILITIES = frozenset(
     {
@@ -47,6 +54,22 @@ INSTRUCTION_CAPABILITIES: dict[InstructionType, frozenset[Capability]] = {
     InstructionType.META_VERSION: frozenset({Capability.METADATA}),
     InstructionType.META_LICENSE: frozenset({Capability.METADATA}),
     InstructionType.META_TAGS: frozenset({Capability.METADATA}),
+}
+
+
+INSTRUCTION_KINDS: dict[InstructionType, InstructionKind] = {
+    InstructionType.EVENT_DECLARE: InstructionKind.EXECUTABLE,
+    InstructionType.EVENT_ON: InstructionKind.EXECUTABLE,
+    InstructionType.DIAGNOSTIC_NOTE: InstructionKind.EXECUTABLE,
+    InstructionType.DIAGNOSTIC_WARN: InstructionKind.EXECUTABLE,
+    InstructionType.COUNTER_CREATE: InstructionKind.EXECUTABLE,
+    InstructionType.COUNTER_INCREMENT: InstructionKind.EXECUTABLE,
+    InstructionType.COUNTER_DECREMENT: InstructionKind.EXECUTABLE,
+    InstructionType.COUNTER_RESET: InstructionKind.EXECUTABLE,
+    InstructionType.META_AUTHOR: InstructionKind.METADATA_ONLY,
+    InstructionType.META_VERSION: InstructionKind.METADATA_ONLY,
+    InstructionType.META_LICENSE: InstructionKind.METADATA_ONLY,
+    InstructionType.META_TAGS: InstructionKind.METADATA_ONLY,
 }
 
 

@@ -3,6 +3,7 @@
 All notable changes to Phantom are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Added instruction kind classification (`executable` or `metadata-only`) to `phantom inspect` text and JSON output.
 
 ### Added
 - Simplified Chinese quickstart guide (`docs/zh-CN/QUICKSTART.md`) (#153).
