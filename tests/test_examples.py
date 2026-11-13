@@ -33,7 +33,7 @@ def _python(path: Path) -> subprocess.CompletedProcess:
     )
 
 
-@pytest.mark.parametrize("name", ["hello", "comments", "whitespace", "unicode", "hybrid", "events", "policy", "hooks"])
+@pytest.mark.parametrize("name", ["hello", "comments", "whitespace", "unicode", "hybrid", "events", "policy", "hooks", "counters"])
 def test_plain_python_runs_every_example(name):
     result = _python(EXAMPLES / f"{name}.py")
     assert result.returncode == 0, result.stderr
@@ -111,6 +111,25 @@ def test_events_run_output():
         "[hook] about to run events.py",
         "[hook] finished with exit code 0",
         "Doing the work.",
+    ]
+
+
+def test_counters_run_output():
+    result = _phantom("run", "docs/examples/counters.py")
+    assert result.returncode == 0
+    assert result.stdout.splitlines() == [
+        "=== Phantom Runtime v0.1.1 ===",
+        "[OK] Validation passed (17 instruction(s), 1 warning(s))",
+        "Handling request 1",
+        "Handling request 2",
+        "",
+        "--- Phantom Diagnostics ---",
+        "[INFO] [docs/examples/counters.py:20:0 [comment]] api_calls at 2/3",
+        "[INFO] [docs/examples/counters.py:22:0 [comment]] after decrement: 1/3",
+        "[INFO] [docs/examples/counters.py:24:0 [comment]] counter reset to 0/3",
+        "[ERROR] RuntimeError: Counter 'api_calls' exceeded limit (3)",
+        "[WARNING] RuntimeError: Counter 'api_calls' decremented below 0",
+        "[INFO] [docs/examples/counters.py:33:0 [comment]] boundary handling complete",
     ]
 
 
@@ -246,3 +265,4 @@ def test_policy_example_security_flags():
     # Test blocked handlers path (diagnostics/errors go to stderr)
     blocked_res = _phantom("run", "docs/examples/policy.py", "--handlers-from", "/tmp/elsewhere")
     assert "is not allowed by the handler policy" in blocked_res.stdout
+
