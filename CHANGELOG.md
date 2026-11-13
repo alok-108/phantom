@@ -6,6 +6,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - Added instruction kind classification (`executable` or `metadata-only`) to `phantom inspect` text and JSON output.
 
 ### Added
+- Nushell tab completion script (`scripts/completions/phantom.nu`) for subcommands and flags (#264).
 - TextMate syntax definition (`scripts/syntax/phantom.tmLanguage.json`) for the Phantom instruction layer (#263).
 - Simplified Chinese quickstart guide (`docs/zh-CN/QUICKSTART.md`) (#153).
 - `phantom diff --exit-code` returns `1` when differences exist and `2` on usage or file errors, including with `--host-only`; comparisons without the flag keep their existing exit codes (#229).
