@@ -18,8 +18,10 @@ from typing import Any
 from phantom import diagnostics
 from phantom.capabilities import (
     INSTRUCTION_CAPABILITIES,
+    INSTRUCTION_KINDS,
     Capability,
     CapabilityGrant,
+    InstructionKind,
     build_policy,
     parse_capability,
 )
@@ -245,6 +247,10 @@ def cmd_inspect(args: argparse.Namespace) -> int:
             "instructions": [
                 {
                     "type": inst.type.value,
+                    "kind": INSTRUCTION_KINDS.get(
+                        inst.type,
+                        InstructionKind.UNSUPPORTED
+                    ).value,
                     "arguments": [
                         {"type": a.type.value, "value": a.value}
                         for a in inst.arguments
@@ -300,11 +306,13 @@ def cmd_inspect(args: argparse.Namespace) -> int:
             c.value for c in INSTRUCTION_CAPABILITIES.get(inst.type, frozenset())
         )
         caps_str = ", ".join(caps) if caps else "(none)"
+        kind = INSTRUCTION_KINDS.get(inst.type, InstructionKind.UNSUPPORTED).value
         print(f"  [{idx}] {inst.type.value}")
         print(f"      Arguments:    {args_str if args_str else '(none)'}")
         print(f"      Source:       {inst.source.file}:{inst.source.line}:{inst.source.column}")
         print(f"      Encoding:     {inst.source.encoding.value}")
         print(f"      Capabilities: {caps_str}")
+        print(f"      Kind:         {kind}")
         denied = blocked_by(inst)
         if denied:
             print(f"      Policy:       BLOCKED (denied: {', '.join(denied)})")

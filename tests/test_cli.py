@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -103,6 +104,10 @@ def test_cli_inspect_text(capsys):
     assert "event.declare" in out
     assert "Capabilities:" in out
 
+    assert len(re.findall(r"Kind: [ \t]+metadata-only", out)) == 2
+    assert len(re.findall(r"Kind: [ \t]+executable", out)) == 5
+    assert out.count("Kind:") == 7
+
 
 def test_cli_inspect_json(capsys):
     target = FIXTURES_DIR / "valid_comments.py"
@@ -115,6 +120,18 @@ def test_cli_inspect_json(capsys):
     first = parsed["instructions"][0]
     assert "type" in first
     assert "required_capabilities" in first
+
+    expected_kinds = {
+        "meta.author": "metadata-only",
+        "meta.version": "metadata-only",
+        "event.declare": "executable",
+        "event.on": "executable",
+        "diagnostic.note": "executable",
+        "counter.create": "executable",
+    }
+
+    for inst in parsed["instructions"]:
+        assert inst["kind"] == expected_kinds[inst["type"]]
 
 
 def test_cli_inspect_json_schema_fields(capsys):
