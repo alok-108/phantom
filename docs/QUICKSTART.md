@@ -1,6 +1,6 @@
 # Quick Start
 
-🌐 **Languages:** English · [हिन्दी](hi/QUICKSTART.md) · [Deutsch](de/QUICKSTART.md) · [Español](es/QUICKSTART.md) · [Português (Brasil)](pt-BR/QUICKSTART.md) · [Français](fr/QUICKSTART.md) · [简体中文](zh-CN/QUICKSTART.md) 
+🌐 **Languages:** English · [हिन्दी](hi/QUICKSTART.md) · [Deutsch](de/QUICKSTART.md) · [Español](es/QUICKSTART.md) · [Português (Brasil)](pt-BR/QUICKSTART.md) · [Français](fr/QUICKSTART.md) · [简体中文](zh-CN/QUICKSTART.md) · [日本語](ja/QUICKSTART.md) 
 
 Every command and output below was produced by running the repository's example files. Paths are relative to the repository root.
 
