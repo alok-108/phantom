@@ -293,6 +293,35 @@ def test_powershell_completion_script_covers_cli():
         assert value in text, f"powershell completions miss the {value} value"
 
 
+NUSHELL_COMPLETION = ROOT / "scripts" / "completions" / "phantom.nu"
+EXPECTED_NUSHELL_FLAGS = {
+    "check": ("strict", "format", "deny", "allow-only"),
+    "inspect": ("json", "strict", "deny", "allow-only"),
+    "run": ("timeout", "max-output", "deny", "allow-only", "handlers-from", "allow-handler"),
+    "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "model", "plan-file", "allow-remote"),
+    "diff": ("host-only", "phantom-only", "exit-code", "no-color"),
+    "verify": ("timeout", "max-output", "args", "stdin-file"),
+}
+
+
+def test_nushell_completion_script_covers_cli():
+    assert NUSHELL_COMPLETION.exists(), "scripts/completions/phantom.nu is missing"
+    text = NUSHELL_COMPLETION.read_text(encoding="utf-8")
+    assert "export extern" in text
+    for subcommand in EXPECTED_COMPLETION_SUBCOMMANDS:
+        assert f'export extern "phantom {subcommand}"' in text, (
+            f"nushell completions miss extern declaration for {subcommand}"
+        )
+    for subcommand, flags in EXPECTED_NUSHELL_FLAGS.items():
+        for flag in flags:
+            assert f"--{flag}" in text, (
+                f"nushell completions miss --{flag} for {subcommand}"
+            )
+    for value in EXPECTED_COMPLETION_VALUES:
+        assert value in text, f"nushell completions miss the {value} value"
+
+
+
 EMACS_MODE = ROOT / "scripts" / "syntax" / "phantom-mode.el"
 PHANTOM_EMACS_INSTRUCTIONS = (
     "event.declare",

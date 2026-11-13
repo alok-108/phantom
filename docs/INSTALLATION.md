@@ -168,6 +168,13 @@ completions directory, then start a new shell:
 ```bash
 cp scripts/completions/phantom.fish ~/.config/fish/completions/phantom.fish
 ```
+
+Nushell users get tab completion for subcommands and flags from
+`scripts/completions/phantom.nu`. Source it in your Nushell config (`config.nu`):
+
+```nu
+source scripts/completions/phantom.nu
+```
 After that, `phantom <TAB>` suggests the subcommands (`check`,
 `inspect`, `run`, `generate`, `diff`, `verify`), and
 `phantom check --<TAB>` or `phantom run --<TAB>` suggest that
