@@ -15,8 +15,9 @@ Every command and output here is produced by the files in this directory and is 
 | 10 | Generation from an existing program (offline plan) | `generation/` | below |
 | 11 | Behavior-preservation comparison | `generation/` | below |
 | 12 | Rejected generation / detected behavior change | `generation/` | below |
+| 13 | Bounded counter lifecycle | `counters.py` | `phantom run docs/examples/counters.py` |
 
-Examples 1–9 are walked through with output in [../QUICKSTART.md](../QUICKSTART.md) and [../RUNTIME.md](../RUNTIME.md). `whitespace.py`, `unicode.py` and `hybrid.py` are produced by `python scripts/build_examples.py` because their payload is invisible.
+Examples 1–9 and 13 are walked through with output in [../QUICKSTART.md](../QUICKSTART.md) and [../RUNTIME.md](../RUNTIME.md). `whitespace.py`, `unicode.py` and `hybrid.py` are produced by `python scripts/build_examples.py` because their payload is invisible.
 
 ## 10. Generation (offline)
 
