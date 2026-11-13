@@ -81,7 +81,7 @@ pip install -e ".[dev]"       # development (pytest, ruff)
 pip install -e ".[llm]"       # optional: google-genai for `phantom generate`
 ```
 
-See [docs/INSTALLATION.md](docs/INSTALLATION.md).
+See [docs/INSTALLATION.md](docs/INSTALLATION.md) for details and editor support.
 
 ## Quick start
 
