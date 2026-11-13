@@ -370,3 +370,58 @@ def test_vim_syntax_highlights_phantom_instructions():
         assert marker_body in text, (
             f"Vim syntax does not highlight the {marker} marker"
         )
+
+
+# TextMate syntax highlighting for the Phantom instruction layer (#263).
+TEXTMATE_SYNTAX = ROOT / "scripts" / "syntax" / "phantom.tmLanguage.json"
+PHANTOM_TEXTMATE_INSTRUCTIONS = PHANTOM_NANO_INSTRUCTIONS
+PHANTOM_TEXTMATE_MARKERS = PHANTOM_NANO_MARKERS
+
+
+def test_textmate_syntax_highlights_phantom_instructions():
+    import json
+
+    assert TEXTMATE_SYNTAX.is_file(), "scripts/syntax/phantom.tmLanguage.json is missing"
+    raw = TEXTMATE_SYNTAX.read_text(encoding="utf-8")
+    data = json.loads(raw)
+
+    assert data.get("scopeName") == "source.python.phantom", (
+        "TextMate syntax must define scopeName as source.python.phantom"
+    )
+    assert "py" in data.get("fileTypes", []), (
+        "TextMate syntax must associate with py fileTypes"
+    )
+    assert "comment.line.phantom" in raw, (
+        "TextMate syntax must include comment.line.phantom scope"
+    )
+    assert "constant.numeric.version.phantom" in raw, (
+        "TextMate syntax must include constant.numeric.version.phantom scope"
+    )
+    assert "support.function.phantom" in raw, (
+        "TextMate syntax must include support.function.phantom scope"
+    )
+    assert "keyword.other.marker.phantom" in raw, (
+        "TextMate syntax must include keyword.other.marker.phantom scope"
+    )
+    assert "string.quoted.double.phantom" in raw, (
+        "TextMate syntax must include string.quoted.double.phantom scope"
+    )
+
+    prefix_pattern = data.get("repository", {}).get("prefix", {}).get("match", "")
+    assert r"phantom:[0-9]+\.[0-9]+\.[0-9]+" in prefix_pattern, (
+        "TextMate syntax must match semver in version prefix"
+    )
+
+    instructions_pattern = data.get("repository", {}).get("instructions", {}).get("match", "")
+    for instruction in PHANTOM_TEXTMATE_INSTRUCTIONS:
+        escaped = instruction.replace(".", r"\.")
+        assert escaped in instructions_pattern, (
+            f"TextMate syntax does not highlight {instruction}"
+        )
+
+    markers_pattern = data.get("repository", {}).get("markers", {}).get("match", "")
+    for marker in PHANTOM_TEXTMATE_MARKERS:
+        assert marker in markers_pattern, (
+            f"TextMate syntax does not highlight the {marker} marker"
+        )
+

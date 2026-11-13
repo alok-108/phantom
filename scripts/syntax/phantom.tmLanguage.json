@@ -1,0 +1,106 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Phantom Python",
+  "scopeName": "source.python.phantom",
+  "fileTypes": [
+    "py"
+  ],
+  "patterns": [
+    {
+      "include": "#markers"
+    },
+    {
+      "include": "#instruction-line"
+    },
+    {
+      "include": "#instructions"
+    },
+    {
+      "include": "source.python"
+    }
+  ],
+  "repository": {
+    "markers": {
+      "match": "(?:#:phantom:hybrid|#:ws:begin|#:ws:end|#:zw:begin|#:zw:end)\\b",
+      "name": "keyword.other.marker.phantom"
+    },
+    "prefix": {
+      "match": "#: phantom:[0-9]+\\.[0-9]+\\.[0-9]+",
+      "name": "comment.line.phantom"
+    },
+    "instruction-line": {
+      "begin": "(#:\\s*phantom:)([0-9]+\\.[0-9]+\\.[0-9]+)",
+      "beginCaptures": {
+        "1": {
+          "name": "comment.line.phantom"
+        },
+        "2": {
+          "name": "constant.numeric.version.phantom"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#instructions"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#numbers"
+        },
+        {
+          "include": "#punctuation"
+        },
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "instructions": {
+      "match": "\\b(event\\.declare|event\\.on|diagnostic\\.note|diagnostic\\.warn|counter\\.create|counter\\.increment|counter\\.decrement|counter\\.reset|meta\\.author|meta\\.version|meta\\.license|meta\\.tags)\\b",
+      "name": "support.function.phantom"
+    },
+    "strings": {
+      "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.phantom"
+        }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.phantom"
+        }
+      },
+      "name": "string.quoted.double.phantom",
+      "patterns": [
+        {
+          "match": "\\\\(?:[\\\\\"nrt]|x[0-9a-fA-F]{2})",
+          "name": "constant.character.escape.phantom"
+        }
+      ]
+    },
+    "numbers": {
+      "match": "\\b[0-9]+\\b",
+      "name": "constant.numeric.integer.phantom"
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "match": ",",
+          "name": "punctuation.separator.delimiter.phantom"
+        },
+        {
+          "match": "[()]",
+          "name": "punctuation.bracket.phantom"
+        }
+      ]
+    },
+    "comments": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.phantom"
+    }
+  }
+}

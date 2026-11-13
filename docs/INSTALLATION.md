@@ -282,6 +282,10 @@ mkdir -p ~/.config/micro/syntax
 cp scripts/syntax/phantom.yaml ~/.config/micro/syntax/
 ```
 
+### TextMate
+
+The standard TextMate grammar definition is available in `scripts/syntax/phantom.tmLanguage.json`. It can be used in TextMate, VS Code, and other editors or language tooling supporting `.tmLanguage.json` grammars.
+
 ---
 
 ## Next Steps
