@@ -7,6 +7,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 ### Added
 - Bounded counter lifecycle example (`docs/examples/counters.py`) demonstrating `counter.create`, `counter.increment`, `counter.decrement`, `counter.reset`, and boundary handling (#262).
+- Provenance metadata example (`docs/examples/provenance.py`) demonstrating `meta.author`, `meta.version`, `meta.license`, `meta.tags`, and `diagnostic.note` (#280).
 - Nushell tab completion script (`scripts/completions/phantom.nu`) for subcommands and flags (#264).
 - TextMate syntax definition (`scripts/syntax/phantom.tmLanguage.json`) for the Phantom instruction layer (#263).
 - Simplified Chinese quickstart guide (`docs/zh-CN/QUICKSTART.md`) (#153).
