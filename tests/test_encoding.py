@@ -179,6 +179,29 @@ def test_decode_source_rejects_unterminated_blocks(mode, end_marker, message):
         decode_source(unterminated, mode)
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [" " * n for n in range(1, 8)]
+    + [" \t\t", "\t" * 7, " \t" * 3],
+)
+def test_decode_source_malformed_whitespace_raises(payload):
+    source = f"#:ws:begin\n{payload}\n#:ws:end"
+
+    with pytest.raises(ValueError):
+        decode_source(source, EncodingMode.WHITESPACE)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [" " * n for n in range(1, 8)]
+    + [" \t\t", "\t" * 7, " \t" * 3],
+)
+def test_decode_source_malformed_whitespace_hybrid_skips(payload):
+    source = f"#:ws:begin\n{payload}\n#:ws:end"
+
+    assert decode_source(source, EncodingMode.HYBRID) == []
+
+
 def test_hybrid_precedence_dedupes_with_comment_first():
     same = _note("same")
     src = HybridCodec.encode_instructions(
@@ -222,6 +245,76 @@ def test_hybrid_preserves_repeated_instructions_in_same_layer():
 def test_trailing_whitespace_on_source_does_not_create_instructions():
     assert decode_source("x = 1   \n\t\n   \n") == []
 
+
+def test_inspect_encoding_on_plain_source():
+    source = 'print("Hello world")\n'
+    result = inspect_encoding(source)
+
+    assert result['detected_mode'] is None
+    assert result['encodings_detected'] == []
+    assert result['comment_instruction_count'] == 0
+    assert result['whitespace_block_count'] == 0
+    assert result['unicode_block_count'] == 0
+
+
+def test_inspect_encoding_on_comment_instruction():
+    source = encode_instruction(_note(), EncodingMode.COMMENT)
+    result = inspect_encoding(source)
+
+    assert result['detected_mode'] is EncodingMode.COMMENT
+    assert result['encodings_detected'] == ['comment']
+    assert result['comment_instruction_count'] == 1
+
+
+def test_inspect_encoding_on_whitespace_block():
+    source = encode_instruction(_note(), EncodingMode.WHITESPACE)
+    result = inspect_encoding(source)
+
+    assert result['detected_mode'] is EncodingMode.WHITESPACE
+    assert result['encodings_detected'] == ['whitespace']
+    assert result['whitespace_block_count'] == 1
+
+
+def test_inspect_encoding_on_zero_width_block():
+    source = encode_instruction(_note(), EncodingMode.UNICODE)
+    result = inspect_encoding(source)
+
+    assert result['detected_mode'] is EncodingMode.UNICODE
+    assert result['encodings_detected'] == ['unicode']
+    assert result['unicode_block_count'] == 1
+
+
+def test_inspect_encoding_on_hybrid():
+    source = HybridCodec.encode_instructions(
+        [_note('comment'), _note('whitespace'), _note('unicode')],
+        mode_map={
+            0: EncodingMode.COMMENT,
+            1: EncodingMode.WHITESPACE,
+            2: EncodingMode.UNICODE
+        },
+    )
+
+    result = inspect_encoding(source)
+
+    assert result['detected_mode'] is EncodingMode.HYBRID
+    assert result['encodings_detected'] == ['comment', 'whitespace', 'unicode']
+    assert result['comment_instruction_count'] == 1
+    assert result['whitespace_block_count'] == 1
+    assert result['unicode_block_count'] == 1
+
+
+def test_inspect_encoding_on_header_only():
+    source = "#:phantom:hybrid"
+    result = inspect_encoding(source)
+
+    assert result['detected_mode'] is EncodingMode.HYBRID
+    assert result['has_hybrid_header'] is True
+    assert result['comment_instruction_count'] == 0
+    assert result['whitespace_block_count'] == 0
+    assert result['unicode_block_count'] == 0
+    assert result["encodings_detected"] == []
+
+
 def test_inspect_encoding_ignores_markers_in_docstring():
     source = textwrap.dedent('''\
     """
@@ -235,6 +328,7 @@ def test_inspect_encoding_ignores_markers_in_docstring():
     )
     res = inspect_encoding(source)
     assert res["encodings_detected"] == []
+
 
 def test_decode_source_default_mode_ignores_docstring():
     source = '"""\n#: phantom:0.1.0 meta.author("Alice")\n"""\n'
