@@ -42,13 +42,20 @@ def render(data: dict, top: int) -> str:
     rows = []
     for path, info in files.items():
         summary = info["summary"]
+        missing_lines = info.get("missing_lines")
+        if not isinstance(missing_lines, list):
+            legacy_missing = summary.get("missing_lines", [])
+            missing_lines = legacy_missing if isinstance(legacy_missing, list) else []
+        missing_count = summary.get("missing_lines")
+        if not isinstance(missing_count, int):
+            missing_count = len(missing_lines)
         rows.append(
             (
                 summary["percent_covered"],
                 path,
                 summary["num_statements"],
-                summary["missing_lines"],
-                info["missing_lines"],
+                missing_count,
+                missing_lines,
                 summary["excluded_lines"],
             )
         )
