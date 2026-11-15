@@ -1,0 +1,19 @@
+{
+  "request_summary": "Record provenance and a startup note",
+  "encoding": "comment",
+  "instructions": [
+    {
+      "instruction_type": "meta.author",
+      "arguments": [{"type": "string", "value": "Example plan"}],
+      "placement_line": 1,
+      "rationale": "provenance"
+    },
+    {
+      "instruction_type": "diagnostic.note",
+      "arguments": [{"type": "string", "value": "total() annotated"}],
+      "placement_line": 1,
+      "rationale": "reviewer hint"
+    }
+  ],
+  "expected_behavior": "host output unchanged"
+}

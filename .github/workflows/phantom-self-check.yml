@@ -1,0 +1,29 @@
+name: phantom-self-check
+
+# Dogfoods the reusable action in action.yml on the repository's own examples.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./
+        with:
+          paths: docs/examples
+          # invalid.py is an intentional negative example.
+          exclude: "docs/examples/invalid.py"
+          strict: "true"
+      - name: A deliberately broken file must fail the action's script
+        run: |
+          python -m pip install --quiet .
+          if bash scripts/ci_check.sh docs/examples/invalid.py; then
+            echo "expected invalid.py to fail" >&2
+            exit 1
+          fi

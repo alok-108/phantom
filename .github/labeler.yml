@@ -1,0 +1,44 @@
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file: ["docs/**", "*.md"]
+
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file: [".github/**", "scripts/**"]
+
+"area: parser":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/phantom/lexer.py"
+          - "src/phantom/parser.py"
+          - "src/phantom/grammar.py"
+          - "src/phantom/encoding.py"
+          - "src/phantom/source_map.py"
+          - "src/phantom/ir.py"
+
+"area: validator":
+  - changed-files:
+      - any-glob-to-any-file: ["src/phantom/validator.py", "src/phantom/diagnostics.py"]
+
+"area: runtime":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/phantom/runtime.py"
+          - "src/phantom/host.py"
+          - "src/phantom/capabilities.py"
+
+"area: cli":
+  - changed-files:
+      - any-glob-to-any-file: ["src/phantom/cli.py", "src/phantom/__main__.py"]
+
+"area: generator":
+  - changed-files:
+      - any-glob-to-any-file: ["src/phantom/generator/**"]
+
+"tests":
+  - changed-files:
+      - any-glob-to-any-file: ["tests/**"]
+
+"dependencies":
+  - changed-files:
+      - any-glob-to-any-file: ["pyproject.toml"]

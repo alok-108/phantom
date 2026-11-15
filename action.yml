@@ -1,0 +1,81 @@
+name: Phantom check
+description: >-
+  Validate the Phantom instruction layer of Python files and audit them for hidden
+  (zero-width or bidirectional) characters. Reads files only; nothing is executed.
+author: Phantom Contributors
+
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  sarif:
+    description: >-
+      Also write a SARIF log and upload it to GitHub code scanning
+      (requires the calling workflow to grant security-events: write).
+      When "false", the action only runs the text check, as before.
+    required: false
+    default: "false"
+  sarif-file:
+    description: Path of the SARIF log to write and upload, when sarif is "true".
+    required: false
+    default: "phantom.sarif"
+  paths:
+    description: Files or directories to check, separated by spaces (directories are searched for *.py).
+    required: false
+    default: "."
+  strict:
+    description: Also report invisible and bidirectional code points outside zero-width blocks.
+    required: false
+    default: "true"
+  exclude:
+    description: Space-separated shell patterns of files to skip, for example "tests/fixtures/*".
+    required: false
+    default: ""
+  args:
+    description: Extra arguments for `phantom check`, for example "--deny cap.counters".
+    required: false
+    default: ""
+  python-version:
+    description: Python version used to run Phantom.
+    required: false
+    default: "3.12"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install Phantom from this action's own revision
+      shell: bash
+      run: python -m pip install --quiet "$GITHUB_ACTION_PATH"
+    - name: Check
+      id: check
+      shell: bash
+      env:
+        PHANTOM_STRICT: ${{ inputs.strict }}
+        PHANTOM_EXCLUDE: ${{ inputs.exclude }}
+        PHANTOM_ARGS: ${{ inputs.args }}
+        PHANTOM_PATHS: ${{ inputs.paths }}
+      run: |
+        if [ "${{ inputs.sarif }}" = "true" ]; then
+          set +e
+          bash "$GITHUB_ACTION_PATH/scripts/sarif_check.sh" "${{ inputs.sarif-file }}"
+          echo "check-exit=$?" >> "$GITHUB_OUTPUT"
+          # Do not fail here: the SARIF upload below must run with if: always().
+          exit 0
+        fi
+        bash "$GITHUB_ACTION_PATH/scripts/ci_check.sh"
+    - name: Upload SARIF to code scanning
+      if: ${{ inputs.sarif == 'true' && always() }}
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+        category: phantom
+    - name: Fail if the SARIF check failed
+      if: ${{ inputs.sarif == 'true' && steps.check.outputs.check-exit != '0' }}
+      shell: bash
+      run: |
+        echo "phantom check failed (exit ${{ steps.check.outputs.check-exit }}); see the uploaded SARIF results" >&2
+        exit 1

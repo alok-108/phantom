@@ -1,0 +1,182 @@
+"""Phantom Capability Model.
+
+Defines fine-grained capabilities required for runtime operations,
+such as stdio, event dispatch, diagnostics, counters, and metadata.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Iterable
+from enum import Enum
+
+from phantom.ir import InstructionType
+
+
+class Capability(Enum):
+    """Runtime capabilities required by instructions and runtime operations."""
+
+    STDIO = "cap.stdio"  # Read/write to stdout/stderr
+    EVENTS = "cap.events"  # Event declaration and dispatch
+    DIAGNOSTICS = "cap.diagnostics"  # Diagnostic collection
+    COUNTERS = "cap.counters"  # Counter operations
+    METADATA = "cap.metadata"  # Metadata declarations
+
+class InstructionKind(str, Enum):
+    """Describes whether an instruction is executable or metadata-only."""
+
+    EXECUTABLE = "executable"
+    METADATA_ONLY = "metadata-only"
+    UNSUPPORTED = "unsupported"
+
+
+DEFAULT_CAPABILITIES = frozenset(
+    {
+        Capability.STDIO,
+        Capability.EVENTS,
+        Capability.DIAGNOSTICS,
+        Capability.COUNTERS,
+        Capability.METADATA,
+    }
+)
+
+
+# Map instruction types to required capabilities
+INSTRUCTION_CAPABILITIES: dict[InstructionType, frozenset[Capability]] = {
+    InstructionType.EVENT_DECLARE: frozenset({Capability.EVENTS}),
+    InstructionType.EVENT_ON: frozenset({Capability.EVENTS}),
+    InstructionType.DIAGNOSTIC_NOTE: frozenset({Capability.DIAGNOSTICS}),
+    InstructionType.DIAGNOSTIC_WARN: frozenset({Capability.DIAGNOSTICS}),
+    InstructionType.COUNTER_CREATE: frozenset({Capability.COUNTERS}),
+    InstructionType.COUNTER_INCREMENT: frozenset({Capability.COUNTERS}),
+    InstructionType.COUNTER_DECREMENT: frozenset({Capability.COUNTERS}),
+    InstructionType.COUNTER_RESET: frozenset({Capability.COUNTERS}),
+    InstructionType.META_AUTHOR: frozenset({Capability.METADATA}),
+    InstructionType.META_VERSION: frozenset({Capability.METADATA}),
+    InstructionType.META_LICENSE: frozenset({Capability.METADATA}),
+    InstructionType.META_TAGS: frozenset({Capability.METADATA}),
+}
+
+
+INSTRUCTION_KINDS: dict[InstructionType, InstructionKind] = {
+    InstructionType.EVENT_DECLARE: InstructionKind.EXECUTABLE,
+    InstructionType.EVENT_ON: InstructionKind.EXECUTABLE,
+    InstructionType.DIAGNOSTIC_NOTE: InstructionKind.EXECUTABLE,
+    InstructionType.DIAGNOSTIC_WARN: InstructionKind.EXECUTABLE,
+    InstructionType.COUNTER_CREATE: InstructionKind.EXECUTABLE,
+    InstructionType.COUNTER_INCREMENT: InstructionKind.EXECUTABLE,
+    InstructionType.COUNTER_DECREMENT: InstructionKind.EXECUTABLE,
+    InstructionType.COUNTER_RESET: InstructionKind.EXECUTABLE,
+    InstructionType.META_AUTHOR: InstructionKind.METADATA_ONLY,
+    InstructionType.META_VERSION: InstructionKind.METADATA_ONLY,
+    InstructionType.META_LICENSE: InstructionKind.METADATA_ONLY,
+    InstructionType.META_TAGS: InstructionKind.METADATA_ONLY,
+}
+
+
+def get_required_capabilities(instruction_type: InstructionType) -> frozenset[Capability]:
+    """Return the set of capabilities required for an instruction type."""
+    return INSTRUCTION_CAPABILITIES.get(instruction_type, frozenset())
+
+
+class PhantomError(Exception):
+    """Base exception for all Phantom language runtime and capability errors."""
+
+
+class CapabilityError(PhantomError):
+    """Raised when an operation is attempted without the required capability."""
+
+    def __init__(
+        self,
+        capability: Capability | None,
+        message: str | None = None,
+    ) -> None:
+        self.capability = capability
+        if message is None:
+            if capability is None:
+                message = "A required capability is missing."
+            else:
+                message = f"Capability '{capability.value}' is required but not granted."
+        super().__init__(message)
+
+
+class CapabilityGrant:
+    """Represents a set of capabilities granted to a Phantom runtime execution context."""
+
+    def __init__(self, granted: Iterable[Capability] | None = None) -> None:
+        if granted is None:
+            self.granted: frozenset[Capability] = DEFAULT_CAPABILITIES
+        else:
+            self.granted = frozenset(granted)
+
+    def check(self, capability: Capability) -> bool:
+        """Check whether a specific capability is granted."""
+        return capability in self.granted
+
+    def require(self, capability: Capability) -> None:
+        """Assert that a capability is granted, raising CapabilityError if not."""
+        if not self.check(capability):
+            raise CapabilityError(
+                capability=capability,
+                message=f"Missing required capability: {capability.value}",
+            )
+
+    def check_instruction(self, instruction_type: InstructionType) -> bool:
+        """Check whether all capabilities required for an instruction type are granted."""
+        required = get_required_capabilities(instruction_type)
+        return required.issubset(self.granted)
+
+    def require_instruction(self, instruction_type: InstructionType) -> None:
+        """Assert that all capabilities for an instruction type are granted."""
+        required = get_required_capabilities(instruction_type)
+        missing = required - self.granted
+        if missing:
+            missing_str = ", ".join(sorted(c.value for c in missing))
+            capability = next(iter(missing)) if len(missing) == 1 else None
+            raise CapabilityError(
+                capability=capability,
+                message=f"Instruction '{instruction_type.value}' requires capabilities [{missing_str}], which are not granted.",
+            )
+
+    def __contains__(self, item: Capability) -> bool:
+        return item in self.granted
+
+    def __repr__(self) -> str:
+        caps = ", ".join(sorted(c.name for c in self.granted))
+        return f"CapabilityGrant({caps})"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CapabilityGrant):
+            return NotImplemented
+        return self.granted == other.granted
+
+    def __hash__(self) -> int:
+        return hash(self.granted)
+
+
+def parse_capability(name: str) -> Capability:
+    """Parse ``cap.events`` or just ``events`` into a Capability.
+
+    Raises:
+        ValueError: If the name is not one of the known capabilities.
+    """
+    wanted = name.strip().lower()
+    if not wanted.startswith("cap."):
+        wanted = f"cap.{wanted}"
+    for capability in Capability:
+        if capability.value == wanted:
+            return capability
+    known = ", ".join(c.value for c in Capability)
+    raise ValueError(f"unknown capability '{name}' (known: {known})")
+
+
+def build_policy(
+    deny: Iterable[Capability] = (),
+    allow_only: Iterable[Capability] | None = None,
+) -> CapabilityGrant:
+    """Build a grant from a command-line style policy.
+
+    ``allow_only`` (when given) replaces the default set; ``deny`` is then
+    subtracted. With neither, every capability is granted.
+    """
+    base = DEFAULT_CAPABILITIES if allow_only is None else frozenset(allow_only)
+    return CapabilityGrant(base - frozenset(deny))

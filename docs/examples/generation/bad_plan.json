@@ -1,0 +1,11 @@
+{
+  "request_summary": "Trace every call to total()",
+  "encoding": "comment",
+  "instructions": [
+    {
+      "instruction_type": "trace.span",
+      "arguments": [{"type": "string", "value": "total"}],
+      "placement_line": 1
+    }
+  ]
+}

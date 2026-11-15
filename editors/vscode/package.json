@@ -1,0 +1,61 @@
+{
+  "name": "phantom-vscode",
+  "displayName": "Phantom",
+  "description": "Makes Phantom's invisible layer visible: decodes whitespace and zero-width instruction blocks on hover and reports hidden or bidirectional characters.",
+  "version": "0.1.0",
+  "publisher": "hayagrivai-labs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alok-108/phantom.git",
+    "directory": "editors/vscode"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "phantom",
+    "python",
+    "zero-width",
+    "trojan source",
+    "unicode"
+  ],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "phantom.showDecoded",
+        "title": "Phantom: Show decoded hidden instructions"
+      }
+    ],
+    "configuration": {
+      "title": "Phantom",
+      "properties": {
+        "phantom.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Highlight hidden Phantom blocks and report invisible or bidirectional characters in Python files."
+        }
+      }
+    },
+    "grammars": [
+      {
+        "scopeName": "phantom.injection",
+        "path": "./syntaxes/phantom-injection.json",
+        "injectTo": [
+          "source.python"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}

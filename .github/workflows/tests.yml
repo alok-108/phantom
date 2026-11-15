@@ -1,0 +1,55 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src tests scripts
+      - name: Test
+        run: python -m pytest -q
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Type check (the code branches on the platform, so check all three views)
+        run: |
+          mypy --platform linux
+          mypy --platform win32
+          mypy --platform darwin
+      - name: Tests with a coverage gate
+        run: python -m pytest -q --cov=phantom --cov-report=term-missing:skip-covered --cov-report=json --cov-report=xml
+      - name: Coverage map
+        run: python scripts/coverage_map.py > coverage-map.md
+      - name: Upload coverage map
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-map
+          path: |
+            coverage-map.md
+            coverage.xml

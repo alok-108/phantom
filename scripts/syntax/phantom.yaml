@@ -1,0 +1,60 @@
+# Micro syntax highlighting for Phantom dual-layer Python.
+#
+# Phantom keeps ordinary Python as the host language and puts a typed
+# instruction layer in comments, for example:
+#
+#     #: phantom:0.1.0 meta.author("Payments team")
+#     #:ws:begin ... #:ws:end    (whitespace encoding)
+#     #:zw:begin ... #:zw:end    (zero-width encoding)
+#     #:phantom:hybrid           (hybrid-mode header)
+#
+# Install: copy this file to ~/.config/micro/syntax/ and open a .py file.
+# See docs/INSTALLATION.md ("Editor Support") for details.
+
+filetype: phantom
+
+detect:
+    filename: '\.py$'
+
+rules:
+    # Ordinary Python highlighting, so plain .py files still look right.
+    - statement: '\b(False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield)\b'
+    - identifier: '\b(abs|all|any|bin|bool|bytearray|bytes|callable|chr|classmethod|compile|complex|delattr|dict|dir|divmod|enumerate|filter|float|format|frozenset|getattr|globals|hasattr|hash|help|hex|id|input|int|isinstance|issubclass|iter|len|list|locals|map|max|memoryview|min|next|object|oct|open|ord|pow|print|property|range|repr|reversed|round|set|setattr|slice|sorted|staticmethod|str|sum|super|tuple|type|vars|zip)\b'
+    - preproc: '^\s*@[A-Za-z_][A-Za-z0-9_.]*'
+    - constant.number: '\b([0-9]+(\.[0-9]+)?|\.[0-9]+)([eE][-+]?[0-9]+)?\b'
+    - constant.number: '\b0[xX][0-9a-fA-F]+\b'
+    - constant.number: '\b0[oO][0-7]+\b'
+    - constant.number: '\b0[bB][01]+\b'
+
+    - constant.string:
+        start: '"""'
+        end: '"""'
+        rules: []
+    - constant.string:
+        start: "'''"
+        end: "'''"
+        rules: []
+    - constant.string:
+        start: '"'
+        end: '("|$)'
+        skip: '\.'
+        rules: []
+    - constant.string:
+        start: "'"
+        end: "('|$)"
+        skip: '\.'
+        rules: []
+
+    - comment: '#.*$'
+
+    # Phantom instruction layer, listed last so it overrides the comment rule.
+    # Instruction prefix: #: phantom:<version> ...
+    - special: '^\s*#:\s*phantom:[0-9]+\.[0-9]+\.[0-9]+.*$'
+    # Instruction keywords
+    - type: '\b(event\.declare|event\.on|diagnostic\.note|diagnostic\.warn|counter\.create|counter\.increment|counter\.decrement|counter\.reset|meta\.author|meta\.version|meta\.license|meta\.tags)\b'
+    # Encoding block markers
+    - preproc: '^\s*#:ws:begin.*$'
+    - preproc: '^\s*#:ws:end.*$'
+    - preproc: '^\s*#:zw:begin.*$'
+    - preproc: '^\s*#:zw:end.*$'
+    - preproc: '^\s*#:phantom:hybrid.*$'

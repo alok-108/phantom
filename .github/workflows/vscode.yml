@@ -1,0 +1,28 @@
+name: vscode-extension
+
+on:
+  push:
+    branches: [main]
+    paths: ["editors/vscode/**", "scripts/gen_vscode_fixtures.py", "src/phantom/encoding.py", "src/phantom/grammar.py"]
+  pull_request:
+    paths: ["editors/vscode/**", "scripts/gen_vscode_fixtures.py", "src/phantom/encoding.py", "src/phantom/grammar.py"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: Unit tests (decoding logic and extension logic against a fake vscode API)
+        working-directory: editors/vscode
+        run: node --test
+      - name: Fixtures are in sync with the Python encoders
+        run: |
+          python -m pip install -e .
+          python scripts/gen_vscode_fixtures.py
+          git diff --exit-code editors/vscode/test/fixtures.json

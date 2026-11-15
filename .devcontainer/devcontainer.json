@@ -1,0 +1,15 @@
+{
+  "name": "Phantom development",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
+  "postCreateCommand": "python -m pip install -e \".[dev]\" && python -m pytest -q",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "charliermarsh.ruff"],
+      "settings": {
+        "python.testing.pytestArgs": ["tests"],
+        "python.testing.pytestEnabled": true,
+        "files.trimTrailingWhitespace": false
+      }
+    }
+  }
+}

@@ -1,0 +1,575 @@
+{
+ "cases": [
+  {
+   "instructions": [
+    "phantom:0.1.0 meta.author(\"Ada\")"
+   ],
+   "name": "simple",
+   "whitespace": [
+    "#:ws:begin",
+    " \t\t\t    ",
+    " \t\t \t   ",
+    " \t\t    \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t \t\t\t\t",
+    " \t\t \t\t \t",
+    "  \t\t\t \t ",
+    "  \t\t    ",
+    "  \t \t\t\t ",
+    "  \t\t   \t",
+    "  \t \t\t\t ",
+    "  \t\t    ",
+    "  \t     ",
+    " \t\t \t\t \t",
+    " \t\t  \t \t",
+    " \t\t\t \t  ",
+    " \t\t    \t",
+    "  \t \t\t\t ",
+    " \t\t    \t",
+    " \t\t\t \t \t",
+    " \t\t\t \t  ",
+    " \t\t \t   ",
+    " \t\t \t\t\t\t",
+    " \t\t\t  \t ",
+    "  \t \t   ",
+    "  \t   \t ",
+    " \t     \t",
+    " \t\t  \t  ",
+    " \t\t    \t",
+    "  \t   \t ",
+    "  \t \t  \t",
+    "#:ws:end"
+   ],
+   "zero_width": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\ufeff\u200c\u200c\u200d\u200c\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200b\u200c\u200b\u200d\ufeff\u200d\u200c\u200d\u200b\u200c\u200c\ufeff\u200c\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200d\u200b\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200b\u200d\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200b\u200b\u200c\u200c\u200d\u200c\u200b\u200c\u200d\u200b\u200c\u200b\u200d\u200b\u200d\u200b\u200d\u200d\u200c",
+    "#:zw:end"
+   ]
+  },
+  {
+   "instructions": [
+    "phantom:0.1.0 counter.create(\"hits\", 100)"
+   ],
+   "name": "integer",
+   "whitespace": [
+    "#:ws:begin",
+    " \t\t\t    ",
+    " \t\t \t   ",
+    " \t\t    \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t \t\t\t\t",
+    " \t\t \t\t \t",
+    "  \t\t\t \t ",
+    "  \t\t    ",
+    "  \t \t\t\t ",
+    "  \t\t   \t",
+    "  \t \t\t\t ",
+    "  \t\t    ",
+    "  \t     ",
+    " \t\t   \t\t",
+    " \t\t \t\t\t\t",
+    " \t\t\t \t \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    " \t\t\t  \t ",
+    "  \t \t\t\t ",
+    " \t\t   \t\t",
+    " \t\t\t  \t ",
+    " \t\t  \t \t",
+    " \t\t    \t",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    "  \t \t   ",
+    "  \t   \t ",
+    " \t\t \t   ",
+    " \t\t \t  \t",
+    " \t\t\t \t  ",
+    " \t\t\t  \t\t",
+    "  \t   \t ",
+    "  \t \t\t  ",
+    "  \t     ",
+    "  \t\t   \t",
+    "  \t\t    ",
+    "  \t\t    ",
+    "  \t \t  \t",
+    "#:ws:end"
+   ],
+   "zero_width": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\u200b\ufeff\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200c\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200c\ufeff\u200b\u200d\u200b\u200d\ufeff\u200d\u200c\u200d\u200b\ufeff\u200c\ufeff\u200b\u200d\u200c\u200d\u200c\u200c\u200c\u200d\u200b\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200d\u200d\u200b\u200c\u200d\u200d\u200c\u200c\ufeff\u200c\u200b\u200c\ufeff\u200b\ufeff\u200b\u200d\u200b\u200d\u200b\u200d\ufeff\u200b\u200b\u200d\u200b\u200b\u200b\ufeff\u200b\u200c\u200b\ufeff\u200b\u200b\u200b\ufeff\u200b\u200b\u200b\u200d\u200d\u200c",
+    "#:zw:end"
+   ]
+  },
+  {
+   "instructions": [
+    "phantom:0.1.0 counter.create(\"n\", -3)"
+   ],
+   "name": "negative",
+   "whitespace": [
+    "#:ws:begin",
+    " \t\t\t    ",
+    " \t\t \t   ",
+    " \t\t    \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t \t\t\t\t",
+    " \t\t \t\t \t",
+    "  \t\t\t \t ",
+    "  \t\t    ",
+    "  \t \t\t\t ",
+    "  \t\t   \t",
+    "  \t \t\t\t ",
+    "  \t\t    ",
+    "  \t     ",
+    " \t\t   \t\t",
+    " \t\t \t\t\t\t",
+    " \t\t\t \t \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    " \t\t\t  \t ",
+    "  \t \t\t\t ",
+    " \t\t   \t\t",
+    " \t\t\t  \t ",
+    " \t\t  \t \t",
+    " \t\t    \t",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    "  \t \t   ",
+    "  \t   \t ",
+    " \t\t \t\t\t ",
+    "  \t   \t ",
+    "  \t \t\t  ",
+    "  \t     ",
+    "  \t \t\t \t",
+    "  \t\t  \t\t",
+    "  \t \t  \t",
+    "#:ws:end"
+   ],
+   "zero_width": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\u200b\ufeff\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200c\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200c\ufeff\u200b\u200d\u200b\u200d\ufeff\u200d\u200c\u200d\u200b\ufeff\u200c\ufeff\u200b\u200d\u200c\u200d\u200c\u200c\u200c\u200d\u200b\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200d\ufeff\u200d\u200b\u200d\u200b\u200d\u200b\u200d\ufeff\u200b\u200b\u200d\u200b\u200b\u200b\u200d\ufeff\u200c\u200b\ufeff\u200b\ufeff\u200b\u200d\u200d\u200c",
+    "#:zw:end"
+   ]
+  },
+  {
+   "instructions": [
+    "phantom:0.1.0 diagnostic.note(\"h\u00e9llo \u2713 \u65e5\u672c \ud83d\ude00\")"
+   ],
+   "name": "unicode text",
+   "whitespace": [
+    "#:ws:begin",
+    " \t\t\t    ",
+    " \t\t \t   ",
+    " \t\t    \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t \t\t\t\t",
+    " \t\t \t\t \t",
+    "  \t\t\t \t ",
+    "  \t\t    ",
+    "  \t \t\t\t ",
+    "  \t\t   \t",
+    "  \t \t\t\t ",
+    "  \t\t    ",
+    "  \t     ",
+    " \t\t  \t  ",
+    " \t\t \t  \t",
+    " \t\t    \t",
+    " \t\t  \t\t\t",
+    " \t\t \t\t\t ",
+    " \t\t \t\t\t\t",
+    " \t\t\t  \t\t",
+    " \t\t\t \t  ",
+    " \t\t \t  \t",
+    " \t\t   \t\t",
+    "  \t \t\t\t ",
+    " \t\t \t\t\t ",
+    " \t\t \t\t\t\t",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    "  \t \t   ",
+    "  \t   \t ",
+    " \t\t \t   ",
+    "\t\t    \t\t",
+    "\t \t \t  \t",
+    " \t\t \t\t  ",
+    " \t\t \t\t  ",
+    " \t\t \t\t\t\t",
+    "  \t     ",
+    "\t\t\t   \t ",
+    "\t  \t\t\t  ",
+    "\t  \t  \t\t",
+    "  \t     ",
+    "\t\t\t  \t\t ",
+    "\t  \t \t\t\t",
+    "\t \t  \t \t",
+    "\t\t\t  \t\t ",
+    "\t  \t\t\t  ",
+    "\t \t \t\t  ",
+    "  \t     ",
+    "\t\t\t\t    ",
+    "\t  \t\t\t\t\t",
+    "\t  \t\t   ",
+    "\t       ",
+    "  \t   \t ",
+    "  \t \t  \t",
+    "#:ws:end"
+   ],
+   "zero_width": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\u200c\u200b\u200c\u200d\u200d\u200c\u200c\u200d\u200b\u200c\u200c\u200d\u200c\ufeff\u200c\u200d\ufeff\u200d\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200b\ufeff\u200c\ufeff\u200c\u200b\u200c\u200d\u200d\u200c\u200c\u200d\u200b\ufeff\u200b\u200d\ufeff\u200d\u200c\u200d\ufeff\u200d\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200d\u200d\u200b\ufeff\u200b\u200b\ufeff\u200d\u200d\u200d\u200c\u200c\u200d\ufeff\u200b\u200c\u200d\ufeff\u200b\u200c\u200d\ufeff\ufeff\u200b\u200d\u200b\u200b\ufeff\u200d\u200b\u200d\u200d\u200c\ufeff\u200b\u200d\u200c\u200b\ufeff\u200b\u200d\u200b\u200b\ufeff\u200d\u200c\u200d\u200d\u200c\u200c\ufeff\u200d\u200d\u200c\u200c\ufeff\u200d\u200c\u200d\u200d\u200c\ufeff\u200b\u200d\u200d\ufeff\u200b\u200b\u200d\u200b\u200b\ufeff\ufeff\u200b\u200b\u200d\u200c\ufeff\ufeff\u200d\u200c\u200d\u200b\u200d\u200b\u200b\u200b\u200b\u200d\u200b\u200d\u200b\u200d\u200d\u200c",
+    "#:zw:end"
+   ]
+  },
+  {
+   "instructions": [
+    "phantom:0.1.0 diagnostic.note(\"a\\nb\\\"c\")"
+   ],
+   "name": "escapes",
+   "whitespace": [
+    "#:ws:begin",
+    " \t\t\t    ",
+    " \t\t \t   ",
+    " \t\t    \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t \t\t\t\t",
+    " \t\t \t\t \t",
+    "  \t\t\t \t ",
+    "  \t\t    ",
+    "  \t \t\t\t ",
+    "  \t\t   \t",
+    "  \t \t\t\t ",
+    "  \t\t    ",
+    "  \t     ",
+    " \t\t  \t  ",
+    " \t\t \t  \t",
+    " \t\t    \t",
+    " \t\t  \t\t\t",
+    " \t\t \t\t\t ",
+    " \t\t \t\t\t\t",
+    " \t\t\t  \t\t",
+    " \t\t\t \t  ",
+    " \t\t \t  \t",
+    " \t\t   \t\t",
+    "  \t \t\t\t ",
+    " \t\t \t\t\t ",
+    " \t\t \t\t\t\t",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    "  \t \t   ",
+    "  \t   \t ",
+    " \t\t    \t",
+    " \t \t\t\t  ",
+    " \t\t \t\t\t ",
+    " \t\t   \t ",
+    " \t \t\t\t  ",
+    "  \t   \t ",
+    " \t\t   \t\t",
+    "  \t   \t ",
+    "  \t \t  \t",
+    "#:ws:end"
+   ],
+   "zero_width": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\u200c\u200b\u200c\u200d\u200d\u200c\u200c\u200d\u200b\u200c\u200c\u200d\u200c\ufeff\u200c\u200d\ufeff\u200d\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200b\ufeff\u200c\ufeff\u200c\u200b\u200c\u200d\u200d\u200c\u200c\u200d\u200b\ufeff\u200b\u200d\ufeff\u200d\u200c\u200d\ufeff\u200d\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200d\u200b\u200c\u200c\u200c\ufeff\u200b\u200c\u200d\ufeff\u200d\u200c\u200d\u200b\u200d\u200c\u200c\ufeff\u200b\u200b\u200d\u200b\u200d\u200c\u200d\u200b\ufeff\u200b\u200d\u200b\u200d\u200b\u200d\u200d\u200c",
+    "#:zw:end"
+   ]
+  },
+  {
+   "instructions": [
+    "phantom:0.1.0 counter.create(\"n\", 3)",
+    "phantom:0.1.0 counter.increment(\"n\")"
+   ],
+   "name": "two instructions",
+   "whitespace": [
+    "#:ws:begin",
+    " \t\t\t    ",
+    " \t\t \t   ",
+    " \t\t    \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t \t\t\t\t",
+    " \t\t \t\t \t",
+    "  \t\t\t \t ",
+    "  \t\t    ",
+    "  \t \t\t\t ",
+    "  \t\t   \t",
+    "  \t \t\t\t ",
+    "  \t\t    ",
+    "  \t     ",
+    " \t\t   \t\t",
+    " \t\t \t\t\t\t",
+    " \t\t\t \t \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    " \t\t\t  \t ",
+    "  \t \t\t\t ",
+    " \t\t   \t\t",
+    " \t\t\t  \t ",
+    " \t\t  \t \t",
+    " \t\t    \t",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    "  \t \t   ",
+    "  \t   \t ",
+    " \t\t \t\t\t ",
+    "  \t   \t ",
+    "  \t \t\t  ",
+    "  \t     ",
+    "  \t\t  \t\t",
+    "  \t \t  \t",
+    "    \t \t ",
+    " \t\t\t    ",
+    " \t\t \t   ",
+    " \t\t    \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t \t\t\t\t",
+    " \t\t \t\t \t",
+    "  \t\t\t \t ",
+    "  \t\t    ",
+    "  \t \t\t\t ",
+    "  \t\t   \t",
+    "  \t \t\t\t ",
+    "  \t\t    ",
+    "  \t     ",
+    " \t\t   \t\t",
+    " \t\t \t\t\t\t",
+    " \t\t\t \t \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t  \t \t",
+    " \t\t\t  \t ",
+    "  \t \t\t\t ",
+    " \t\t \t  \t",
+    " \t\t \t\t\t ",
+    " \t\t   \t\t",
+    " \t\t\t  \t ",
+    " \t\t  \t \t",
+    " \t\t \t\t \t",
+    " \t\t  \t \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    "  \t \t   ",
+    "  \t   \t ",
+    " \t\t \t\t\t ",
+    "  \t   \t ",
+    "  \t \t  \t",
+    "#:ws:end"
+   ],
+   "zero_width": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\u200b\ufeff\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200c\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200c\ufeff\u200b\u200d\u200b\u200d\ufeff\u200d\u200c\u200d\u200b\ufeff\u200c\ufeff\u200b\u200d\u200c\u200d\u200c\u200c\u200c\u200d\u200b\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200d\ufeff\u200d\u200b\u200d\u200b\u200d\u200b\u200d\ufeff\u200b\u200b\u200d\u200b\u200b\u200b\ufeff\u200b\ufeff\u200b\u200d\u200d\u200c\u200b\u200b\u200d\u200d\u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\u200b\ufeff\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200c\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\u200c\u200c\u200c\ufeff\u200b\u200d\u200b\u200d\ufeff\u200d\u200c\u200d\u200d\u200c\u200c\u200d\ufeff\u200d\u200c\u200d\u200b\ufeff\u200c\ufeff\u200b\u200d\u200c\u200d\u200c\u200c\u200c\u200d\ufeff\u200c\u200c\u200d\u200c\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200d\ufeff\u200d\u200b\u200d\u200b\u200d\u200b\u200d\u200d\u200c",
+    "#:zw:end"
+   ]
+  }
+ ],
+ "invalid": [
+  {
+   "lines": [
+    "#:ws:begin",
+    " \t \t",
+    "#:ws:end"
+   ],
+   "name": "whitespace line too short",
+   "python_errors": [
+    "Cannot decode whitespace block: Whitespace line 1 has length 4, expected exactly 8"
+   ]
+  },
+  {
+   "lines": [
+    "#:ws:begin",
+    "#:ws:end"
+   ],
+   "name": "whitespace block without data",
+   "python_errors": [
+    "Empty whitespace block (no payload)"
+   ]
+  },
+  {
+   "lines": [
+    "#:ws:begin",
+    "\t\t\t\t\t\t\t\t",
+    "#:ws:end"
+   ],
+   "name": "whitespace invalid utf-8",
+   "python_errors": [
+    "Cannot decode whitespace block: Invalid UTF-8 payload in whitespace data: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte"
+   ]
+  },
+  {
+   "lines": [
+    "#:ws:begin",
+    " \t\t\t    ",
+    " \t\t \t   ",
+    " \t\t    \t",
+    " \t\t \t\t\t ",
+    " \t\t\t \t  ",
+    " \t\t \t\t\t\t",
+    " \t\t \t\t \t",
+    "  \t\t\t \t ",
+    "  \t\t    ",
+    "  \t \t\t\t ",
+    "  \t\t   \t",
+    "  \t \t\t\t ",
+    "  \t\t    ",
+    "  \t     ",
+    " \t\t \t\t \t",
+    " \t\t  \t \t",
+    " \t\t\t \t  ",
+    " \t\t    \t",
+    "  \t \t\t\t ",
+    " \t\t    \t",
+    " \t\t\t \t \t",
+    " \t\t\t \t  ",
+    " \t\t \t   ",
+    " \t\t \t\t\t\t",
+    " \t\t\t  \t ",
+    "  \t \t   ",
+    "  \t   \t ",
+    " \t     \t",
+    " \t\t  \t  ",
+    " \t\t    \t",
+    "  \t   \t ",
+    "  \t \t  \t"
+   ],
+   "name": "whitespace unterminated",
+   "python_errors": [
+    "Unterminated whitespace block"
+   ]
+  },
+  {
+   "lines": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\ufeff\u200c\u200c\u200d\u200c\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200b\u200c\u200b\u200d\ufeff\u200d\u200c\u200d\u200b\u200c\u200c\ufeff\u200c\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200d\u200b\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200b\u200d\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200b\u200b\u200c\u200c\u200d\u200c\u200b\u200c\u200d\u200b\u200c\u200b\u200d\u200b\u200d\u200b\u200d\u200d",
+    "#:zw:end"
+   ],
+   "name": "zero-width incomplete group",
+   "python_errors": [
+    "Cannot decode unicode block: Incomplete zero-width sequence: 127 characters is not a multiple of 4"
+   ]
+  },
+  {
+   "lines": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\ufeff\u200c\u200c\u200d\u200c\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200b\u200c\u200b\u200d\ufeff\u200d\u200c\u200d\u200b\u200c\u200c\ufeff\u200c\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200d\u200b\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200b\u200d\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200b\u200b\u200c\u200c\u200d\u200c\u200b\u200c\u200d\u200b\u200c\u200b\u200d\u200b\u200d\u200b\u200d\u200d\u200c\u2060",
+    "#:zw:end"
+   ],
+   "name": "zero-width rejected code point",
+   "python_errors": [
+    "Cannot decode unicode block: Rejected invisible Unicode code point at index 128: U+2060 (WORD JOINER)"
+   ]
+  },
+  {
+   "lines": [
+    "#:zw:begin",
+    "# nothing here",
+    "#:zw:end"
+   ],
+   "name": "zero-width block without data",
+   "python_errors": [
+    "Empty unicode block (no payload)"
+   ]
+  },
+  {
+   "lines": [
+    "#:zw:begin",
+    "# \u200c\ufeff\u200b\u200b\u200c\u200d\u200d\u200b\u200c\u200d\u200b\u200c\u200c\u200d\ufeff\u200d\u200c\ufeff\u200c\u200b\u200c\u200d\ufeff\ufeff\u200c\u200d\ufeff\u200c\u200b\ufeff\u200d\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200c\u200b\u200d\ufeff\u200d\u200b\ufeff\u200b\u200b\u200b\u200d\u200b\u200b\u200c\u200d\ufeff\u200c\u200c\u200d\u200c\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200b\u200c\u200b\u200d\ufeff\u200d\u200c\u200d\u200b\u200c\u200c\ufeff\u200c\u200c\u200c\ufeff\u200c\u200b\u200c\u200d\u200d\u200b\u200c\u200d\ufeff\ufeff\u200c\ufeff\u200b\u200d\u200b\u200d\u200d\u200b\u200b\u200d\u200b\u200d\u200c\u200b\u200b\u200c\u200c\u200d\u200c\u200b\u200c\u200d\u200b\u200c\u200b\u200d\u200b\u200d\u200b\u200d\u200d\u200c"
+   ],
+   "name": "zero-width unterminated",
+   "python_errors": [
+    "Unterminated unicode block"
+   ]
+  }
+ ],
+ "stray": [
+  {
+   "expected": [
+    [
+     2,
+     5
+    ]
+   ],
+   "lines": [
+    "x = 1",
+    "y = 2\u200b",
+    "z = 3"
+   ],
+   "name": "zero-width in code"
+  },
+  {
+   "expected": [
+    [
+     1,
+     6
+    ]
+   ],
+   "lines": [
+    "# note\u2060",
+    "pass"
+   ],
+   "name": "word joiner in a comment"
+  },
+  {
+   "expected": [
+    [
+     1,
+     10
+    ]
+   ],
+   "lines": [
+    "value = 'a\u202eb'"
+   ],
+   "name": "bidi override"
+  },
+  {
+   "expected": [],
+   "lines": [
+    "#:zw:begin",
+    "# \u200b\u200c\u200d\ufeff",
+    "#:zw:end"
+   ],
+   "name": "payload inside a zw block is allowed"
+  },
+  {
+   "expected": [
+    [
+     2,
+     3
+    ]
+   ],
+   "lines": [
+    "#:zw:begin",
+    "# \u200b\u202e",
+    "#:zw:end"
+   ],
+   "name": "bidi inside a zw block is still reported"
+  },
+  {
+   "expected": [
+    [
+     1,
+     8
+    ]
+   ],
+   "lines": [
+    "s = '\ud83d\ude00'\u200d"
+   ],
+   "name": "astral character before the finding"
+  },
+  {
+   "expected": [],
+   "lines": [
+    "def f():",
+    "    return 1"
+   ],
+   "name": "clean"
+  }
+ ]
+}
