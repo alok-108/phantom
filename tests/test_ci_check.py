@@ -1,7 +1,9 @@
+import contextlib
 import os
 import shutil
 import subprocess
 import sys
+import sysconfig
 
 import pytest
 
@@ -29,15 +31,27 @@ BASH_PATH = get_git_bash()
 
 
 def script_env(**overrides):
-    """Environment for helper scripts, with the interpreter's bin dir on PATH.
+    """Environment for helper scripts, with the interpreter's script dirs on PATH.
 
     The scripts invoke the ``phantom`` console script. When the tests run from a
     virtual environment that is not activated, its ``Scripts``/``bin`` directory
-    is missing from PATH, so make the one next to ``sys.executable`` discoverable.
+    is missing from PATH, so make the directories next to ``sys.executable`` and
+    those reported by ``sysconfig`` discoverable. The latter matter for global
+    and user installs on Windows, where console scripts live in ``Scripts`` and
+    not next to ``python.exe``.
     """
     env = {**os.environ, **overrides}
-    bin_dir = os.path.dirname(sys.executable)
-    env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
+    scripts_paths = [os.path.dirname(sys.executable)]
+    for scheme in (None, f"{os.name}_user"):
+        with contextlib.suppress(KeyError):
+            scripts_paths.append(sysconfig.get_path("scripts", scheme))
+
+    unique_paths = []
+    for path in scripts_paths:
+        if path and path not in unique_paths:
+            unique_paths.append(path)
+
+    env["PATH"] = os.pathsep.join(unique_paths) + os.pathsep + env.get("PATH", "")
     return env
 
 
@@ -59,6 +73,7 @@ def test_ci_check_with_spaces_in_path():
     assert result.returncode == 0, f"Script failed with stderr:\n{stderr}\nstdout:\n{stdout}"
 
 
+@pytest.mark.skipif(BASH_PATH is None, reason="Git Bash (or non-WSL bash) is required for this test")
 def test_sarif_check_writes_valid_sarif(tmp_path):
     import json
 
@@ -67,7 +82,7 @@ def test_sarif_check_writes_valid_sarif(tmp_path):
     out = tmp_path / "out.sarif"
     env = script_env(PHANTOM_PATHS=str(script))
     result = subprocess.run(
-        [BASH_PATH, "scripts/sarif_check.sh", str(out)] if BASH_PATH else ["bash", "scripts/sarif_check.sh", str(out)],
+        [BASH_PATH, "scripts/sarif_check.sh", str(out)],
         env=env,
         capture_output=True,
         text=True,
@@ -80,6 +95,7 @@ def test_sarif_check_writes_valid_sarif(tmp_path):
     assert data["runs"][0]["tool"]["driver"]["name"] == "phantom"
 
 
+@pytest.mark.skipif(BASH_PATH is None, reason="Git Bash (or non-WSL bash) is required for this test")
 def test_sarif_check_still_writes_sarif_on_findings(tmp_path):
     import json
 
@@ -88,7 +104,7 @@ def test_sarif_check_still_writes_sarif_on_findings(tmp_path):
     out = tmp_path / "out.sarif"
     env = script_env(PHANTOM_PATHS=str(script))
     result = subprocess.run(
-        [BASH_PATH, "scripts/sarif_check.sh", str(out)] if BASH_PATH else ["bash", "scripts/sarif_check.sh", str(out)],
+        [BASH_PATH, "scripts/sarif_check.sh", str(out)],
         env=env,
         capture_output=True,
         text=True,
