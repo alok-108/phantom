@@ -6,8 +6,10 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - Added instruction kind classification (`executable` or `metadata-only`) to `phantom inspect` text and JSON output.
 
 ### Added
-- Geany filetype configuration (`scripts/syntax/filetypes.phantom.conf`) for the Phantom instruction layer (#278).
+- Geany filetype association (`scripts/syntax/filetypes.phantom.conf`) for Phantom-annotated Python files (#278); uses the Python lexer and does not provide separate highlighting inside comments.
+- Pygments lexer definition (`scripts/syntax/pygments_phantom.py`) for highlighting the Phantom instruction layer in documentation tools and code viewers (#279).
 - Bounded counter lifecycle example (`docs/examples/counters.py`) demonstrating `counter.create`, `counter.increment`, `counter.decrement`, `counter.reset`, and boundary handling (#262).
+- Provenance metadata example (`docs/examples/provenance.py`) demonstrating `meta.author`, `meta.version`, `meta.license`, `meta.tags`, and `diagnostic.note` (#280).
 - Nushell tab completion script (`scripts/completions/phantom.nu`) for subcommands and flags (#264).
 - TextMate syntax definition (`scripts/syntax/phantom.tmLanguage.json`) for the Phantom instruction layer (#263).
 - Simplified Chinese quickstart guide (`docs/zh-CN/QUICKSTART.md`) (#153).
