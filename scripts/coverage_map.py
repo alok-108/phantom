@@ -48,6 +48,7 @@ def render(data: dict, top: int) -> str:
                 path,
                 summary["num_statements"],
                 summary["missing_lines"],
+                info["missing_lines"],
                 summary["excluded_lines"],
             )
         )
@@ -64,9 +65,9 @@ def render(data: dict, top: int) -> str:
         "| File | Cover | Miss | Missing lines |",
         "| :--- | ---: | ---: | :--- |",
     ]
-    for percent, path, _stmts, missing, _excluded in rows[:top]:
+    for percent, path, _stmts, missing_count, missing_lines, _excluded in rows[:top]:
         out.append(
-            f"| `{path}` | {percent:.1f}% | {len(missing)} | {compress(missing)} |"
+            f"| `{path}` | {percent:.1f}% | {missing_count} | {compress(missing_lines)} |"
         )
     if len(rows) > top:
         out.append("")
