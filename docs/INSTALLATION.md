@@ -293,6 +293,27 @@ cp scripts/syntax/phantom.yaml ~/.config/micro/syntax/
 
 The standard TextMate grammar definition is available in `scripts/syntax/phantom.tmLanguage.json`. It can be used in TextMate, VS Code, and other editors or language tooling supporting `.tmLanguage.json` grammars.
 
+### Pygments
+
+`scripts/syntax/pygments_phantom.py` is a standalone Pygments lexer for Phantom
+dual-layer Python. It extends Pygments' Python lexer and highlights the
+`#: phantom:<version>` prefix, the Phantom instruction keywords, and the
+whitespace, zero-width and hybrid encoding markers (`#:ws:begin`, `#:ws:end`,
+`#:zw:begin`, `#:zw:end`, `#:phantom:hybrid`).
+
+Pygments is optional. Install it with `pip install pygments`, add
+`scripts/syntax` to `sys.path`, and use `PhantomLexer` with any Pygments
+formatter:
+
+```python
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+
+from pygments_phantom import PhantomLexer
+
+html = highlight(source, PhantomLexer(), HtmlFormatter())
+```
+
 ---
 
 ## Next Steps
