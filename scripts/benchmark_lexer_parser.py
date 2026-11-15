@@ -17,7 +17,7 @@ import argparse
 import time
 from collections.abc import Callable
 
-from phantom.encoding import WhitespaceEncoder
+from phantom.encoding import UnicodeEncoder, WhitespaceEncoder
 from phantom.parser import parse
 
 
@@ -40,6 +40,12 @@ def _ws_payload(n_bytes: int) -> str:
     return WhitespaceEncoder.encode_block(text) + "\n"
 
 
+def _zw_payload(n_bytes: int) -> str:
+    # One zero-width Unicode instruction with a long string argument.
+    text = 'phantom:0.1.0 diagnostic.note("' + "a" * n_bytes + '")'
+    return UnicodeEncoder.encode_block(text) + "\n"
+
+
 def _mixed(n: int) -> str:
     parts = []
     for i in range(n):
@@ -53,6 +59,7 @@ CASES: dict[str, Callable[[], str]] = {
     "comment_10k_instructions": lambda: _comment_instructions(10_000),
     "long_line_1mb": lambda: _long_line(1_000_000),
     "ws_payload_100kb": lambda: _ws_payload(100_000),
+    "zw_payload_100kb": lambda: _zw_payload(100_000),
     "mixed_10k_functions": lambda: _mixed(10_000),
 }
 
