@@ -7,7 +7,9 @@ as explicit code points (``chr(0x202E)``) and a reviewer can read every line.
 
 from __future__ import annotations
 
+import re
 import unicodedata
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
@@ -471,4 +473,48 @@ def test_textmate_syntax_highlights_phantom_instructions():
         assert marker in markers_pattern, (
             f"TextMate syntax does not highlight the {marker} marker"
         )
+
+
+def test_kate_syntax_highlights_phantom_tokens():
+    syntax = ET.parse(ROOT / "scripts" / "syntax" / "phantom.xml")
+    root = syntax.getroot()
+    assert root.get("name") == "Phantom"
+    host = root.find("./highlighting/contexts/context[@name='Python Host']")
+    assert host is not None
+    marker = host.find("./RegExpr[@attribute='Block Marker']")
+    assert marker is not None
+    for token in PHANTOM_NANO_MARKERS:
+        assert re.fullmatch(marker.attrib["String"], token)
+    assert re.fullmatch(marker.attrib["String"], "#: ws:begin")
+    assert not re.fullmatch(marker.attrib["String"], "#:ws:beginning")
+
+    instruction = root.find("./highlighting/contexts/context[@name='Phantom Comment']")
+    assert instruction is not None
+    assert instruction.get("lineEndContext") == "#pop"
+    examples = {
+        "Instruction": PHANTOM_NANO_INSTRUCTIONS,
+        "String": (r'"escaped \"quote\""', "'text'"),
+        "Integer": ("0", "-12"),
+    }
+    for attribute, tokens in examples.items():
+        rule = instruction.find(f"./RegExpr[@attribute='{attribute}']")
+        assert rule is not None
+        assert all(re.fullmatch(rule.attrib["String"], token) for token in tokens)
+    rule = instruction.find("./RegExpr[@attribute='Instruction']")
+    assert rule is not None
+    assert not re.search(rule.attrib["String"], "meta.authorized")
+    version = instruction.find("./RegExpr[@attribute='Version']")
+    assert version is not None
+    assert re.findall(version.attrib["String"], "phantom:0.1.0") == ["0.1.0"]
+    assert not re.search(version.attrib["String"], "0.1.0")
+
+
+def test_kate_syntax_is_opt_in_and_preserves_python_highlighting():
+    root = ET.parse(ROOT / "scripts" / "syntax" / "phantom.xml").getroot()
+    assert root.get("extensions") == ""
+    host = root.find("./highlighting/contexts/context[@name='Python Host']")
+    assert host is not None
+    assert host[-1].tag == "IncludeRules"
+    assert host[-1].get("context") == "##Python"
+    assert all(rule.get("firstNonSpace") == "true" for rule in host[:-1])
 

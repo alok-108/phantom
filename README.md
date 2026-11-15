@@ -82,6 +82,8 @@ pip install -e ".[llm]"       # optional: google-genai for `phantom generate`
 ```
 
 See [docs/INSTALLATION.md](docs/INSTALLATION.md) for details and editor support.
+Kate and KWrite users can install [the Phantom syntax definition](scripts/syntax/phantom.xml)
+using the [Kate / KWrite instructions](docs/INSTALLATION.md#kate--kwrite).
 
 ## Quick start
 

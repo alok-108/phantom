@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language>
+<language name="Phantom" version="1" kateversion="5.0" section="Sources" extensions="" indenter="python" license="MIT">
+  <highlighting>
+    <contexts>
+      <context name="Python Host" attribute="Normal Text" lineEndContext="#stay">
+        <RegExpr attribute="Block Marker" context="#stay" firstNonSpace="true"
+                 String="#:[ \t]*(?:phantom:hybrid|ws:(?:begin|end)|zw:(?:begin|end))[ \t]*$"/>
+        <StringDetect attribute="Phantom Prefix" context="Phantom Comment" String="#:" firstNonSpace="true"/>
+        <IncludeRules context="##Python" includeAttrib="true"/>
+      </context>
+      <context name="Phantom Comment" attribute="Comment" lineEndContext="#pop">
+        <RegExpr attribute="Version" context="#stay" String="(?&lt;=phantom:)[0-9]+\.[0-9]+\.[0-9]+\b"/>
+        <RegExpr attribute="Instruction" context="#stay"
+                 String="(?&lt;![\w.])(?:event\.(?:declare|on)|diagnostic\.(?:note|warn)|counter\.(?:create|increment|decrement|reset)|meta\.(?:author|version|license|tags))(?![\w.])"/>
+        <RegExpr attribute="String" context="#stay"
+                 String="&quot;(?:\\.|[^&quot;\\])*&quot;|'(?:\\.|[^'\\])*'"/>
+        <RegExpr attribute="Integer" context="#stay" String="(?&lt;![\w.])[+-]?[0-9]+(?![\w.])"/>
+      </context>
+    </contexts>
+    <itemDatas>
+      <itemData name="Normal Text" defStyleNum="dsNormal"/>
+      <itemData name="Comment" defStyleNum="dsComment"/>
+      <itemData name="Phantom Prefix" defStyleNum="dsPreprocessor"/>
+      <itemData name="Block Marker" defStyleNum="dsControlFlow"/>
+      <itemData name="Version" defStyleNum="dsDecVal"/>
+      <itemData name="Instruction" defStyleNum="dsKeyword"/>
+      <itemData name="String" defStyleNum="dsString"/>
+      <itemData name="Integer" defStyleNum="dsDecVal"/>
+    </itemDatas>
+  </highlighting>
+  <general>
+    <comments>
+      <comment name="singleLine" start="#"/>
+    </comments>
+  </general>
+</language>
