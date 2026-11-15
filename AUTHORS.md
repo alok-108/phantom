@@ -11,6 +11,7 @@ We welcome contributions from anyone interested in dual-layer programming, sourc
 ### Contributor List
 - Phantom Core Team
 - Alok Pandey ([@alok-108](https://github.com/alok-108))
+- Aaqibhafeez Khan ([@Aaqibhafeezkhan](https://github.com/Aaqibhafeezkhan))
 - Arthur Long ([@ImNotThatPro](https://github.com/ImNotThatPro))
 - [@bfs2021](https://github.com/bfs2021)
 - [@bh-official](https://github.com/bh-official)
