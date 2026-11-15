@@ -16,6 +16,7 @@ Every command and output here is produced by the files in this directory and is 
 | 11 | Behavior-preservation comparison | `generation/` | below |
 | 12 | Rejected generation / detected behavior change | `generation/` | below |
 | 13 | Bounded counter lifecycle | `counters.py` | `phantom run docs/examples/counters.py` |
+| 14 | Provenance metadata and reviewer note | `provenance.py` | `phantom run docs/examples/provenance.py` |
 
 Examples 1–9 and 13 are walked through with output in [../QUICKSTART.md](../QUICKSTART.md) and [../RUNTIME.md](../RUNTIME.md). `whitespace.py`, `unicode.py` and `hybrid.py` are produced by `python scripts/build_examples.py` because their payload is invisible.
 
