@@ -28,12 +28,22 @@ def get_git_bash():
 BASH_PATH = get_git_bash()
 
 
+def script_env(**overrides):
+    """Environment for helper scripts, with the interpreter's bin dir on PATH.
+
+    The scripts invoke the ``phantom`` console script. When the tests run from a
+    virtual environment that is not activated, its ``Scripts``/``bin`` directory
+    is missing from PATH, so make the one next to ``sys.executable`` discoverable.
+    """
+    env = {**os.environ, **overrides}
+    bin_dir = os.path.dirname(sys.executable)
+    env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
+    return env
+
+
 @pytest.mark.skipif(BASH_PATH is None, reason="Git Bash (or non-WSL bash) is required for this test")
 def test_ci_check_with_spaces_in_path():
-    env = {
-        **os.environ,
-        "PHANTOM_PATHS": "tests/fixtures/space path",
-    }
+    env = script_env(PHANTOM_PATHS="tests/fixtures/space path")
     result = subprocess.run(
         [BASH_PATH, "scripts/ci_check.sh"],
         env=env,
@@ -55,7 +65,7 @@ def test_sarif_check_writes_valid_sarif(tmp_path):
     script = tmp_path / "good.py"
     script.write_text('#: phantom:0.1.0 counter.create("n", 3)\n')
     out = tmp_path / "out.sarif"
-    env = {**os.environ, "PHANTOM_PATHS": str(script)}
+    env = script_env(PHANTOM_PATHS=str(script))
     result = subprocess.run(
         [BASH_PATH, "scripts/sarif_check.sh", str(out)] if BASH_PATH else ["bash", "scripts/sarif_check.sh", str(out)],
         env=env,
@@ -76,7 +86,7 @@ def test_sarif_check_still_writes_sarif_on_findings(tmp_path):
     script = tmp_path / "bad.py"
     script.write_text('#: phantom:0.1.0 counter.create("n", 0)\n')
     out = tmp_path / "out.sarif"
-    env = {**os.environ, "PHANTOM_PATHS": str(script)}
+    env = script_env(PHANTOM_PATHS=str(script))
     result = subprocess.run(
         [BASH_PATH, "scripts/sarif_check.sh", str(out)] if BASH_PATH else ["bash", "scripts/sarif_check.sh", str(out)],
         env=env,
