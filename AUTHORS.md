@@ -16,6 +16,7 @@ We welcome contributions from anyone interested in dual-layer programming, sourc
 - [@bh-official](https://github.com/bh-official)
 - Dikshant Neupane ([@Dikshant-Neupane](https://github.com/Dikshant-Neupane))
 - David Oprea ([@DavidOprea](https://github.com/DavidOprea))
+- [@jay23606](https://github.com/jay23606)
 - [@Kakacat-dot](https://github.com/Kakacat-dot)
 - Naman Rai ([@namanraii](https://github.com/namanraii))
 - Sahil Dhonde ([@SahilDhonde-9](https://github.com/SahilDhonde-9))
