@@ -228,7 +228,6 @@ def execute_host_program(
         def _feed_stdin() -> None:
             try:
                 assert proc.stdin is not None
-                assert stdin_text is not None
                 proc.stdin.write(stdin_text.encode("utf-8"))
                 proc.stdin.close()
             except (BrokenPipeError, OSError, ValueError):
