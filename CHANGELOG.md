@@ -70,6 +70,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - Add a Spanish translation of the Quickstart guide (`docs/es/QUICKSTART.md`)[#129](https://github.com/hayagrivai-labs/phantom/pull/129).
 
 ### Added
+- Elvish tab completion script (`scripts/completions/phantom.elv`) with installation instructions in `docs/INSTALLATION.md` (#276, #285).
 - Nano syntax highlighting for the Phantom instruction layer (`scripts/syntax/phantom.nanorc`), with install instructions in the Editor Support section of `docs/INSTALLATION.md` (#121).
 - Vim / Neovim syntax highlighting for the Phantom instruction layer (`scripts/syntax/phantom.vim`), inheriting Python syntax and highlighting Phantom instructions and encoding markers, with installation instructions in the Editor Support section of `docs/INSTALLATION.md` (#151).
 - `.pre-commit-hooks.yaml` defines `phantom-check` and `phantom-strict` hooks so `phantom check` runs as a [pre-commit](https://pre-commit.com/) hook (see `docs/INSTALLATION.md`) (#101).

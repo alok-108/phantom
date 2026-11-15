@@ -175,6 +175,14 @@ Nushell users get tab completion for subcommands and flags from
 ```nu
 source scripts/completions/phantom.nu
 ```
+
+Elvish users get tab completion for subcommands and flags from
+`scripts/completions/phantom.elv`. Source it in your Elvish `rc.elv`:
+
+```elvish
+source scripts/completions/phantom.elv
+```
+
 After that, `phantom <TAB>` suggests the subcommands (`check`,
 `inspect`, `run`, `generate`, `diff`, `verify`), and
 `phantom check --<TAB>` or `phantom run --<TAB>` suggest that

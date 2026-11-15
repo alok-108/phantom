@@ -321,6 +321,24 @@ def test_nushell_completion_script_covers_cli():
         assert value in text, f"nushell completions miss the {value} value"
 
 
+ELVISH_COMPLETION = ROOT / "scripts" / "completions" / "phantom.elv"
+
+
+def test_elvish_completion_script_covers_cli():
+    assert ELVISH_COMPLETION.exists(), "scripts/completions/phantom.elv is missing"
+    text = ELVISH_COMPLETION.read_text(encoding="utf-8")
+    assert "edit:completion:arg-completer[phantom]" in text
+    for subcommand in EXPECTED_COMPLETION_SUBCOMMANDS:
+        assert subcommand in text, f"elvish completions miss subcommand {subcommand}"
+    for subcommand, flags in EXPECTED_NUSHELL_FLAGS.items():
+        for flag in flags:
+            assert f"--{flag}" in text, (
+                f"elvish completions miss --{flag} for {subcommand}"
+            )
+    for value in EXPECTED_COMPLETION_VALUES:
+        assert value in text, f"elvish completions miss the {value} value"
+
+
 
 EMACS_MODE = ROOT / "scripts" / "syntax" / "phantom-mode.el"
 PHANTOM_EMACS_INSTRUCTIONS = (
