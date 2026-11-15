@@ -59,6 +59,9 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - Event handlers are invoked at most once per registration when an event fires, even if they raise `TypeError` or `ValueError`; signature validation no longer retries failing handlers or replaces their original error.
 - Support space-containing paths and multiline YAML inputs in CI checks and GitHub Action (#85)
 
+### Added
+- Optional OpenAI-compatible chat-completions provider for the generator, configurable by environment variables.
+
 ### Documentation
 - Add an Indonesian (Bahasa Indonesia) translation of the Quickstart guide (`docs/id/QUICKSTART.md`) and link it from the language switchers in `README.md` and `docs/QUICKSTART.md`.
 - Add a Japanese translation of the Quickstart guide (docs/ja/QUICKSTART.md).
