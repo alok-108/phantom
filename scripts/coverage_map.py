@@ -42,20 +42,12 @@ def render(data: dict, top: int) -> str:
     rows = []
     for path, info in files.items():
         summary = info["summary"]
-        missing_lines = info.get("missing_lines")
-        if not isinstance(missing_lines, list):
-            legacy_missing = summary.get("missing_lines", [])
-            missing_lines = legacy_missing if isinstance(legacy_missing, list) else []
-        missing_count = summary.get("missing_lines")
-        if not isinstance(missing_count, int):
-            missing_count = len(missing_lines)
         rows.append(
             (
                 summary["percent_covered"],
                 path,
                 summary["num_statements"],
-                missing_count,
-                missing_lines,
+                summary["missing_lines"],
                 summary["excluded_lines"],
             )
         )
@@ -72,9 +64,9 @@ def render(data: dict, top: int) -> str:
         "| File | Cover | Miss | Missing lines |",
         "| :--- | ---: | ---: | :--- |",
     ]
-    for percent, path, _stmts, missing_count, missing_lines, _excluded in rows[:top]:
+    for percent, path, _stmts, missing, _excluded in rows[:top]:
         out.append(
-            f"| `{path}` | {percent:.1f}% | {missing_count} | {compress(missing_lines)} |"
+            f"| `{path}` | {percent:.1f}% | {len(missing)} | {compress(missing)} |"
         )
     if len(rows) > top:
         out.append("")
