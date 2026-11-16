@@ -7,6 +7,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 ### Added
 - Kate / KWrite syntax definition (`scripts/syntax/phantom.xml`) for the Phantom instruction layer (#266).
+- Geany custom filetype configuration for Phantom syntax highlighting (`scripts/syntax/filetypes.phantom.conf`) (#278).
 - Pygments lexer definition (`scripts/syntax/pygments_phantom.py`) for highlighting the Phantom instruction layer in documentation tools and code viewers (#279).
 - Bounded counter lifecycle example (`docs/examples/counters.py`) demonstrating `counter.create`, `counter.increment`, `counter.decrement`, `counter.reset`, and boundary handling (#262).
 - Provenance metadata example (`docs/examples/provenance.py`) demonstrating `meta.author`, `meta.version`, `meta.license`, `meta.tags`, and `diagnostic.note` (#280).
