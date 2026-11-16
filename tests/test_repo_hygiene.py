@@ -69,10 +69,10 @@ EXPECTED_COMPLETION_SUBCOMMANDS = ("check", "inspect", "run", "generate", "diff"
 EXPECTED_COMPLETION_FLAGS = {
     "check": ("strict", "format", "deny", "allow-only"),
     "inspect": ("json", "strict", "deny", "allow-only"),
-    "run": ("timeout", "deny", "allow-only", "handlers-from", "allow-handler"),
+    "run": ("timeout", "max-output", "deny", "allow-only", "handlers-from", "allow-handler"),
     "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "plan-file", "allow-remote"),
     "diff": ("host-only", "no-color"),
-    "verify": ("timeout",),
+    "verify": ("timeout", "max-output", "args", "stdin-file"),
 }
 EXPECTED_COMPLETION_VALUES = ("sarif", "whitespace", "unicode")
 
@@ -104,7 +104,8 @@ EXPECTED_FISH_SUBCOMMANDS = ("check", "inspect", "run", "generate", "diff", "ver
 # Flags the completion script must offer per subcommand (long form, no dashes).
 EXPECTED_FISH_FLAGS = {
     "check": ("strict", "format", "deny", "allow-only"),
-    "run": ("timeout", "deny", "allow-only", "handlers-from", "allow-handler"),
+    "run": ("timeout", "max-output", "deny", "allow-only", "handlers-from", "allow-handler"),
+    "verify": ("timeout", "max-output", "args", "stdin-file"),
 }
 
 
@@ -275,10 +276,10 @@ POWERSHELL_COMPLETION = ROOT / "scripts" / "completions" / "phantom.ps1"
 EXPECTED_POWERSHELL_FLAGS = {
     "check": ("strict", "format", "deny", "allow-only"),
     "inspect": ("json", "strict", "deny", "allow-only"),
-    "run": ("timeout", "deny", "allow-only", "handlers-from", "allow-handler"),
+    "run": ("timeout", "max-output", "deny", "allow-only", "handlers-from", "allow-handler"),
     "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "plan-file", "allow-remote"),
     "diff": ("host-only", "no-color"),
-    "verify": ("timeout",),
+    "verify": ("timeout", "max-output", "args", "stdin-file"),
 }
 
 

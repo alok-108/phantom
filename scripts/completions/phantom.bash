@@ -25,7 +25,7 @@ _phantom() {
             COMPREPLY=( $(compgen -W "comment whitespace unicode" -- "$cur") )
             return 0
             ;;
-        --deny|--allow-only|--timeout|--handlers-from|--allow-handler|--intent|--placement|--output|-o|--provider|--plan-file)
+        --deny|--allow-only|--timeout|--max-output|--handlers-from|--allow-handler|--intent|--placement|--output|-o|--provider|--plan-file|--args|--stdin-file)
             COMPREPLY=( $(compgen -f -- "$cur") )
             return 0
             ;;
@@ -59,7 +59,7 @@ _phantom() {
             ;;
         # run
         run)
-            COMPREPLY=( $(compgen -W "-h --help --timeout --deny --allow-only --handlers-from --allow-handler" -- "$cur") )
+            COMPREPLY=( $(compgen -W "-h --help --timeout --max-output --deny --allow-only --handlers-from --allow-handler" -- "$cur") )
             ;;
         # generate
         generate)
@@ -71,7 +71,7 @@ _phantom() {
             ;;
         # verify
         verify)
-            COMPREPLY=( $(compgen -W "-h --help --timeout" -- "$cur") )
+            COMPREPLY=( $(compgen -W "-h --help --timeout --max-output --args --stdin-file" -- "$cur") )
             ;;
     esac
     return 0
