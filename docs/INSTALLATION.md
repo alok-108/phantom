@@ -288,6 +288,18 @@ Copy the syntax definition file into your local Sublime Text user packages direc
 cp scripts/syntax/Phantom.sublime-syntax ~/.config/sublime-text/Packages/User/
 ```
 
+### Kate / KWrite
+
+Copy [phantom.xml](../scripts/syntax/phantom.xml) into the
+[custom syntax directory](https://docs.kde.org/stable_kf6/en/kate/katepart/highlight.html)
+for your Kate or KWrite installation. On a typical Linux installation, this is
+`$XDG_DATA_HOME/org.kde.syntax-highlighting/syntax/` or
+`~/.local/share/org.kde.syntax-highlighting/syntax/` when `XDG_DATA_HOME` is unset.
+On Windows, use `%LOCALAPPDATA%\org.kde.syntax-highlighting\syntax`.
+
+Restart the editor and select **Tools → Highlighting → Sources → Phantom** for
+a Phantom file. Other Python files continue to use the usual Python highlighting.
+
 ### Micro
 
 Copy the syntax definition file into Micro's syntax directory:
