@@ -57,7 +57,7 @@ Corruption is detected, not guessed around: a data line that is not exactly 8 ch
 
 Four characters make a byte. The visible `# ` prefix is required for the file to remain valid Python: a line consisting only of zero-width characters is a `SyntaxError` in CPython. (Earlier prototype output omitted the prefix; the encoder now emits it.)
 
-Rejected code points (soft hyphen, word joiner, Hangul fillers, …) inside a block are errors. Outside a block, `phantom check --strict` reports every zero-width, rejected-invisible and bidirectional-control character.
+Rejected code points (soft hyphen, word joiner, Hangul fillers, variation selectors, Unicode tag characters, …; the full list is in `SPECIFICATION.md` §6.3) inside a block are errors. Outside a block, `phantom check --strict` reports every zero-width, rejected-invisible and bidirectional-control character.
 
 Things that corrupt it:
 

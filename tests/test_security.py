@@ -25,6 +25,21 @@ WJ = chr(0x2060)
 RLO = chr(0x202E)
 LTI = chr(0x2066)
 
+# Unicode Default_Ignorable_Code_Point entries added to the strict audit (#2): the
+# edges of every range plus a sample from its middle.
+NEW_INVISIBLE_CODEPOINTS = [
+    0x180B, 0x180C, 0x180D, 0x180F,  # Mongolian free variation selectors
+    0x2065,  # unassigned
+    0x3164, 0xFFA0,  # Hangul fillers
+    0xFE00, 0xFE08, 0xFE0F,  # variation selectors 1, 9, 16
+    0xFFF0, 0xFFF4, 0xFFF8,  # unassigned
+    0x1BCA0, 0x1BCA3,  # shorthand format controls
+    0x1D173, 0x1D17A,  # musical symbol beam/tie/slur/phrase controls
+    0xE0000, 0xE0001, 0xE0020, 0xE0041, 0xE007F,  # tag characters
+    0xE0100, 0xE01EF,  # variation selectors 17 and 256
+    0xE0FFF,  # end of the default-ignorable tag block
+]
+
 
 def _trap_source(marker):
     return (
@@ -243,6 +258,34 @@ class TestStrictAudit:
         src = "#:zw:begin\n#:zw:begin\n#:zw:end\n"
         findings = audit_source(src, "dup_zw.py")
         assert any("Nested or duplicate zero-width block begin marker" in f.message for f in findings)
+
+    @pytest.mark.parametrize("codepoint", NEW_INVISIBLE_CODEPOINTS)
+    def test_default_ignorable_code_points_outside_block_flagged(self, codepoint):
+        from phantom.validator import audit_source
+
+        (finding,) = audit_source(f"x = 'a{chr(codepoint)}b'\n", "f.py")
+        assert f"U+{codepoint:04X}" in finding.message
+        assert finding.source.line == 1 and finding.source.column == 6
+
+    @pytest.mark.parametrize("codepoint", NEW_INVISIBLE_CODEPOINTS)
+    def test_default_ignorable_code_points_inside_block_flagged(self, codepoint):
+        from phantom.validator import audit_source
+
+        src = f"#:zw:begin\n# {chr(codepoint)}\n#:zw:end\n"
+        (finding,) = audit_source(src, "f.py")
+        assert finding.message.startswith(f"Unexpected invisible code point U+{codepoint:04X}")
+
+    def test_visible_text_with_non_ascii_is_still_clean(self):
+        from phantom.validator import audit_source
+
+        assert audit_source("# café ✓ 日本語 \U0001f600 · —\n") == []
+
+    @pytest.mark.parametrize("codepoint", NEW_INVISIBLE_CODEPOINTS)
+    def test_zero_width_decode_rejects_new_code_points(self, codepoint):
+        from phantom.encoding import UnicodeDecoder
+
+        with pytest.raises(ValueError, match=f"U\\+{codepoint:04X}"):
+            UnicodeDecoder.decode(ZWSP * 4 + chr(codepoint))
 
     def test_cli_strict_exit_codes(self, tmp_path, capsys):
         bad = tmp_path / "bad.py"
