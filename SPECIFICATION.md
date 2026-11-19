@@ -72,6 +72,7 @@ Rules:
 | `meta.author` | `name: string` | `cap.metadata` | Metadata only |
 | `meta.license` | `spdx: string` | `cap.metadata` | Metadata only |
 | `meta.tags` | `tags: string` | `cap.metadata` | Metadata only |
+| `meta.description` | `text: string` | `cap.metadata` | Metadata only |
 | `meta.version` | `version: string` | `cap.metadata` | Metadata only |
 
 "Executable" means the runtime performs an action; it never means Python code is evaluated. Unknown identifiers are a parse error and are never dispatched.
@@ -112,7 +113,10 @@ Record the SPDX license identifier (e.g., `"MIT"`). A second instruction of the 
 ### 5.11 `meta.tags(tags)`
 Record keyword tags describing the probes, hooks, or diagnostics in the instruction layer, as a single comma-separated string (e.g., `"telemetry,audit,compliance"`). The string is stored verbatim as metadata; it is not split into a list. A second instruction of the same kind is a *warning*.
 
-### 5.12 Built-in events
+### 5.12 `meta.description(text)`
+Record a short description of the purpose of the instruction layer (e.g., `"Telemetry and audit probes for payment service"`). The string is stored verbatim as metadata. A second instruction of the same kind is a *warning*.
+
+### 5.13 Built-in events
 `phantom.pre_execute`, `phantom.post_execute`, `phantom.shutdown` exist without declaration. They are the only events the runtime fires (§9). Handlers for custom events may be registered but nothing fires them in v0.1.0.
 
 ## 6. Encodings

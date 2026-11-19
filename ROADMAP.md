@@ -22,7 +22,7 @@ This document outlines the development trajectory of the Phantom dual-layer prog
 
 ### v0.1.x — Initial Release (Current)
 *Status: Released on GitHub (v0.1.1). Not on PyPI (see `docs/RELEASING.md`).*
-- **Instruction Registry (Implemented):** 12 instructions: `event.declare`, `event.on`, `diagnostic.note`, `diagnostic.warn`, `counter.create`, `counter.increment`, `counter.decrement`, `counter.reset`, `meta.author`, `meta.version`, `meta.license`, and `meta.tags` ([registry](src/phantom/grammar.py), [tests](tests/test_grammar.py)).
+- **Instruction Registry (Implemented):** 13 instructions: `event.declare`, `event.on`, `diagnostic.note`, `diagnostic.warn`, `counter.create`, `counter.increment`, `counter.decrement`, `counter.reset`, `meta.author`, `meta.version`, `meta.license`, `meta.tags`, and `meta.description` ([registry](src/phantom/grammar.py), [tests](tests/test_grammar.py)).
 - **Encodings:** 4 fully functional encoding modes (Comment, Whitespace 8-bit, Zero-Width Unicode 2-bit, and Hybrid).
 - **Core Architecture:**
   - Lexical scanner and multi-encoding parser.

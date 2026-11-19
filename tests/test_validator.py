@@ -152,6 +152,20 @@ class TestValidator:
         (finding,) = validate(prog)
         assert finding.severity == Severity.WARNING
 
+    def test_single_meta_description_is_clean(self):
+        prog = parse('#: phantom:0.1.0 meta.description("Telemetry probes for the payment service")\n')
+        assert prog.errors == []
+        assert validate(prog) == []
+
+    def test_duplicate_meta_description_is_warning(self):
+        prog = parse(
+            '#: phantom:0.1.0 meta.description("first")\n'
+            '#: phantom:0.1.0 meta.description("second")\n'
+        )
+        (finding,) = validate(prog)
+        assert finding.severity == Severity.WARNING
+        assert "meta.description" in finding.message
+
     def test_single_meta_tags_is_clean(self):
         prog = parse('#: phantom:0.1.0 meta.tags("telemetry,audit,compliance")\n')
         assert prog.errors == []

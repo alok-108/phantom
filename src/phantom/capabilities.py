@@ -54,6 +54,7 @@ INSTRUCTION_CAPABILITIES: dict[InstructionType, frozenset[Capability]] = {
     InstructionType.META_VERSION: frozenset({Capability.METADATA}),
     InstructionType.META_LICENSE: frozenset({Capability.METADATA}),
     InstructionType.META_TAGS: frozenset({Capability.METADATA}),
+    InstructionType.META_DESCRIPTION: frozenset({Capability.METADATA}),
 }
 
 
@@ -70,6 +71,7 @@ INSTRUCTION_KINDS: dict[InstructionType, InstructionKind] = {
     InstructionType.META_VERSION: InstructionKind.METADATA_ONLY,
     InstructionType.META_LICENSE: InstructionKind.METADATA_ONLY,
     InstructionType.META_TAGS: InstructionKind.METADATA_ONLY,
+    InstructionType.META_DESCRIPTION: InstructionKind.METADATA_ONLY,
 }
 
 

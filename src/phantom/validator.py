@@ -130,6 +130,7 @@ def validate(program: PhantomProgram) -> list[ValidationError]:
             InstructionType.META_VERSION,
             InstructionType.META_LICENSE,
             InstructionType.META_TAGS,
+            InstructionType.META_DESCRIPTION,
         ):
             prior: PhantomInstruction | None = metas.get(inst.type)
             if prior is not None:
