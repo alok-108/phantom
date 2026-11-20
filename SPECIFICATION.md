@@ -150,7 +150,7 @@ Each character encodes 2 bits, MSB first; 4 characters are one byte:
 | U+FEFF ZERO WIDTH NO-BREAK SPACE | 11 |
 
 - The `# ` prefix is **REQUIRED in files meant to run as Python**: a line made only of zero-width characters is a `SyntaxError` ("invalid non-printable character"). Only zero-width and rejected invisible characters on a data line are payload; the prefix and any other visible text are ignored.
-- Decoding is strict: a code point in the *rejected* set (soft hyphen U+00AD, U+034F, U+061C, U+115F, U+1160, U+17B4, U+17B5, U+180E, U+2060–U+2064, U+206A–U+206F) inside a block is an error.
+- Decoding is strict: a code point in the *rejected* set (soft hyphen U+00AD, U+034F, U+061C, U+115F, U+1160, U+17B4, U+17B5, U+180B–U+180F, U+2060–U+2065, U+206A–U+206F, U+3164, U+FE00–U+FE0F, U+FFA0, U+FFF0–U+FFF8, U+1BCA0–U+1BCA3, U+1D173–U+1D17A, U+E0000–U+E0FFF) inside a block is an error. This is the rest of the Unicode `Default_Ignorable_Code_Point` set that renders as nothing, apart from the payload alphabet above and the bidirectional controls (U+200E, U+200F, U+202A–U+202E, U+2066–U+2069), which `phantom check --strict` reports as well. Because variation selectors (U+FE00–U+FE0F) are in the set, `--strict` also reports the U+FE0F that follows some emoji.
 - Normalising, stripping or re-encoding the file may remove or alter these characters. Zero-width encoding is **not** a security mechanism.
 
 ### 6.4 Hybrid

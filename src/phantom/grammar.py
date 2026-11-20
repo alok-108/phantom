@@ -383,7 +383,27 @@ ZW_REJECTED_CODEPOINTS = frozenset(
         "\u206D",   # ACTIVATE ARABIC FORM SHAPING
         "\u206E",   # NATIONAL DIGIT SHAPES
         "\u206F",   # NOMINAL DIGIT SHAPES
+        # Remaining Unicode Default_Ignorable_Code_Point entries that render as nothing.
+        # U+200B-U+200F, U+202A-U+202E, U+2066-U+2069 and U+FEFF are handled elsewhere
+        # (payload alphabet / bidirectional controls).
+        "\u180B",   # MONGOLIAN FREE VARIATION SELECTOR ONE
+        "\u180C",   # MONGOLIAN FREE VARIATION SELECTOR TWO
+        "\u180D",   # MONGOLIAN FREE VARIATION SELECTOR THREE
+        "\u180F",   # MONGOLIAN FREE VARIATION SELECTOR FOUR
+        "\u2065",   # unassigned, Default_Ignorable_Code_Point
+        "\u3164",   # HANGUL FILLER
+        "\uFFA0",   # HALFWIDTH HANGUL FILLER
     }
+    # VARIATION SELECTOR-1 .. -16
+    | {chr(cp) for cp in range(0xFE00, 0xFE10)}
+    # unassigned, Default_Ignorable_Code_Point
+    | {chr(cp) for cp in range(0xFFF0, 0xFFF9)}
+    # SHORTHAND FORMAT LETTER OVERLAP .. UP STEP
+    | {chr(cp) for cp in range(0x1BCA0, 0x1BCA4)}
+    # MUSICAL SYMBOL BEGIN BEAM .. END PHRASE
+    | {chr(cp) for cp in range(0x1D173, 0x1D17B)}
+    # Tag characters, VARIATION SELECTOR-17 .. -256 and the unassigned rest of the block
+    | {chr(cp) for cp in range(0xE0000, 0xE1000)}
 )
 
 
