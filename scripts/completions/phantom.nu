@@ -7,7 +7,7 @@
 #
 # A new shell then completes subcommands and flags, e.g.:
 #   phantom <TAB>         -> check, inspect, run, generate, diff, verify
-#   phantom check --<TAB> -> --strict, --format, --deny, --allow-only
+#   phantom check --<TAB> -> --strict, --format, --json, --deny, --allow-only
 #   phantom run --<TAB>   -> --timeout, --deny, --allow-only, ...
 
 def "nu-complete phantom format" [] {
@@ -35,6 +35,7 @@ export extern "phantom check" [
     --quiet(-q)                  # Suppress non-error output
     --strict                     # Also report invisible/bidirectional code points outside zero-width blocks
     --format: string@"nu-complete phantom format" # Output format (text, json, sarif)
+    --json                       # Output validation findings as JSON
     --deny: string               # Deny capability CAP (repeatable)
     --allow-only: string         # Allow ONLY capability CAP (repeatable)
     ...file: path                # Source file(s) to check

@@ -95,6 +95,98 @@ def test_cli_check_multiple_files_missing_file(capsys):
     assert "not found" in err.lower()
 
 
+def test_cli_check_json_valid(capsys):
+    target = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["check", "--json", str(target)])
+    assert ret == 0
+    out, err = capsys.readouterr()
+    assert err == ""
+    results = json.loads(out)
+    assert isinstance(results, list) and len(results) == 1
+    result = results[0]
+    assert result["file"] == str(target)
+    assert result["valid"] is True
+    assert result["instruction_count"] == 7
+    assert result["errors"] == []
+    assert result["warnings"] == []
+
+
+def test_cli_check_json_invalid(capsys):
+    target = FIXTURES_DIR / "invalid_instructions.py"
+    ret = main(["check", "--json", str(target)])
+    assert ret == 2
+    out, _ = capsys.readouterr()
+    results = json.loads(out)
+    assert isinstance(results, list) and len(results) == 1
+    result = results[0]
+    assert result["valid"] is False
+    assert result["errors"]
+    for entry in result["errors"]:
+        assert set(entry) == {"message", "line", "column", "severity"}
+        assert entry["severity"] == "error"
+        assert isinstance(entry["line"], int) and entry["line"] >= 1
+        assert isinstance(entry["column"], int) and entry["column"] >= 1
+    assert result["warnings"] == []
+
+
+def test_cli_check_json_warnings_only(capsys, tmp_path):
+    target = tmp_path / "warn_only.py"
+    target.write_text(
+        '#: phantom:0.1.0 event.declare("dup")\n'
+        '#: phantom:0.1.0 event.declare("dup")\n'
+        'print("hi")\n',
+        encoding="utf-8",
+    )
+    ret = main(["check", "--json", str(target)])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    results = json.loads(out)
+    result = results[0]
+    assert result["valid"] is True
+    assert result["errors"] == []
+    assert len(result["warnings"]) == 1
+    assert result["warnings"][0]["severity"] == "warning"
+    assert "already declared" in result["warnings"][0]["message"]
+
+
+def test_cli_check_json_multiple_files(capsys):
+    valid = FIXTURES_DIR / "valid_comments.py"
+    invalid = FIXTURES_DIR / "invalid_instructions.py"
+    ret = main(["check", "--json", str(valid), str(invalid)])
+    assert ret == 2
+    out, _ = capsys.readouterr()
+    results = json.loads(out)
+    assert isinstance(results, list) and len(results) == 2
+    assert [r["valid"] for r in results] == [True, False]
+    assert [r["file"] for r in results] == [str(valid), str(invalid)]
+
+
+def test_cli_check_json_missing_file(capsys):
+    ret = main(["check", "--json", "not_real_file.py"])
+    assert ret == 1
+    out, err = capsys.readouterr()
+    assert "not found" in err.lower()
+    results = json.loads(out)
+    assert isinstance(results, list) and len(results) == 1
+    result = results[0]
+    assert result["valid"] is False
+    assert result["instruction_count"] == 0
+    assert len(result["errors"]) == 1
+    assert "not found" in result["errors"][0]["message"].lower()
+    assert result["errors"][0]["severity"] == "error"
+    assert result["warnings"] == []
+
+
+def test_cli_check_json_takes_precedence_over_sarif(capsys):
+    target = FIXTURES_DIR / "valid_comments.py"
+    ret = main(["check", "--json", "--format", "sarif", str(target)])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    results = json.loads(out)
+    assert isinstance(results, list)
+    assert results[0]["valid"] is True
+
+
 def test_cli_inspect_text(capsys):
     target = FIXTURES_DIR / "valid_comments.py"
     ret = main(["inspect", str(target)])

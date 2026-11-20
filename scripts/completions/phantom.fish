@@ -4,7 +4,7 @@
 #   ~/.config/fish/completions/phantom.fish
 # A new fish shell then completes subcommands and flags, e.g.:
 #   phantom <TAB>         -> check, inspect, run, generate, diff, verify
-#   phantom check --<TAB> -> --strict, --format, --deny, --allow-only, ...
+#   phantom check --<TAB> -> --strict, --format, --json, --deny, --allow-only, ...
 #   phantom run --<TAB>   -> --timeout, --deny, --allow-only, ...
 
 # Subcommands
@@ -24,6 +24,7 @@ complete -c phantom -n "__fish_use_subcommand" -l no-color -d "Omit ANSI color e
 # check
 complete -c phantom -n "__fish_seen_subcommand_from check" -l strict -d "Also report invisible/bidirectional code points outside zero-width blocks"
 complete -c phantom -n "__fish_seen_subcommand_from check" -l format -d "Output format" -r -a "text sarif"
+complete -c phantom -n "__fish_seen_subcommand_from check" -l json -d "Output validation findings as JSON"
 complete -c phantom -n "__fish_seen_subcommand_from check" -l deny -d "Deny a capability" -r
 complete -c phantom -n "__fish_seen_subcommand_from check" -l allow-only -d "Grant only these capabilities" -r
 

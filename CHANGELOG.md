@@ -4,6 +4,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 
 ## [Unreleased]
 - Added instruction kind classification (`executable` or `metadata-only`) to `phantom inspect` text and JSON output.
+- `phantom check --json` outputs validation findings as a JSON array of per-file objects for CI parsing (#107).
 
 ### Changed
 - `phantom check --strict` (and zero-width decoding) now covers the rest of the Unicode `Default_Ignorable_Code_Point` set that renders as nothing: Mongolian free variation selectors U+180B–U+180D and U+180F, U+2065, Hangul fillers U+3164 and U+FFA0, variation selectors U+FE00–U+FE0F, U+FFF0–U+FFF8, U+1BCA0–U+1BCA3, U+1D173–U+1D17A, and the tag-character block U+E0000–U+E0FFF (which includes variation selectors U+E0100–U+E01EF). Note that `--strict` therefore also reports the U+FE0F after some emoji (#2).

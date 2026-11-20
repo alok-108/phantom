@@ -4,7 +4,7 @@
 #   . scripts/completions/phantom.ps1
 # A new shell then completes subcommands and flags, e.g.:
 #   phantom <TAB>         -> check, inspect, run, generate, diff, verify
-#   phantom check --<TAB> -> --strict, --format, --deny, --allow-only
+#   phantom check --<TAB> -> --strict, --format, --json, --deny, --allow-only
 #   phantom run --<TAB>   -> --timeout, --deny, --allow-only, ...
 Register-ArgumentCompleter -CommandName 'phantom' -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
@@ -25,7 +25,7 @@ Register-ArgumentCompleter -CommandName 'phantom' -ScriptBlock {
     }
     # check
     if ($subcommand -eq 'check') {
-        $flags = @('-h', '--help', '--strict', '--format', '--deny', '--allow-only')
+        $flags = @('-h', '--help', '--strict', '--format', '--json', '--deny', '--allow-only')
         $values = @('text', 'sarif')
         if ($wordToComplete -like '--format*') { $values = @('text', 'sarif') }
         $candidates = $flags + $values

@@ -108,6 +108,22 @@ error: Counter limit must be > 0, got 0
 
 If a file fails to load and there are no instruction diagnostics, the command prints the load error and omits the diagnostic summary.
 
+For machine-readable output, `phantom check --json FILE` prints a JSON array of one object per file to stdout, with nothing else on stdout:
+
+```json
+[
+  {
+    "file": "program.py",
+    "valid": true,
+    "instruction_count": 5,
+    "errors": [],
+    "warnings": []
+  }
+]
+```
+
+Each entry in `errors` and `warnings` has `message`, `line`, `column` (1-based, matching the human-readable output), and `severity`. Exit codes are unchanged: 2 when any file has an error, 1 when a file could not be read or parsed (the entry then has `"valid": false` and an error entry describing the problem), else 0. When both `--json` and `--format sarif` are given, `--json` takes precedence.
+
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for the full list.
 
 ## Limitations
