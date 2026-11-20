@@ -436,6 +436,41 @@ def test_runtime_license_metadata_after_initialize():
     assert runtime.get_metadata("license") == "MIT"
 
 
+def test_runtime_description_metadata_after_initialize():
+    loc = SourceLocation(file="test.py", line=1, column=0, encoding=EncodingMode.COMMENT)
+    instructions = [
+        PhantomInstruction(
+            type=InstructionType.META_DESCRIPTION,
+            arguments=(
+                Argument(
+                    type=ArgumentType.STRING,
+                    value="Telemetry and audit probes for payment service",
+                ),
+            ),
+            source=loc,
+        ),
+    ]
+    program = PhantomProgram(instructions=instructions, source_file="test.py")
+
+    runtime = PhantomRuntime()
+    errors = runtime.initialize(program)
+    assert errors == []
+
+    assert runtime.get_metadata("description") == "Telemetry and audit probes for payment service"
+
+
+@pytest.mark.parametrize("values, expected", [(("a short summary",), "a short summary"), ((), "")])
+def test_runtime_initialize_description_metadata(values, expected):
+    runtime = PhantomRuntime()
+
+    errors = runtime.initialize(PhantomProgram(instructions=[
+        _instruction(InstructionType.META_DESCRIPTION, *values),
+    ]))
+
+    assert errors == []
+    assert runtime.get_metadata("description") == expected
+
+
 def test_runtime_tags_metadata_after_initialize():
     loc = SourceLocation(file="test.py", line=1, column=0, encoding=EncodingMode.COMMENT)
     instructions = [

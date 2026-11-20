@@ -33,6 +33,7 @@ The encoders and generator write newline, carriage return, and tab characters in
 | `meta.version(version)` | Records a version label | Metadata only |
 | `meta.license(name)` | Records a license label | Metadata only |
 | `meta.tags(tags)` | Records keyword tags as a comma-separated string | Metadata only |
+| `meta.description(text)` | Records a short description of the layer's purpose | Metadata only |
 
 ### Events
 

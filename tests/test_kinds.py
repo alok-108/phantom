@@ -24,6 +24,7 @@ def test_instruction_kinds_mapping():
     assert INSTRUCTION_KINDS[InstructionType.META_VERSION] == InstructionKind.METADATA_ONLY
     assert INSTRUCTION_KINDS[InstructionType.META_LICENSE] == InstructionKind.METADATA_ONLY
     assert INSTRUCTION_KINDS[InstructionType.META_TAGS] == InstructionKind.METADATA_ONLY
+    assert INSTRUCTION_KINDS[InstructionType.META_DESCRIPTION] == InstructionKind.METADATA_ONLY
 
 def test_every_instruction_has_mapping():
     assert set(INSTRUCTION_KINDS) == set(InstructionType)

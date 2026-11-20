@@ -206,6 +206,17 @@ INSTRUCTION_REGISTRY: dict[str, InstructionSpec] = {
         ),
         description="Declare keyword tags for the instruction layer.",
     ),
+    "meta.description": InstructionSpec(
+        type=InstructionType.META_DESCRIPTION,
+        arguments=(
+            ArgumentSpec(
+                "text",
+                ArgumentType.STRING,
+                description="Layer description text",
+            ),
+        ),
+        description="Declare a descriptive summary for the instruction layer.",
+    ),
 }
 
 

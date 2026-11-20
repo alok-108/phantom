@@ -6,6 +6,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - Added instruction kind classification (`executable` or `metadata-only`) to `phantom inspect` text and JSON output.
 
 ### Added
+- `meta.description(text)` instruction: records a short description of the layer's purpose as metadata (capability `cap.metadata`); a second `meta.description` is a validation warning, like the other `meta.*` instructions (#99).
 - Kate / KWrite syntax definition (`scripts/syntax/phantom.xml`) for the Phantom instruction layer (#266).
 - Pygments lexer definition (`scripts/syntax/pygments_phantom.py`) for highlighting the Phantom instruction layer in documentation tools and code viewers (#279).
 - Bounded counter lifecycle example (`docs/examples/counters.py`) demonstrating `counter.create`, `counter.increment`, `counter.decrement`, `counter.reset`, and boundary handling (#262).
