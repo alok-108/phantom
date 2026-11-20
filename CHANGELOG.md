@@ -19,6 +19,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
 
 ### Fixed
+- Shell completion scripts (Bash, Zsh, Fish, PowerShell) now include `--max-output` for `run` and `verify`, and `--args` and `--stdin-file` for `verify` (#208).
 - `audit_source` detects and reports nested or duplicate whitespace and zero-width block begin markers (`#:ws:begin` and `#:zw:begin`) (#239).
 - Generation workflow clears stale model-provided anchors when overriding `placement_line` to local target placement, preventing false patch mismatch errors (#226).
 - `GeminiProvider.complete` accesses `response.text` inside the error-handling block, properly catching and redacting `ValueError` from blocked or empty model responses (#222).

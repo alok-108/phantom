@@ -60,6 +60,7 @@ _phantom() {
                     _arguments \
                         '(-h --help)'{-h,--help}'[show help]' \
                         '--timeout[host program timeout in seconds]:timeout:' \
+                        '--max-output[per-stream host output cap in bytes]:bytes:' \
                         '--deny[deny a capability]:capability:' \
                         '--allow-only[grant only these capabilities]:capability:' \
                         '--handlers-from[only import event handlers from DIR]:directory:_files -/' \
@@ -97,6 +98,9 @@ _phantom() {
                     _arguments \
                         '(-h --help)'{-h,--help}'[show help]' \
                         '--timeout[per-program timeout in seconds]:timeout:' \
+                        '--max-output[per-stream host output cap in bytes]:bytes:' \
+                        '--args[arguments passed to both programs]:args:' \
+                        '--stdin-file[stdin file supplied to both runs]:stdin file:_files' \
                         '1:original:_files' \
                         '2:candidate:_files'
                     ;;

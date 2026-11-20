@@ -37,7 +37,7 @@ Register-ArgumentCompleter -CommandName 'phantom' -ScriptBlock {
     }
     # run
     elseif ($subcommand -eq 'run') {
-        $flags = @('-h', '--help', '--timeout', '--deny', '--allow-only', '--handlers-from', '--allow-handler')
+        $flags = @('-h', '--help', '--timeout', '--max-output', '--deny', '--allow-only', '--handlers-from', '--allow-handler')
         $candidates = $flags
     }
     # generate
@@ -53,7 +53,7 @@ Register-ArgumentCompleter -CommandName 'phantom' -ScriptBlock {
     }
     # verify
     elseif ($subcommand -eq 'verify') {
-        $flags = @('-h', '--help', '--timeout')
+        $flags = @('-h', '--help', '--timeout', '--max-output', '--args', '--stdin-file')
         $candidates = $flags
     }
     else {

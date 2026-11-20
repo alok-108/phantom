@@ -35,6 +35,7 @@ complete -c phantom -n "__fish_seen_subcommand_from inspect" -l allow-only -d "G
 
 # run
 complete -c phantom -n "__fish_seen_subcommand_from run" -l timeout -d "Host program timeout in seconds" -r
+complete -c phantom -n "__fish_seen_subcommand_from run" -l max-output -d "Per-stream host output cap in bytes" -r
 complete -c phantom -n "__fish_seen_subcommand_from run" -l deny -d "Deny a capability" -r
 complete -c phantom -n "__fish_seen_subcommand_from run" -l allow-only -d "Grant only these capabilities" -r
 complete -c phantom -n "__fish_seen_subcommand_from run" -l handlers-from -d "Only import event handlers from DIR" -r
@@ -58,3 +59,6 @@ complete -c phantom -n "__fish_seen_subcommand_from diff" -l no-color -d "Omit A
 
 # verify
 complete -c phantom -n "__fish_seen_subcommand_from verify" -l timeout -d "Per-program timeout in seconds" -r
+complete -c phantom -n "__fish_seen_subcommand_from verify" -l max-output -d "Per-stream host output cap in bytes" -r
+complete -c phantom -n "__fish_seen_subcommand_from verify" -l args -d "Repeatable arg group passed to both programs" -r
+complete -c phantom -n "__fish_seen_subcommand_from verify" -l stdin-file -d "Stdin file supplied to both runs" -r
