@@ -47,7 +47,7 @@ def render(data: dict, top: int) -> str:
                 summary["percent_covered"],
                 path,
                 summary["num_statements"],
-                summary["missing_lines"],
+                info["missing_lines"],
                 summary["excluded_lines"],
             )
         )
