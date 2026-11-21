@@ -7,6 +7,7 @@ as explicit code points (``chr(0x202E)``) and a reviewer can read every line.
 
 from __future__ import annotations
 
+import configparser
 import re
 import unicodedata
 import xml.etree.ElementTree as ET
@@ -508,6 +509,29 @@ def test_kate_syntax_highlights_phantom_tokens():
     assert version is not None
     assert re.findall(version.attrib["String"], "phantom:0.1.0") == ["0.1.0"]
     assert not re.search(version.attrib["String"], "0.1.0")
+
+
+def test_geany_syntax_config_covers_phantom_tokens():
+    config_path = ROOT / "scripts" / "syntax" / "filetypes.phantom.conf"
+    assert config_path.is_file(), "Geany filetypes.phantom.conf is missing"
+
+    config = configparser.ConfigParser(interpolation=None, strict=True)
+    config.read(config_path, encoding="utf-8")
+    assert {"styling", "keywords", "settings"} <= set(config.sections())
+    assert config["settings"].get("lexer_filetype") == "Python"
+
+    keywords = set(config["keywords"].get("identifiers", "").split())
+    instructions = {
+        "event.declare", "event.on", "diagnostic.note", "diagnostic.warn",
+        "counter.create", "counter.increment", "counter.decrement", "counter.reset",
+        "meta.author", "meta.version", "meta.license", "meta.tags",
+    }
+    markers = {
+        "#:phantom:hybrid", "#:ws:begin", "#:ws:end", "#:zw:begin", "#:zw:end",
+    }
+    assert instructions <= keywords, f"Geany config misses {instructions - keywords}"
+    assert markers <= keywords, f"Geany config misses {markers - keywords}"
+    assert "#:ws:beginning" not in keywords
 
 
 def test_kate_syntax_is_opt_in_and_preserves_python_highlighting():
