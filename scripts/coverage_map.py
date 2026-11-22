@@ -47,8 +47,10 @@ def render(data: dict, top: int) -> str:
                 summary["percent_covered"],
                 path,
                 summary["num_statements"],
-                summary["missing_lines"],
-                summary["excluded_lines"],
+                # coverage.py keeps the line lists on the file entry; the
+                # summary's missing_lines and excluded_lines are counts.
+                info["missing_lines"],
+                info["excluded_lines"],
             )
         )
     rows.sort()
