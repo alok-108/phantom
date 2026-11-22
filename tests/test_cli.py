@@ -808,3 +808,204 @@ def test_verify_invalid_max_output(capsys):
     captured = capsys.readouterr()
     assert exit_code == 1
     assert "Error: --max-output must be positive" in captured.err
+
+
+
+# --- Error paths (#62) ---
+
+
+def _fail_parse(monkeypatch):
+    def boom(path):
+        raise ValueError("boom")
+
+    monkeypatch.setattr("phantom.cli.parse_file", boom)
+
+
+def test_cli_error_path_inspect_not_found(capsys):
+    ret = main(["inspect", "not_real_file.py"])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "File not found: 'not_real_file.py'" in err
+
+
+@pytest.mark.parametrize("command", ["check", "inspect"])
+def test_cli_error_path_parse_failure(capsys, monkeypatch, command):
+    _fail_parse(monkeypatch)
+    target = FIXTURES_DIR / "valid_comments.py"
+    ret = main([command, str(target)])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert f"Failed to parse '{target}': boom" in err
+
+
+def test_cli_error_path_run_not_found(capsys):
+    ret = main(["run", "not_real_file.py"])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "File not found: 'not_real_file.py'" in err
+
+
+def test_cli_error_path_run_parse_failure(capsys, monkeypatch):
+    _fail_parse(monkeypatch)
+    target = FIXTURES_DIR / "valid_plain.py"
+    ret = main(["run", str(target)])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert f"Failed to parse '{target}': boom" in err
+
+
+def test_cli_error_path_run_rejects_non_positive_max_output(capsys):
+    ret = main(["run", str(FIXTURES_DIR / "valid_plain.py"), "--max-output", "0"])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "--max-output must be positive" in err
+
+
+def test_cli_error_path_run_drops_a_second_double_dash(capsys, tmp_path):
+    # The first -- ends Phantom's options; a second one directly after it is
+    # dropped too, so the host only sees what follows.
+    target = tmp_path / "argv.py"
+    target.write_text("import sys\nprint(sys.argv[1:])\n")
+    ret = main(["run", "--quiet", str(target), "--", "--", "x"])
+    assert ret == 0
+    out, _ = capsys.readouterr()
+    assert "['x']" in out
+
+
+def test_cli_error_path_run_prints_runtime_warnings(capsys, monkeypatch):
+    monkeypatch.setattr(
+        "phantom.cli.PhantomRuntime.initialize",
+        lambda self, program: [RuntimeError("handler not registered")],
+    )
+    ret = main(["run", "--quiet", str(FIXTURES_DIR / "valid_plain.py")])
+    assert ret == 0
+    _, err = capsys.readouterr()
+    assert "[RuntimeWarning] handler not registered" in err
+
+
+def test_cli_error_path_run_host_output_without_newline_and_on_stderr(capsys, tmp_path):
+    target = tmp_path / "streams.py"
+    target.write_text("import sys\nsys.stdout.write('out')\nsys.stderr.write('err')\n")
+    ret = main(["run", "--quiet", str(target)])
+    assert ret == 0
+    out, err = capsys.readouterr()
+    assert out == "out\n"
+    assert err == "err\n"
+
+
+def test_cli_error_path_run_reports_truncated_output(capsys, tmp_path):
+    target = tmp_path / "loud.py"
+    target.write_text("print('x' * 5000)\n")
+    ret = main(["run", "--quiet", str(target), "--max-output", "100"])
+    assert ret == 0
+    _, err = capsys.readouterr()
+    assert "[HostExecution] stdout truncated at the output cap" in err
+
+
+def test_cli_error_path_generate_without_file_or_stdin(capsys, monkeypatch, plan_file):
+    monkeypatch.setattr("sys.stdin", io.StringIO(""))
+    ret = main(["generate", "--intent", "x", "--plan-file", plan_file])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "provide a file or --stdin" in err
+
+
+def test_cli_error_path_generate_file_not_found(capsys, monkeypatch, plan_file):
+    monkeypatch.setattr("sys.stdin", io.StringIO(""))
+    ret = main(["generate", "not_real_file.py", "--intent", "x", "--plan-file", plan_file])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "File not found: 'not_real_file.py'" in err
+
+
+@pytest.mark.parametrize(
+    "answer, consented", [("y", True), ("yes", True), ("n", False), ("", False)]
+)
+def test_cli_error_path_generate_interactive_consent(capsys, monkeypatch, answer, consented):
+    monkeypatch.setattr("sys.stdin", FakeTTY())
+    monkeypatch.setattr("builtins.input", lambda prompt="": answer if "Continue?" in prompt else "")
+    calls = []
+
+    def fake_get_provider(name):
+        calls.append(name)
+        raise ProviderError("stub provider failure")
+
+    monkeypatch.setattr("phantom.cli.get_provider", fake_get_provider)
+    ret = main(["generate", "--intent", "x", str(FIXTURES_DIR / "valid_plain.py")])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert bool(calls) is consented
+    assert ("stub provider failure" in err) is consented
+
+
+def test_cli_error_path_generate_asks_for_intent_on_terminal(monkeypatch, captured, plan_file):
+    monkeypatch.setattr("sys.stdin", FakeTTY())
+    prompts = []
+
+    def fake_input(prompt=""):
+        prompts.append(prompt)
+        return "note startup" if "What should Phantom do" in prompt else ""
+
+    monkeypatch.setattr("builtins.input", fake_input)
+    main(["generate", str(FIXTURES_DIR / "valid_plain.py"), "--plan-file", plan_file])
+    assert any("What should Phantom do" in p for p in prompts)
+    assert captured[0].intent == "note startup"
+
+
+def test_cli_error_path_generate_unreadable_plan_file(capsys, monkeypatch, tmp_path):
+    monkeypatch.setattr("sys.stdin", io.StringIO(""))
+    ret = main(
+        [
+            "generate",
+            str(FIXTURES_DIR / "valid_plain.py"),
+            "--intent",
+            "x",
+            "--plan-file",
+            str(tmp_path / "missing-plan.json"),
+        ]
+    )
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "cannot read plan file" in err
+
+
+def test_cli_error_path_generate_prints_warnings_limitations_and_no_output(
+    capsys, monkeypatch, plan_file
+):
+    def fake_generate(request, provider):
+        return SimpleNamespace(
+            warnings=["placement fell back to beginning"],
+            plan=SimpleNamespace(instructions=[], limitations=["comments only"]),
+            success=True,
+            errors=[],
+            diff="+# phantom: log",
+            source_sha256="",
+            candidate_source="# phantom: log\n",
+        )
+
+    monkeypatch.setattr("phantom.cli.generate", fake_generate)
+    monkeypatch.setattr("sys.stdin", io.StringIO("print('hi')\n"))
+    ret = main(["generate", "--stdin", "--intent", "x", "--plan-file", plan_file])
+    assert ret == 0
+    out, err = capsys.readouterr()
+    assert "warning: placement fell back to beginning" in err
+    assert "Limitations: comments only" in out
+    assert "No --output given: candidate not saved." in out
+
+
+def test_cli_error_path_verify_missing_candidate(capsys):
+    ret = main(["verify", str(FIXTURES_DIR / "valid_plain.py"), "not_real_file.py"])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "Candidate file not found: 'not_real_file.py'" in err
+
+
+def test_cli_error_path_verify_unreadable_stdin_file(capsys, tmp_path):
+    f1 = tmp_path / "p1.py"
+    f1.write_text("print('A')\n")
+    bad = tmp_path / "input.txt"
+    bad.write_bytes(b"\xff\xfe not utf-8")
+    ret = main(["verify", str(f1), str(f1), "--stdin-file", str(bad)])
+    assert ret == 1
+    _, err = capsys.readouterr()
+    assert "is not valid UTF-8" in err
