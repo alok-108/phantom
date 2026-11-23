@@ -341,6 +341,17 @@ from pygments_phantom import PhantomLexer
 html = highlight(source, PhantomLexer(), HtmlFormatter())
 ```
 
+### Notepad++
+
+`scripts/syntax/phantom_npp.xml` is a Notepad++ User Defined Language (UDL)
+definition for Phantom instructions and encoding block markers.
+
+To install it on Windows:
+
+1. Open Notepad++.
+2. Go to **Language -> User Defined Language -> Define your language... -> Import**.
+3. Select `scripts/syntax/phantom_npp.xml` and restart Notepad++.
+
 ---
 
 ## Next Steps
