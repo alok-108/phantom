@@ -128,17 +128,21 @@ def test_coverage_map_sorts_lowest_first(tmp_path):
                         "summary": {
                             "percent_covered": 50.0,
                             "num_statements": 10,
-                            "missing_lines": [1, 2, 3, 5],
-                            "excluded_lines": [],
-                        }
+                            "missing_lines": 4,
+                            "excluded_lines": 0,
+                        },
+                        "missing_lines": [1, 2, 3, 5],
+                        "excluded_lines": [],
                     },
                     "src/phantom/b.py": {
                         "summary": {
                             "percent_covered": 100.0,
                             "num_statements": 4,
-                            "missing_lines": [],
-                            "excluded_lines": [],
-                        }
+                            "missing_lines": 0,
+                            "excluded_lines": 0,
+                        },
+                        "missing_lines": [],
+                        "excluded_lines": [],
                     },
                 },
                 "totals": {
@@ -160,4 +164,49 @@ def test_coverage_map_sorts_lowest_first(tmp_path):
     assert result.returncode == 0, result.stderr
     assert "a.py" in result.stdout.split("b.py")[0]
     assert "1-3, 5" in result.stdout
+
+
+def test_coverage_map_reads_a_report_written_by_coverage_py(tmp_path):
+    import os
+
+    module = tmp_path / "sample.py"
+    module.write_text(
+        "def pick(flag):\n"
+        "    if flag:\n"
+        "        return 1\n"
+        "    return 2\n"
+        "\n"
+        "pick(True)\n",
+        encoding="utf-8",
+    )
+    # Keep this run separate from any coverage measurement of the test session itself.
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith(("COV_CORE_", "COVERAGE_"))
+    }
+    data_file = tmp_path / ".coverage"
+    report = tmp_path / "coverage.json"
+    for command in (
+        ["run", f"--data-file={data_file}", str(module)],
+        ["json", f"--data-file={data_file}", "-o", str(report), "-q"],
+    ):
+        subprocess.run(
+            [sys.executable, "-m", "coverage", *command],
+            cwd=tmp_path,
+            env=env,
+            check=True,
+            capture_output=True,
+        )
+
+    result = subprocess.run(
+        [sys.executable, "scripts/coverage_map.py", str(report)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert result.returncode == 0, result.stderr
+    row = next(line for line in result.stdout.splitlines() if "sample.py" in line)
+    assert row.endswith("| 1 | 4 |"), row
 

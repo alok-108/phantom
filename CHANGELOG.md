@@ -25,6 +25,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - PowerShell tab completion script (`scripts/completions/phantom.ps1`) for subcommands and flags (#184).
 
 ### Fixed
+- `scripts/coverage_map.py` reads the missing and excluded line lists from each file entry of coverage.py's JSON report instead of its summary, where they are counts, so the CI coverage map step no longer crashes with `TypeError: object of type 'int' has no len()` (#303).
 - Shell completion scripts (Bash, Zsh, Fish, PowerShell) now include `--max-output` for `run` and `verify`, and `--args` and `--stdin-file` for `verify` (#208).
 - `audit_source` detects and reports nested or duplicate whitespace and zero-width block begin markers (`#:ws:begin` and `#:zw:begin`) (#239).
 - Generation workflow clears stale model-provided anchors when overriding `placement_line` to local target placement, preventing false patch mismatch errors (#226).
