@@ -562,3 +562,27 @@ def test_kate_syntax_is_opt_in_and_preserves_python_highlighting():
     assert host[-1].get("context") == "##Python"
     assert all(rule.get("firstNonSpace") == "true" for rule in host[:-1])
 
+
+ROUGE_LEXER = ROOT / "scripts" / "syntax" / "rouge_phantom.rb"
+PHANTOM_ROUGE_INSTRUCTIONS = (
+    *PHANTOM_NANO_INSTRUCTIONS,
+    "meta.description",
+)
+
+
+def test_rouge_lexer_highlights_phantom_instructions():
+    assert ROUGE_LEXER.is_file(), "scripts/syntax/rouge_phantom.rb is missing"
+    text = ROUGE_LEXER.read_text(encoding="utf-8")
+    assert "class Phantom < Rouge::Lexers::Python" in text, (
+        "rouge_phantom.rb must inherit from Rouge::Lexers::Python"
+    )
+    assert 'tag "phantom"' in text, "rouge_phantom.rb must set tag 'phantom'"
+    assert "phantom:" in text, (
+        "rouge_phantom.rb must highlight the #: phantom:<version> prefix"
+    )
+    for instruction in PHANTOM_ROUGE_INSTRUCTIONS:
+        assert instruction in text, f"rouge_phantom.rb does not highlight {instruction}"
+    for marker in PHANTOM_NANO_MARKERS:
+        marker_body = marker[2:]
+        assert marker_body in text, f"rouge_phantom.rb does not highlight {marker}"
+

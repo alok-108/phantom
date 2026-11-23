@@ -341,6 +341,18 @@ from pygments_phantom import PhantomLexer
 html = highlight(source, PhantomLexer(), HtmlFormatter())
 ```
 
+### Rouge (Jekyll / GitHub Pages)
+
+`scripts/syntax/rouge_phantom.rb` defines `Rouge::Lexers::Phantom` (tag `phantom`),
+inheriting from `Rouge::Lexers::Python` to highlight Phantom version prefixes,
+instruction identifiers, and encoding block markers.
+
+Require it in a Jekyll plugin (e.g. `_plugins/rouge_phantom.rb`):
+
+```ruby
+require_relative "../scripts/syntax/rouge_phantom"
+```
+
 ---
 
 ## Next Steps
