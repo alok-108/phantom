@@ -562,3 +562,23 @@ def test_kate_syntax_is_opt_in_and_preserves_python_highlighting():
     assert host[-1].get("context") == "##Python"
     assert all(rule.get("firstNonSpace") == "true" for rule in host[:-1])
 
+
+NPP_UDL = ROOT / "scripts" / "syntax" / "phantom_npp.xml"
+PHANTOM_NPP_INSTRUCTIONS = (
+    *PHANTOM_NANO_INSTRUCTIONS,
+    "meta.description",
+)
+
+
+def test_notepadpp_udl_highlights_phantom_instructions():
+    assert NPP_UDL.is_file(), "scripts/syntax/phantom_npp.xml is missing"
+    root = ET.parse(NPP_UDL).getroot()
+    user_lang = root.find("UserLang")
+    assert user_lang is not None
+    assert user_lang.get("name") == "Phantom"
+    text = NPP_UDL.read_text(encoding="utf-8")
+    for instruction in PHANTOM_NPP_INSTRUCTIONS:
+        assert instruction in text, f"phantom_npp.xml does not highlight {instruction}"
+    for marker in PHANTOM_NANO_MARKERS:
+        assert marker in text, f"phantom_npp.xml does not highlight {marker}"
+
