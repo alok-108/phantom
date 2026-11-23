@@ -385,6 +385,44 @@ def test_xonsh_completion_script_covers_cli():
         assert value in text, f"xonsh completions miss the {value} value"
 
 
+TCSH_COMPLETION = ROOT / "scripts" / "completions" / "phantom.tcsh"
+
+
+def _tcsh_flag_table(text: str) -> dict[str, tuple[str, ...]]:
+    table = {}
+    for match in re.finditer(r"^set _phantom_([a-z]+)_flags = \(([^)]*)\)$", text, re.MULTILINE):
+        table[match.group(1)] = tuple(match.group(2).split())
+    return table
+
+
+def test_tcsh_completion_script_covers_cli():
+    assert TCSH_COMPLETION.exists(), "scripts/completions/phantom.tcsh is missing"
+    text = TCSH_COMPLETION.read_text(encoding="utf-8")
+    assert "complete phantom" in text
+    subcommands = re.search(r"^set _phantom_subcommands = \(([^)]*)\)$", text, re.MULTILINE)
+    assert subcommands, "tcsh completions do not list the subcommands"
+    assert set(subcommands.group(1).split()) == set(EXPECTED_COMPLETION_SUBCOMMANDS)
+    flags = {name: options for name, options in _tcsh_flag_table(text).items() if name != "global"}
+    assert set(flags) == set(EXPECTED_COMPLETION_SUBCOMMANDS)
+    for subcommand, options in _cli_option_strings().items():
+        assert set(flags[subcommand]) == options, (
+            f"tcsh completions for {subcommand} differ from the CLI parser"
+        )
+        assert f'"* {subcommand} *") echo $_phantom_{subcommand}_flags' in text, (
+            f"tcsh completions never offer the {subcommand} flags"
+        )
+    values = {
+        flag: set(choices.split())
+        for flag, choices in re.findall(r"'n/(--[a-z-]+)/\(([^)]*)\)/'", text)
+    }
+    assert {"text", "sarif"} <= values.get("--format", set()), (
+        "tcsh completions miss --format values"
+    )
+    assert {"comment", "whitespace", "unicode"} <= values.get("--encoding", set()), (
+        "tcsh completions miss --encoding values"
+    )
+
+
 
 EMACS_MODE = ROOT / "scripts" / "syntax" / "phantom-mode.el"
 PHANTOM_EMACS_INSTRUCTIONS = (

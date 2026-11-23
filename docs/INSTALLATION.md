@@ -190,6 +190,13 @@ Xonsh users get tab completion for subcommands, flags and flag values from
 source scripts/completions/phantom.xsh
 ```
 
+tcsh users get tab completion for subcommands, flags and flag values from
+`scripts/completions/phantom.tcsh`. Source it in your `~/.tcshrc`:
+
+```tcsh
+source scripts/completions/phantom.tcsh
+```
+
 After that, `phantom <TAB>` suggests the subcommands (`check`,
 `inspect`, `run`, `generate`, `diff`, `verify`), and
 `phantom check --<TAB>` or `phantom run --<TAB>` suggest that
