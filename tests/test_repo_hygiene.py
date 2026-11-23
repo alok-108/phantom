@@ -562,3 +562,12 @@ def test_kate_syntax_is_opt_in_and_preserves_python_highlighting():
     assert host[-1].get("context") == "##Python"
     assert all(rule.get("firstNonSpace") == "true" for rule in host[:-1])
 
+
+def test_all_syntax_definitions_documented_in_installation_guide():
+    guide = (ROOT / "docs" / "INSTALLATION.md").read_text(encoding="utf-8")
+    syntax_dir = ROOT / "scripts" / "syntax"
+    syntax_files = sorted(p for p in syntax_dir.iterdir() if p.is_file())
+    assert syntax_files, "scripts/syntax/ should contain editor syntax definitions"
+    missing = [p.name for p in syntax_files if p.name not in guide]
+    assert missing == [], f"syntax files missing from docs/INSTALLATION.md: {missing}"
+

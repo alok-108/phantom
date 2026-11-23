@@ -9,6 +9,7 @@ All notable changes to Phantom are documented here. The format follows [Keep a C
 - `phantom check --strict` (and zero-width decoding) now covers the rest of the Unicode `Default_Ignorable_Code_Point` set that renders as nothing: Mongolian free variation selectors U+180B–U+180D and U+180F, U+2065, Hangul fillers U+3164 and U+FFA0, variation selectors U+FE00–U+FE0F, U+FFF0–U+FFF8, U+1BCA0–U+1BCA3, U+1D173–U+1D17A, and the tag-character block U+E0000–U+E0FFF (which includes variation selectors U+E0100–U+E01EF). Note that `--strict` therefore also reports the U+FE0F after some emoji (#2).
 
 ### Added
+- Hygiene test ensuring every editor syntax definition in `scripts/syntax/` is documented in `docs/INSTALLATION.md` (#307).
 - Xonsh tab completion script (`scripts/completions/phantom.xsh`) for subcommands, flags and flag values (#297).
 - Comprehensive test coverage for CLI error and edge paths across `check`, `inspect`, `run`, `generate`, and `verify` (#62, #294).
 - `meta.description(text)` instruction: records a short description of the layer's purpose as metadata (capability `cap.metadata`); a second `meta.description` is a validation warning, like the other `meta.*` instructions (#99).
