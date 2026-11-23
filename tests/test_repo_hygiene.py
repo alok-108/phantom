@@ -562,3 +562,26 @@ def test_kate_syntax_is_opt_in_and_preserves_python_highlighting():
     assert host[-1].get("context") == "##Python"
     assert all(rule.get("firstNonSpace") == "true" for rule in host[:-1])
 
+
+HLJS_SYNTAX = ROOT / "scripts" / "syntax" / "phantom.hljs.js"
+PHANTOM_HLJS_INSTRUCTIONS = (
+    *PHANTOM_NANO_INSTRUCTIONS,
+    "meta.description",
+)
+
+
+def test_hljs_syntax_highlights_phantom_instructions():
+    assert HLJS_SYNTAX.is_file(), "scripts/syntax/phantom.hljs.js is missing"
+    text = HLJS_SYNTAX.read_text(encoding="utf-8")
+    assert 'hljs.getLanguage("python")' in text, (
+        "phantom.hljs.js must extend Highlight.js Python language rules"
+    )
+    assert "phantom:[0-9]+" in text, (
+        "phantom.hljs.js must highlight the #: phantom:<version> prefix"
+    )
+    for instruction in PHANTOM_HLJS_INSTRUCTIONS:
+        escaped = instruction.replace(".", r"\\.")
+        assert escaped in text, f"phantom.hljs.js does not highlight {instruction}"
+    for marker in PHANTOM_NANO_MARKERS:
+        assert marker in text, f"phantom.hljs.js does not highlight the {marker} marker"
+
