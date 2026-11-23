@@ -341,6 +341,21 @@ from pygments_phantom import PhantomLexer
 html = highlight(source, PhantomLexer(), HtmlFormatter())
 ```
 
+### Highlight.js
+
+`scripts/syntax/phantom.hljs.js` provides a Highlight.js language definition for
+documentation sites (MkDocs, Docusaurus, GitHub Pages) that extends Python with
+Phantom version prefixes, instruction identifiers, and block markers.
+
+Register it with Highlight.js:
+
+```javascript
+import hljs from "highlight.js";
+import phantom from "./scripts/syntax/phantom.hljs.js";
+
+hljs.registerLanguage("phantom", phantom);
+```
+
 ---
 
 ## Next Steps
