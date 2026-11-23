@@ -183,6 +183,13 @@ Elvish users get tab completion for subcommands and flags from
 source scripts/completions/phantom.elv
 ```
 
+Xonsh users get tab completion for subcommands, flags and flag values from
+`scripts/completions/phantom.xsh`. Source it in your `~/.xonshrc`:
+
+```xonsh
+source scripts/completions/phantom.xsh
+```
+
 After that, `phantom <TAB>` suggests the subcommands (`check`,
 `inspect`, `run`, `generate`, `diff`, `verify`), and
 `phantom check --<TAB>` or `phantom run --<TAB>` suggest that

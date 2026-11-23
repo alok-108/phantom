@@ -7,6 +7,8 @@ as explicit code points (``chr(0x202E)``) and a reviewer can read every line.
 
 from __future__ import annotations
 
+import argparse
+import ast
 import re
 import unicodedata
 import xml.etree.ElementTree as ET
@@ -340,6 +342,47 @@ def test_elvish_completion_script_covers_cli():
             )
     for value in EXPECTED_COMPLETION_VALUES:
         assert value in text, f"elvish completions miss the {value} value"
+
+
+XONSH_COMPLETION = ROOT / "scripts" / "completions" / "phantom.xsh"
+
+
+def _xonsh_flag_table(text: str) -> dict[str, tuple[str, ...]]:
+    start = text.index("_PHANTOM_FLAGS = {")
+    end = text.index("\n}\n", start) + len("\n}")
+    return ast.literal_eval(text[start:end].split("=", 1)[1].strip())
+
+
+def _cli_option_strings() -> dict[str, set[str]]:
+    from phantom.cli import create_parser
+
+    parser = create_parser()
+    subparsers = next(
+        action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
+    )
+    return {
+        name: {option for action in subparser._actions for option in action.option_strings}
+        for name, subparser in subparsers.choices.items()
+    }
+
+
+def test_xonsh_completion_script_covers_cli():
+    assert XONSH_COMPLETION.exists(), "scripts/completions/phantom.xsh is missing"
+    text = XONSH_COMPLETION.read_text(encoding="utf-8")
+    assert 'add_one_completer("phantom"' in text
+    flags = _xonsh_flag_table(text)
+    assert set(flags) == set(EXPECTED_COMPLETION_SUBCOMMANDS)
+    for subcommand, expected in EXPECTED_COMPLETION_FLAGS.items():
+        for flag in expected:
+            assert f"--{flag}" in flags[subcommand], (
+                f"xonsh completions miss --{flag} scoped to {subcommand}"
+            )
+    for subcommand, options in _cli_option_strings().items():
+        assert set(flags[subcommand]) == options, (
+            f"xonsh completions for {subcommand} differ from the CLI parser"
+        )
+    for value in EXPECTED_COMPLETION_VALUES:
+        assert value in text, f"xonsh completions miss the {value} value"
 
 
 
