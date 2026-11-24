@@ -341,6 +341,17 @@ from pygments_phantom import PhantomLexer
 html = highlight(source, PhantomLexer(), HtmlFormatter())
 ```
 
+#### Prism.js
+
+`scripts/syntax/prism-phantom.js` provides a Prism.js grammar definition that extends `Prism.languages.python` with Phantom version prefixes, block markers, and instruction keywords. Include it after Prism core and the Python language component:
+
+```html
+<script src="prism.js"></script>
+<script src="components/prism-python.min.js"></script>
+<script src="scripts/syntax/prism-phantom.js"></script>
+<pre><code class="language-phantom">...</code></pre>
+```
+
 ---
 
 ## Next Steps
