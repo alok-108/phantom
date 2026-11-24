@@ -562,3 +562,40 @@ def test_kate_syntax_is_opt_in_and_preserves_python_highlighting():
     assert host[-1].get("context") == "##Python"
     assert all(rule.get("firstNonSpace") == "true" for rule in host[:-1])
 
+
+PRISM_SYNTAX = ROOT / "scripts" / "syntax" / "prism-phantom.js"
+
+
+def test_prism_syntax_highlights_phantom_instructions():
+    assert PRISM_SYNTAX.is_file(), "scripts/syntax/prism-phantom.js is missing"
+    text = PRISM_SYNTAX.read_text(encoding="utf-8")
+    assert 'Prism.languages.extend("python"' in text, (
+        "Prism syntax must extend Prism.languages.python"
+    )
+    assert "Prism.languages.phantom" in text, (
+        "Prism syntax must register Prism.languages.phantom"
+    )
+    assert "phantom:" in text, "Prism syntax must match #: phantom:<version> prefix"
+    for marker in ("ws:", "zw:", "phantom:hybrid"):
+        assert marker in text, f"Prism syntax does not highlight {marker} marker"
+    for instruction in (
+        "event",
+        "declare",
+        "on",
+        "diagnostic",
+        "note",
+        "warn",
+        "counter",
+        "create",
+        "increment",
+        "decrement",
+        "reset",
+        "meta",
+        "author",
+        "version",
+        "license",
+        "tags",
+        "description",
+    ):
+        assert instruction in text, f"Prism syntax does not cover {instruction}"
+
