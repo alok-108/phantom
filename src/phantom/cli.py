@@ -51,6 +51,23 @@ from phantom.validator import audit_source, check_policy, validate
 from phantom.version import __version__
 
 
+def _utf8_error_message(path: str, data: bytes) -> str | None:
+    """The 'not valid UTF-8' message for data, or None when it decodes."""
+    try:
+        data.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        pos = exc.start + (len(codecs.BOM_UTF8) if data.startswith(codecs.BOM_UTF8) else 0)
+        return f"'{path}' is not valid UTF-8 (byte 0x{data[pos]:02x} at position {pos})"
+    return None
+
+
+def _read_source_error_message(filepath: str) -> str:
+    """The message read_source printed for an undecodable file, for --json."""
+    with open(filepath, "rb") as f:
+        data = f.read()
+    return _utf8_error_message(filepath, data) or f"'{filepath}' is not valid UTF-8"
+
+
 def read_source(path: str) -> str | None:
     """Read a source file as UTF-8 (a leading BOM is dropped) with universal newlines.
 
@@ -59,16 +76,11 @@ def read_source(path: str) -> str | None:
     """
     with open(path, "rb") as f:
         data = f.read()
-    try:
-        text = data.decode("utf-8-sig")
-    except UnicodeDecodeError as exc:
-        pos = exc.start + (len(codecs.BOM_UTF8) if data.startswith(codecs.BOM_UTF8) else 0)
-        print(
-            f"Error: '{path}' is not valid UTF-8 (byte 0x{data[pos]:02x} at position {pos})",
-            file=sys.stderr,
-        )
+    message = _utf8_error_message(path, data)
+    if message is not None:
+        print(f"Error: {message}", file=sys.stderr)
         return None
-    return text.replace("\r\n", "\n").replace("\r", "\n")
+    return data.decode("utf-8-sig").replace("\r\n", "\n").replace("\r", "\n")
 
 
 def load_and_parse(filepath: str) -> PhantomProgram:
@@ -188,6 +200,11 @@ def cmd_check(args: argparse.Namespace) -> int:
     json_results: list[dict[str, Any]] = []
     # 1 when any file could not be read or parsed, like a single-file hard failure.
     hard_failure = 0
+
+    def _sort_key(diag: Any) -> tuple[str, int]:
+        loc = diagnostics.finding_location(diag)
+        return (loc.file, loc.line) if loc else ("", 0)
+
     for filepath in filepaths:
         if not os.path.isfile(filepath):
             print(f"Error: File not found: '{filepath}'", file=sys.stderr)
@@ -200,7 +217,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         if source_text is None:
             hard_failure = 1
             json_results.append(
-                _check_json_hard_failure(filepath, f"'{filepath}' is not valid UTF-8")
+                _check_json_hard_failure(filepath, _read_source_error_message(filepath))
             )
             continue
 
@@ -226,6 +243,8 @@ def cmd_check(args: argparse.Namespace) -> int:
         if args.strict:
             strict_findings = audit_source(source_text, filepath)
             file_diagnostics += strict_findings
+        # Keep --json in the same file and line order as the text output.
+        file_diagnostics.sort(key=_sort_key)
         all_diagnostics += file_diagnostics
         json_results.append(
             _check_json_result(filepath, program.instruction_count, file_diagnostics)
@@ -234,10 +253,6 @@ def cmd_check(args: argparse.Namespace) -> int:
     error_count = sum(
         1 for d in all_diagnostics if getattr(d, "severity", None) == Severity.ERROR
     )
-
-    def _sort_key(diag: Any) -> tuple[str, int]:
-        loc = diagnostics.finding_location(diag)
-        return (loc.file, loc.line) if loc else ("", 0)
 
     all_diagnostics.sort(key=_sort_key)
 

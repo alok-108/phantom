@@ -187,6 +187,38 @@ def test_cli_check_json_takes_precedence_over_sarif(capsys):
     assert results[0]["valid"] is True
 
 
+def test_cli_check_json_strict_findings_sorted_by_line(capsys, tmp_path):
+    target = tmp_path / "mixed.py"
+    target.write_text(
+        "# leading comment with a zero-width space \u200b\n"
+        "print(\"hi\")\n"
+        '#: phantom:0.1.0 unknown.instruction("test")\n',
+        encoding="utf-8",
+    )
+    ret = main(["check", "--strict", "--json", str(target)])
+    assert ret == 2
+    out, _ = capsys.readouterr()
+    results = json.loads(out)
+    errors = results[0]["errors"]
+    assert [e["line"] for e in errors] == [1, 3]
+
+
+def test_cli_check_json_non_utf8_keeps_byte_detail(capsys, tmp_path):
+    bad = tmp_path / "bad_utf8.py"
+    bad.write_bytes(b"print('hello')\n# \xff\xfe\n")
+    ret = main(["check", "--json", str(bad)])
+    assert ret == 1
+    out, err = capsys.readouterr()
+    assert "is not valid UTF-8 (byte 0xff at position 17)" in err
+    results = json.loads(out)
+    result = results[0]
+    assert result["valid"] is False
+    assert len(result["errors"]) == 1
+    assert result["errors"][0]["message"] == (
+        f"'{bad}' is not valid UTF-8 (byte 0xff at position 17)"
+    )
+
+
 def test_cli_inspect_text(capsys):
     target = FIXTURES_DIR / "valid_comments.py"
     ret = main(["inspect", str(target)])
