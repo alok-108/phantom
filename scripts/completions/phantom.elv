@@ -36,7 +36,7 @@ set edit:completion:arg-completer[phantom] = {|@args|
             put cap.stdio cap.events cap.diagnostics cap.counters cap.metadata
         } else {
             if (== $subcommand check) {
-                put -h --help -q --quiet --strict --format --deny --allow-only
+                put -h --help -q --quiet --strict --format --json --deny --allow-only
             } elif (== $subcommand inspect) {
                 put -h --help --json --strict --deny --allow-only
             } elif (== $subcommand run) {

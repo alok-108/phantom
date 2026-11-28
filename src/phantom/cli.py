@@ -51,6 +51,23 @@ from phantom.validator import audit_source, check_policy, validate
 from phantom.version import __version__
 
 
+def _utf8_error_message(path: str, data: bytes) -> str | None:
+    """The 'not valid UTF-8' message for data, or None when it decodes."""
+    try:
+        data.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        pos = exc.start + (len(codecs.BOM_UTF8) if data.startswith(codecs.BOM_UTF8) else 0)
+        return f"'{path}' is not valid UTF-8 (byte 0x{data[pos]:02x} at position {pos})"
+    return None
+
+
+def _read_source_error_message(filepath: str) -> str:
+    """The message read_source printed for an undecodable file, for --json."""
+    with open(filepath, "rb") as f:
+        data = f.read()
+    return _utf8_error_message(filepath, data) or f"'{filepath}' is not valid UTF-8"
+
+
 def read_source(path: str) -> str | None:
     """Read a source file as UTF-8 (a leading BOM is dropped) with universal newlines.
 
@@ -59,16 +76,11 @@ def read_source(path: str) -> str | None:
     """
     with open(path, "rb") as f:
         data = f.read()
-    try:
-        text = data.decode("utf-8-sig")
-    except UnicodeDecodeError as exc:
-        pos = exc.start + (len(codecs.BOM_UTF8) if data.startswith(codecs.BOM_UTF8) else 0)
-        print(
-            f"Error: '{path}' is not valid UTF-8 (byte 0x{data[pos]:02x} at position {pos})",
-            file=sys.stderr,
-        )
+    message = _utf8_error_message(path, data)
+    if message is not None:
+        print(f"Error: {message}", file=sys.stderr)
         return None
-    return text.replace("\r\n", "\n").replace("\r", "\n")
+    return data.decode("utf-8-sig").replace("\r\n", "\n").replace("\r", "\n")
 
 
 def load_and_parse(filepath: str) -> PhantomProgram:
@@ -129,6 +141,53 @@ def _handler_policy_from_args(args: argparse.Namespace) -> HandlerPolicy:
 # ──────────────────────────────────────────────────────────────────────
 
 
+def _finding_json_entry(finding: Any) -> dict[str, Any]:
+    """One diagnostic as a JSON object: message, 1-based line/column, severity."""
+    loc = diagnostics.finding_location(finding)
+    return {
+        "message": finding.message,
+        "line": loc.line if loc else None,
+        "column": loc.column + 1 if loc else None,
+        "severity": getattr(finding, "severity", Severity.ERROR).value,
+    }
+
+
+def _check_json_result(
+    filepath: str, instruction_count: int, file_diagnostics: list[Any]
+) -> dict[str, Any]:
+    """One file's `check --json` result: valid when it has no errors."""
+    errors = [
+        _finding_json_entry(d)
+        for d in file_diagnostics
+        if getattr(d, "severity", None) == Severity.ERROR
+    ]
+    warnings = [
+        _finding_json_entry(d)
+        for d in file_diagnostics
+        if getattr(d, "severity", None) == Severity.WARNING
+    ]
+    return {
+        "file": filepath,
+        "valid": not errors,
+        "instruction_count": instruction_count,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+def _check_json_hard_failure(filepath: str, message: str) -> dict[str, Any]:
+    """A file that could not be read or parsed, as a `check --json` result."""
+    return {
+        "file": filepath,
+        "valid": False,
+        "instruction_count": 0,
+        "errors": [
+            {"message": message, "line": None, "column": None, "severity": "error"}
+        ],
+        "warnings": [],
+    }
+
+
 def cmd_check(args: argparse.Namespace) -> int:
     """Check and validate Phantom instructions in one or more files."""
     filepaths = args.file
@@ -137,16 +196,29 @@ def cmd_check(args: argparse.Namespace) -> int:
 
     sources: dict[str, str] = {}
     all_diagnostics: list[Any] = []
+    # One JSON result per input file, in input order, for `--json` mode.
+    json_results: list[dict[str, Any]] = []
     # 1 when any file could not be read or parsed, like a single-file hard failure.
     hard_failure = 0
+
+    def _sort_key(diag: Any) -> tuple[str, int]:
+        loc = diagnostics.finding_location(diag)
+        return (loc.file, loc.line) if loc else ("", 0)
+
     for filepath in filepaths:
         if not os.path.isfile(filepath):
             print(f"Error: File not found: '{filepath}'", file=sys.stderr)
             hard_failure = 1
+            json_results.append(
+                _check_json_hard_failure(filepath, f"File not found: '{filepath}'")
+            )
             continue
         source_text = read_source(filepath)
         if source_text is None:
             hard_failure = 1
+            json_results.append(
+                _check_json_hard_failure(filepath, _read_source_error_message(filepath))
+            )
             continue
 
         try:
@@ -154,6 +226,9 @@ def cmd_check(args: argparse.Namespace) -> int:
         except Exception as exc:
             print(f"Error: Failed to parse '{filepath}': {exc}", file=sys.stderr)
             hard_failure = 1
+            json_results.append(
+                _check_json_hard_failure(filepath, f"Failed to parse '{filepath}': {exc}")
+            )
             continue
 
         sources[filepath] = source_text
@@ -164,19 +239,26 @@ def cmd_check(args: argparse.Namespace) -> int:
         grant = _grant_from_args(args)
         if grant is not None:
             val_errors += check_policy(program, grant)
-        all_diagnostics += list(program.errors) + list(val_errors)
+        file_diagnostics = list(program.errors) + list(val_errors)
         if args.strict:
-            all_diagnostics += audit_source(source_text, filepath)
+            strict_findings = audit_source(source_text, filepath)
+            file_diagnostics += strict_findings
+        # Keep --json in the same file and line order as the text output.
+        file_diagnostics.sort(key=_sort_key)
+        all_diagnostics += file_diagnostics
+        json_results.append(
+            _check_json_result(filepath, program.instruction_count, file_diagnostics)
+        )
 
     error_count = sum(
         1 for d in all_diagnostics if getattr(d, "severity", None) == Severity.ERROR
     )
 
-    def _sort_key(diag: Any) -> tuple[str, int]:
-        loc = diagnostics.finding_location(diag)
-        return (loc.file, loc.line) if loc else ("", 0)
-
     all_diagnostics.sort(key=_sort_key)
+
+    if getattr(args, "json", False):
+        print(json.dumps(json_results, indent=2))
+        return 2 if error_count > 0 else hard_failure
 
     if args.format == "sarif":
         print(diagnostics.to_sarif_json(all_diagnostics))
@@ -794,6 +876,9 @@ def create_parser() -> argparse.ArgumentParser:
     )
     check_p.add_argument(
         "--format", choices=("text", "sarif"), default="text", help="Output format"
+    )
+    check_p.add_argument(
+        "--json", action="store_true", help="Output validation findings as JSON"
     )
     _add_policy_args(check_p)
 

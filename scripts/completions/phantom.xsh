@@ -21,7 +21,7 @@ _PHANTOM_CAPABILITIES = (
 )
 
 _PHANTOM_FLAGS = {
-    "check": ("-h", "--help", "-q", "--quiet", "--strict", "--format", "--deny", "--allow-only"),
+    "check": ("-h", "--help", "-q", "--quiet", "--strict", "--format", "--json", "--deny", "--allow-only"),
     "inspect": ("-h", "--help", "--json", "--strict", "--deny", "--allow-only"),
     "run": (
         "-h", "--help", "-q", "--quiet", "--timeout", "--max-output",

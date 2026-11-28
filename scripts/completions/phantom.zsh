@@ -5,7 +5,7 @@
 # (e.g. ~/.zsh/completions/_phantom) and running
 # `autoload -Uz compinit && compinit`, then start a new shell:
 #   phantom <TAB>         -> check, inspect, run, generate, diff, verify
-#   phantom check --<TAB> -> --strict, --format, --deny, --allow-only
+#   phantom check --<TAB> -> --strict, --format, --json, --deny, --allow-only
 #   phantom run --<TAB>   -> --timeout, --deny, --allow-only, ...
 
 _phantom() {
@@ -41,6 +41,7 @@ _phantom() {
                         '(-h --help)'{-h,--help}'[show help]' \
                         '--strict[also report invisible/bidirectional code points outside zero-width blocks]' \
                         '--format[output format]:format:(text sarif)' \
+                        '--json[output validation findings as JSON]' \
                         '--deny[deny a capability]:capability:' \
                         '--allow-only[grant only these capabilities]:capability:' \
                         '1:file:_files'

@@ -5,7 +5,7 @@
 #   ~/.local/share/bash-completion/completions/phantom
 # A new shell then completes subcommands and flags, e.g.:
 #   phantom <TAB>         -> check, inspect, run, generate, diff, verify
-#   phantom check --<TAB> -> --strict, --format, --deny, --allow-only
+#   phantom check --<TAB> -> --strict, --format, --json, --deny, --allow-only
 #   phantom run --<TAB>   -> --timeout, --deny, --allow-only, ...
 
 _phantom() {
@@ -51,7 +51,7 @@ _phantom() {
     case "$subcommand" in
         # check
         check)
-            COMPREPLY=( $(compgen -W "-h --help --strict --format --deny --allow-only" -- "$cur") )
+            COMPREPLY=( $(compgen -W "-h --help --strict --format --json --deny --allow-only" -- "$cur") )
             ;;
         # inspect
         inspect)

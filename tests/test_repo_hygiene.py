@@ -69,7 +69,7 @@ COMPLETION_SCRIPTS = {
 }
 EXPECTED_COMPLETION_SUBCOMMANDS = ("check", "inspect", "run", "generate", "diff", "verify")
 EXPECTED_COMPLETION_FLAGS = {
-    "check": ("strict", "format", "deny", "allow-only"),
+    "check": ("strict", "format", "json", "deny", "allow-only"),
     "inspect": ("json", "strict", "deny", "allow-only"),
     "run": ("timeout", "max-output", "deny", "allow-only", "handlers-from", "allow-handler"),
     "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "plan-file", "allow-remote"),
@@ -105,7 +105,7 @@ FISH_COMPLETION = ROOT / "scripts" / "completions" / "phantom.fish"
 EXPECTED_FISH_SUBCOMMANDS = ("check", "inspect", "run", "generate", "diff", "verify")
 # Flags the completion script must offer per subcommand (long form, no dashes).
 EXPECTED_FISH_FLAGS = {
-    "check": ("strict", "format", "deny", "allow-only"),
+    "check": ("strict", "format", "json", "deny", "allow-only"),
     "run": ("timeout", "max-output", "deny", "allow-only", "handlers-from", "allow-handler"),
     "verify": ("timeout", "max-output", "args", "stdin-file"),
 }
@@ -276,7 +276,7 @@ def test_pre_commit_hooks_definition_is_valid():
 
 POWERSHELL_COMPLETION = ROOT / "scripts" / "completions" / "phantom.ps1"
 EXPECTED_POWERSHELL_FLAGS = {
-    "check": ("strict", "format", "deny", "allow-only"),
+    "check": ("strict", "format", "json", "deny", "allow-only"),
     "inspect": ("json", "strict", "deny", "allow-only"),
     "run": ("timeout", "max-output", "deny", "allow-only", "handlers-from", "allow-handler"),
     "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "plan-file", "allow-remote"),
@@ -300,7 +300,7 @@ def test_powershell_completion_script_covers_cli():
 
 NUSHELL_COMPLETION = ROOT / "scripts" / "completions" / "phantom.nu"
 EXPECTED_NUSHELL_FLAGS = {
-    "check": ("strict", "format", "deny", "allow-only"),
+    "check": ("strict", "format", "json", "deny", "allow-only"),
     "inspect": ("json", "strict", "deny", "allow-only"),
     "run": ("timeout", "max-output", "deny", "allow-only", "handlers-from", "allow-handler"),
     "generate": ("stdin", "intent", "placement", "encoding", "output", "dry-run", "provider", "model", "plan-file", "allow-remote"),

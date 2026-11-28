@@ -65,6 +65,7 @@ bash scripts/ci_check.sh src tests         # from a checkout of this repository
 # or, per file:
 phantom check --strict path/to/file.py
 phantom check --format sarif path/to/file.py > phantom.sarif
+phantom check --json path/to/file.py       # machine-readable results for CI parsing
 ```
 
 `PHANTOM_STRICT`, `PHANTOM_EXCLUDE` and `PHANTOM_ARGS` configure `scripts/ci_check.sh` (see the header of the script).
